@@ -1,7 +1,7 @@
 # Zebrafish RNA-Quarium
 
 ## Streamlined analysis of all Zebrafish RNAseq datasets in the public archive
-Obtain the following for each Zebrafish dataset:
+Produce the following for each Zebrafish dataset:
 - Gene counts table
 - Non-zebrafish reads
 - Transcriptome assembly of non-zebrafish reads
