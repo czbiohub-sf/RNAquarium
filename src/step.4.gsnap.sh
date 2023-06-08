@@ -11,14 +11,10 @@
 #SBATCH -e slurm.out.gsnap/slurm-%A_%a.err
 #SBATCH -o slurm.out.gsnap/slurm-%A_%a.out
 
-# declare arrays
-#readarray -t accessions < <(cat /hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/SRA_accession_list.1.27.23.txt)
-readarray -t accessions < <(cat /hpc/scratch/group.balla/unmapped_pipeline/gsnap.missing.txt)
-
 declare -x idx=$(( ${SLURM_ARRAY_TASK_ID} -1))
 
 module load anaconda
-conda activate bowtie2
+conda activate zf_pipeline
 
 #parameters
 max_mismatch=0.3
@@ -26,12 +22,19 @@ rm_dedup_res=0 #whether to remove dedup results, 0=don't remove, 1=remove
 
 #setting directories
 #working_dir="/hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/unmapped_dev"
-working_dir="/hpc/scratch/group.balla/unmapped_pipeline"
+working_dir="/hpc/scratch/group.theory/jparas/zf_pipeline"
 ddir=${working_dir}/Dedup_out
 gdir=${working_dir}/Gsnap_out
-bbmap_dir=/hpc/projects/balla_group/sra_experiments/tools/bbmap
-gsnap_out_bin_path="/hpc/projects/balla_group/sra_experiments/tools/gmap-2021-12-17/bin/gsnap" #For small genomes of less than 2^32 (4 billion) bp, please run gsnap
-gdbdir="/hpc/projects/balla_group/sra_experiments/tools/gmap-2021-12-17/db"
+
+# declare arrays
+#readarray -t accessions < <(cat /hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/SRA_accession_list.1.27.23.txt)
+readarray -t accessions < <(cat "${working_dir}/data/gsnap.missing.txt")
+
+tools="/hpc/projects/theory/sharing/internship/jacob.paras/tools"
+bbmap_dir="${tools}/bbmap"
+gsnap_out_bin_path="${tools}/gmap-2021-12-17/bin/gsnap" #For small genomes of less than 2^32 (4 billion) bp, please run gsnap
+gdbdir="${tools}/gmap-2021-12-17/db"
+
 gdbidx="Danio_rerio.GRCz11.dna_sm.primary_assembly"
 
 #check if gsnap result already exists for the current accession, if so, check gzip file integrity. If all pass, exit the script

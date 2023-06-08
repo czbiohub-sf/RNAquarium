@@ -11,31 +11,31 @@
 #SBATCH -e slurm.out.Bowtie2.missing/slurm-%A_%a.err
 #SBATCH -o slurm.out.Bowtie2.missing/slurm-%A_%a.out
 
-# declare arrays
-#readarray -t accessions < <(cat /hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/SRA_accession_list.1.27.23.txt) #24G 2cpus
-#readarray -t accessions < <(cat /hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/unmapped_dev/accesssions_missing_BT2_res.txt) # 64G
-readarray -t accessions < <(cat /hpc/scratch/group.balla/unmapped_pipeline/Bowtie2.missing.txt)
-
 declare -x idx=$(( ${SLURM_ARRAY_TASK_ID} -1))
 
 module load anaconda
-conda activate bowtie2
+conda activate zf_pipeline
 
 #use /tmp
-use_tmp=1
+use_tmp=0
 
 #remove STAR_out after Bowtie2
 remove_STAR_OUT=0
 
 #setting directories
-working_dir="/hpc/scratch/group.balla/unmapped_pipeline"
+working_dir="/hpc/scratch/group.theory/jparas/zf_pipeline"
 fdir=${working_dir}/fastq
 sdir=${working_dir}/STAR_out
 bdir=${working_dir}/Bowtie2_out
-bbmap_dir=/hpc/projects/balla_group/sra_experiments/tools/bbmap
+
+# declare arrays
+readarray -t accessions < <(cat "${working_dir}/data/Bowtie2.missing.txt")
+
+tools="/hpc/projects/theory/sharing/internship/jacob.paras/tools"
+bbmap_dir="${tools}/bbmap"
 
 #setting up index
-ZF_idx=/hpc/projects/balla_group/sra_experiments/tools/bowtie2_index/Danio_rerio.GRCz11.dna_sm.primary_assembly
+ZF_idx="${tools}/bowtie2_index/Danio_rerio.GRCz11.dna_sm.primary_assembly"
 
 
 ####################################################

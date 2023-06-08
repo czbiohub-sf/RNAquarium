@@ -1,3 +1,5 @@
+#!/bin/bash
+
 SLURM_OUTDIR="slurm.out"
 WorkingDir="/hpc/scratch/group.theory/jparas/zf_pipeline"
 OUTDIR="${WorkingDir}/STAR_out"
