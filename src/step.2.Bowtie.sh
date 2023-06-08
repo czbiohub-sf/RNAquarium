@@ -33,6 +33,7 @@ readarray -t accessions < <(cat "${working_dir}/data/Bowtie2.missing.txt")
 
 tools="/hpc/projects/theory/sharing/internship/jacob.paras/tools"
 bbmap_dir="${tools}/bbmap"
+samtools="${tools}/samtools-1.6/samtools"
 
 #setting up index
 ZF_idx="${tools}/bowtie2_index/Danio_rerio.GRCz11.dna_sm.primary_assembly"
@@ -97,7 +98,7 @@ then  #paired end
         bowtie2 --quiet --very-sensitive-local \
         --rg-id na --rg LB:na --rg SM:na --rg PL:na --rg PU:na \
         -x ${ZF_idx} -U ${sdir}/PE/${accessions[$idx]}/Unmapped.out.mate1.gz | \
-        samtools view -b - >> ${bdir}/${accessions[$idx]}/bowtie2.bam
+        $samtools view -b - >> ${bdir}/${accessions[$idx]}/bowtie2.bam
     fi
     #map mate 2 (in unpaired mode)
     if [ -e ${sdir}/PE/${accessions[$idx]}/Unmapped.out.mate2.gz ]
@@ -106,17 +107,17 @@ then  #paired end
         bowtie2 --quiet --very-sensitive-local \
         --rg-id na --rg LB:na --rg SM:na --rg PL:na --rg PU:na \
         -x ${ZF_idx} -U ${sdir}/PE/${accessions[$idx]}/Unmapped.out.mate2.gz | \
-        samtools view -b - >> ${bdir}/${accessions[$idx]}/bowtie2.bam
+        $samtools view -b - >> ${bdir}/${accessions[$idx]}/bowtie2.bam
     fi
     #process bam file
     if [ -e ${bdir}/${accessions[$idx]}/bowtie2.bam ]
     then #get stats
         echo "processing bowtie2 bam file"
-        samtools view ${bdir}/${accessions[$idx]}/bowtie2.bam | cut -f2 | sort | uniq -c > ${bdir}/${accessions[$idx]}/bowtie2.stats.txt
+        $samtools view ${bdir}/${accessions[$idx]}/bowtie2.bam | cut -f2 | sort | uniq -c > ${bdir}/${accessions[$idx]}/bowtie2.stats.txt
         # retrain unmapped reads if bitwise flag contains 4 or 8
         # 4: unmapped 
         # 8: mate unmapped
-        samtools view ${bdir}/${accessions[$idx]}/bowtie2.bam | awk '{if( and($2,4)==0 && and($2,8)==0) {print $1}}' > ${bdir}/${accessions[$idx]}/bowtie2.mapped.names.txt # print out read name if both read and mate are mapped ( that is SAM bitwise flag does not contain 4 or 8 )
+        $samtools view ${bdir}/${accessions[$idx]}/bowtie2.bam | awk '{if( and($2,4)==0 && and($2,8)==0) {print $1}}' > ${bdir}/${accessions[$idx]}/bowtie2.mapped.names.txt # print out read name if both read and mate are mapped ( that is SAM bitwise flag does not contain 4 or 8 )
         #filter STAR out using names of mapped reads
         gunzip -c ${sdir}/PE/${accessions[$idx]}/Unmapped.out.mate1.gz | ${bbmap_dir}/filterbyname.sh in=stdin names=${bdir}/${accessions[$idx]}/bowtie2.mapped.names.txt out=${bdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT include=f
         gunzip -c ${sdir}/PE/${accessions[$idx]}/Unmapped.out.mate2.gz | ${bbmap_dir}/filterbyname.sh in=stdin names=${bdir}/${accessions[$idx]}/bowtie2.mapped.names.txt out=${bdir}/${accessions[$idx]}/Unmapped.out.mate2.filteredbyBT include=f
@@ -154,18 +155,18 @@ elif [ -d ${sdir}/SE/${accessions[$idx]} ]
             bowtie2 --quiet --very-sensitive-local \
             --rg-id na --rg LB:na --rg SM:na --rg PL:na --rg PU:na \
             -x ${ZF_idx} -U ${sdir}/SE/${accessions[$idx]}/Unmapped.out.mate1.gz | \
-            samtools view -b - >> ${bdir}/${accessions[$idx]}/bowtie2.bam
+            $samtools view -b - >> ${bdir}/${accessions[$idx]}/bowtie2.bam
         fi
         
         #process bam file
         if [ -e ${bdir}/${accessions[$idx]}/bowtie2.bam ]
         then #get stats
             echo "processing bowtie2 bam file"
-            samtools view ${bdir}/${accessions[$idx]}/bowtie2.bam | cut -f2 | sort | uniq -c > ${bdir}/${accessions[$idx]}/bowtie2.stats.txt
+            $samtools view ${bdir}/${accessions[$idx]}/bowtie2.bam | cut -f2 | sort | uniq -c > ${bdir}/${accessions[$idx]}/bowtie2.stats.txt
             # retain unmapped reads if bitwise flag contains 4 or 8
             # 4: unmapped 
             # 8: mate unmapped
-            samtools view ${bdir}/${accessions[$idx]}/bowtie2.bam | awk '{if( and($2,4)==0 && and($2,8)==0) {print $1}}' > ${bdir}/${accessions[$idx]}/bowtie2.mapped.names.txt # print out read name if both read and mate are mapped ( that is SAM bitwise flag does not contain 4 or 8 )
+            $samtools view ${bdir}/${accessions[$idx]}/bowtie2.bam | awk '{if( and($2,4)==0 && and($2,8)==0) {print $1}}' > ${bdir}/${accessions[$idx]}/bowtie2.mapped.names.txt # print out read name if both read and mate are mapped ( that is SAM bitwise flag does not contain 4 or 8 )
             #filter STAR out using names of mapped reads
             gunzip -c ${sdir}/SE/${accessions[$idx]}/Unmapped.out.mate1.gz | ${bbmap_dir}/filterbyname.sh in=stdin names=${bdir}/${accessions[$idx]}/bowtie2.mapped.names.txt out=${bdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT include=f
             
