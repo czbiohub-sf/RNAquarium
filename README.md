@@ -1,4 +1,4 @@
-# Zebrafish RNA-Quarium
+# Zebrafish RNAquarium
 
 ## Streamlined analysis of all Zebrafish RNAseq datasets in the public archive
 Produce the following for each Zebrafish dataset:
