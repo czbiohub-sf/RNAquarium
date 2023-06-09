@@ -43,7 +43,7 @@ pdir=${working_dir}/prefetched
 sdir=${working_dir}/STAR_out
 
 #bins
-tools="/hpc/projects/theory/sharing/internship/jacob.paras/tools"
+tools="/hpc/projects/theory_ds/internship/jacob.paras/tools"
 sra_bin="${tools}/sratoolkit.3.0.0-ubuntu64/bin"
 PRICE_bin="${tools}/PriceSource140408/PriceTI"
 STAR_bin="${tools}/STAR/STAR-2.7.10a/bin/Linux_x86_64_static/STAR"

@@ -30,7 +30,7 @@ sdir=${working_dir}/STAR_out
 # declare arrays
 readarray -t accessions < <(cat "${working_dir}/data/SRA_accession_list.1.27.23.txt")
 
-tools="/hpc/projects/theory/sharing/internship/jacob.paras/tools"
+tools="/hpc/projects/theory_ds/internship/jacob.paras/tools"
 czid_dedup_bin_path="${tools}/czid-dedup-Linux"
 
 #main command

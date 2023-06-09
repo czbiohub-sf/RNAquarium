@@ -31,7 +31,7 @@ bdir=${working_dir}/Bowtie2_out
 # declare arrays
 readarray -t accessions < <(cat "${working_dir}/data/Bowtie2.missing.txt")
 
-tools="/hpc/projects/theory/sharing/internship/jacob.paras/tools"
+tools="/hpc/projects/theory_ds/internship/jacob.paras/tools"
 bbmap_dir="${tools}/bbmap"
 samtools="${tools}/samtools-1.6/samtools"
 

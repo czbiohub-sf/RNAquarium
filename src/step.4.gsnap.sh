@@ -30,7 +30,7 @@ gdir=${working_dir}/Gsnap_out
 #readarray -t accessions < <(cat /hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/SRA_accession_list.1.27.23.txt)
 readarray -t accessions < <(cat "${working_dir}/data/gsnap.missing.txt")
 
-tools="/hpc/projects/theory/sharing/internship/jacob.paras/tools"
+tools="/hpc/projects/theory_ds/internship/jacob.paras/tools"
 bbmap_dir="${tools}/bbmap"
 gsnap_out_bin_path="${tools}/gmap-2021-12-17/bin/gsnap" #For small genomes of less than 2^32 (4 billion) bp, please run gsnap
 gdbdir="${tools}/gmap-2021-12-17/db"
