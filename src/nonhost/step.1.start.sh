@@ -34,7 +34,7 @@ if [ ! -d "${WorkingDir}/logs" ]
         mkdir "${WorkingDir}/logs"
 fi
 
-echo "remvoing previous log files"
+echo "removing previous log files"
 
 if [ -e $log0 ]
     then 

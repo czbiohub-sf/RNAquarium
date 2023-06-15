@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #purge output folders
 rm -rf slurm.out
 mkdir -p slurm.out

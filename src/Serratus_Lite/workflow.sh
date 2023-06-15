@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Workflow to execute Serratus Lite on a cluster
 # A slurm job array is used to search SRA samples in parallel
 # The search is performed in 3 steps
