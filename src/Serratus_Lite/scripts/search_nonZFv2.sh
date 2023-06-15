@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name=Zpoxv_Serratus
+#SBATCH --job-name=Serratus
 #SBATCH --time=14-00:00:00
-#SBATCH --array=1-44667%1000
+#SBATCH --array=1-54189%100
 #SBATCH --partition preempted
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -12,7 +12,7 @@
 #SBATCH -o slurm.out/slurm-%j.out
 
 # declare arrays
-readarray -t accessions < <(cat /hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/SRA_accession_list.txt)
+readarray -t accessions < <(cat "${basedir}/nonhost/data/SRA_accession_list.1.27.23.txt")
 
 declare -x idx=$(( ${SLURM_ARRAY_TASK_ID} -1))
 
@@ -20,8 +20,8 @@ module load anaconda
 conda activate bowtie2
 
 #setting directories
-basedir=/hpc/projects/balla_group/sra_experiments/search_nonZFv2
-seqbasedir=/hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/unmapped_dev/Gsnap_out
+basedir=/hpc/scratch/group.theory/jparas/Zebrafish-RNA-Quarium/src
+seqbasedir=/hpc/projects/theory_ds/internship/jacob.paras/Gsnap_out
 #working dir
 working_dir=${basedir}/Serratus_Lite_pipeline/zpoxv # <---- adjust this when switching query!!!!
 cd $working_dir
