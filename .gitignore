@@ -34,9 +34,10 @@ inc/
 /pm_to_blib
 /*.zip
 
-# Output directories
+# Output directories and files
 /fastq/
 /logs/
 /prefetched/
 /slurm.out/
 /STAR_out/
+/src/Serratus_Lite/query_virus_data/*.fa.*
