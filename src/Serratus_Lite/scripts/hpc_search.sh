@@ -8,8 +8,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=8G
-#SBATCH -e slurm.out/slurm-%A-%a.err
-#SBATCH -o slurm.out/slurm-%A-%a.out
+#SBATCH -e ../slurm.out/slurm-%A-%a.err
+#SBATCH -o ../slurm.out/slurm-%A-%a.out
 
 basedir="${1}"
 accessions_list="${2}"
@@ -24,7 +24,7 @@ readarray -t accessions < <(cat "${accessions_list}")
 declare -x idx=$(( ${SLURM_ARRAY_TASK_ID} - 1))
 
 # edit these paths to point to your installation directory
-bowtie2="${tools}/bowtie2-2.4.5-linux-x86_64"
+bowtie2="${tools}/bowtie2-2.4.5-linux-x86_64/bowtie2"
 samtools="${tools}/samtools-1.16.1/samtools"
 
 # run bowtie2
