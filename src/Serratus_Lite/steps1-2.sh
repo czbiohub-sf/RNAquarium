@@ -14,14 +14,17 @@ basedir="$(realpath "${1}")"
 
 DEFAULT_ACCESSIONS_LIST="/hpc/scratch/group.theory/jparas/Zebrafish-RNA-Quarium/src/nonhost/data/SRA_accession_list.1.27.23.txt"
 DEFAULT_SEQBASEDIR="/hpc/projects/theory_ds/internship/jacob.paras/Gsnap_out"
+DEFAULT_TOOLS="/hpc/projects/theory_ds/internship/jacob.paras/tools"
 
 read -rep $"Enter the path to your accessions list files:"$'\n' accessions_list
 accessions_list=${accessions_list:-${DEFAULT_ACCESSIONS_LIST}}
 read -rep $"Enter the path to your RNASeq output directory:"$'\n' seqbasedir
 seqbasedir=${seqbasedir:-${DEFAULT_SEQBASEDIR}}
+read -rep $"Enter the directory that has your executables:"$'\n' tools
+tools=${tools:-${DEFAULT_TOOLS}}
 
 # edit this path to point to your installation directory
-bowtie2="/hpc/projects/theory_ds/internship/jacob.paras/tools/bowtie2-2.4.5-linux-x86_64"
+bowtie2="${tools}/bowtie2-2.4.5-linux-x86_64"
 
 if [ ! -d "${basedir}" ]; then
     echo "Directory ${basedir} does not exist"
@@ -47,4 +50,4 @@ done
 # Step 2 run search on hpc using job array
 if [ -e slurm.out/ ] ; then rm -rf slurm.out/ ; fi
 mkdir -p slurm.out
-sbatch scripts/hpc_search.sh "${basedir}" "$(realpath "${accessions_list}")" "$(realpath "${seqbasedir}")"
+sbatch scripts/hpc_search.sh "${basedir}" "$(realpath "${accessions_list}")" "$(realpath "${seqbasedir}")" "$(realpath "${tools}")"

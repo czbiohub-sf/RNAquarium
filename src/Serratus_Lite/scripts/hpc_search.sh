@@ -14,20 +14,18 @@
 basedir="${1}"
 accessions_list="${2}"
 seqbasedir="${3}"
+tools="${4}"
 
 virus_files="${basedir}/query_virus_data/*.fa"
 
 # declare arrays
 readarray -t accessions < <(cat "${accessions_list}")
 
-declare -x idx=$(( ${SLURM_ARRAY_TASK_ID} -1))
+declare -x idx=$(( ${SLURM_ARRAY_TASK_ID} - 1))
 
-# #working dir
-# working_dir=${basedir}/Serratus_Lite_pipeline/zpoxv # <---- adjust this when switching query!!!!
-# cd $working_dir
-
-# #setup query
-# query=zpoxv.fasta # <---- adjust this when switching query!!!!
+# edit these paths to point to your installation directory
+bowtie2="${tools}/bowtie2-2.4.5-linux-x86_64"
+samtools="${tools}/samtools-1.16.1/samtools"
 
 # run bowtie2
 # -f <input is fasta>  -U <input is unpaired>
@@ -42,20 +40,20 @@ do
     if [ -e $FQ1 ] && [ -e $FQ2 ]
     then
         #PE
-        bowtie2 --quiet --very-sensitive-local \
+        $bowtie2 --quiet --very-sensitive-local \
         --rg-id na --rg LB:na --rg SM:na \
         --rg PL:na --rg PU:na \
         -x ${VIRALSEQ} -1 $FQ1 -2 $FQ2 -q | \
-        samtools view -b -F 4 - > $working_dir/bam/${accessions[$idx]}.bam
+        $samtools view -b -F 4 - > $working_dir/bam/${accessions[$idx]}.bam
     else
         if [ -e $FQ1 ]
         then
             #SE
-            bowtie2 --quiet --very-sensitive-local \
+            $bowtie2 --quiet --very-sensitive-local \
             --rg-id na --rg LB:na --rg SM:na \
             --rg PL:na --rg PU:na \
             -x ${VIRALSEQ} -U $FQ1 -q | \
-            samtools view -b -F 4 - > $working_dir/bam/${accessions[$idx]}.bam
+            $samtools view -b -F 4 - > $working_dir/bam/${accessions[$idx]}.bam
         fi
     fi
 
@@ -66,7 +64,7 @@ do
 
     if [ -e $working_dir/bam/${accessions[$idx]}.bam ]
     then
-        samtools view $working_dir/bam/${accessions[$idx]}.bam | $summarizer
+        $samtools view $working_dir/bam/${accessions[$idx]}.bam | $summarizer
         rm $working_dir/bam/${accessions[$idx]}.bam
     fi
 done
