@@ -29,4 +29,4 @@ do
 done
 
 # Step 2 run search on hpc using job array
-# sbatch search_nonZFv2.sh 
+sbatch search_nonZFv2.sh "${basedir}"

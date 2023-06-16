@@ -11,13 +11,12 @@
 #SBATCH -e slurm.out/slurm-%j.err
 #SBATCH -o slurm.out/slurm-%j.out
 
+basedir="${1}"
+
 # declare arrays
 readarray -t accessions < <(cat "${basedir}/nonhost/data/SRA_accession_list.1.27.23.txt")
 
 declare -x idx=$(( ${SLURM_ARRAY_TASK_ID} -1))
-
-module load anaconda
-conda activate bowtie2
 
 #setting directories
 basedir=/hpc/scratch/group.theory/jparas/Zebrafish-RNA-Quarium/src
