@@ -41,3 +41,4 @@ inc/
 /slurm.out/
 /STAR_out/
 /src/Serratus_Lite/query_virus_data/*.fa.*
+!/src/Serratus_Lite/query_virus_data/*.tsv
