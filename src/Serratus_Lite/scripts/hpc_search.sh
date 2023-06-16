@@ -12,14 +12,16 @@
 #SBATCH -o slurm.out/slurm-%j.out
 
 basedir="${1}"
+accessions_list="${2}"
+
+virus_files="${basedir}/query_virus_data/*"
 
 # declare arrays
-readarray -t accessions < <(cat "${basedir}/nonhost/data/SRA_accession_list.1.27.23.txt")
+readarray -t accessions < <(cat "${accessions_list}")
 
 declare -x idx=$(( ${SLURM_ARRAY_TASK_ID} -1))
 
 #setting directories
-basedir=/hpc/scratch/group.theory/jparas/Zebrafish-RNA-Quarium/src
 seqbasedir=/hpc/projects/theory_ds/internship/jacob.paras/Gsnap_out
 #working dir
 working_dir=${basedir}/Serratus_Lite_pipeline/zpoxv # <---- adjust this when switching query!!!!
