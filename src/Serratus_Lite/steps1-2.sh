@@ -29,7 +29,7 @@ if [ ! -d "${basedir}" ]; then
 fi
 
 # Step 1 make bowtie index
-for virus in $(find "${basedir}/query_virus_data" -maxdepth 1 -type f)
+for virus in "${basedir}"/query_virus_data/*.fa
 do
     echo "Running query on ${virus}..."
     "${bowtie2}/bowtie2-build" "${virus}" "${virus}"
