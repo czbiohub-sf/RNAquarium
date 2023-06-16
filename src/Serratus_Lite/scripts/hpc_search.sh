@@ -13,6 +13,7 @@
 
 basedir="${1}"
 accessions_list="${2}"
+seqbasedir="${3}"
 
 virus_files="${basedir}/query_virus_data/*"
 
@@ -21,8 +22,6 @@ readarray -t accessions < <(cat "${accessions_list}")
 
 declare -x idx=$(( ${SLURM_ARRAY_TASK_ID} -1))
 
-#setting directories
-seqbasedir=/hpc/projects/theory_ds/internship/jacob.paras/Gsnap_out
 #working dir
 working_dir=${basedir}/Serratus_Lite_pipeline/zpoxv # <---- adjust this when switching query!!!!
 cd $working_dir
