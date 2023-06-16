@@ -12,8 +12,13 @@ fi
 # this script should be a sibling file to the directory that contains the virus sequences
 basedir="$(realpath "${1}")"
 
+DEFAULT_ACCESSIONS_LIST="/hpc/scratch/group.theory/jparas/Zebrafish-RNA-Quarium/src/nonhost/data/SRA_accession_list.1.27.23.txt"
+DEFAULT_SEQBASEDIR="/hpc/projects/theory_ds/internship/jacob.paras/Gsnap_out"
+
 read -rep $"Enter the path to your accessions list files:"$'\n' accessions_list
+accessions_list=${accessions_list:-${DEFAULT_ACCESSIONS_LIST}}
 read -rep $"Enter the path to your RNASeq output directory:"$'\n' seqbasedir
+seqbasedir=${seqbasedir:-${DEFAULT_SEQBASEDIR}}
 
 # edit this path to point to your installation directory
 bowtie2="/hpc/projects/theory_ds/internship/jacob.paras/tools/bowtie2-2.4.5-linux-x86_64"

@@ -15,7 +15,7 @@ basedir="${1}"
 accessions_list="${2}"
 seqbasedir="${3}"
 
-virus_files="${basedir}/query_virus_data/*"
+virus_files="${basedir}/query_virus_data/*.fa"
 
 # declare arrays
 readarray -t accessions < <(cat "${accessions_list}")
