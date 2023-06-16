@@ -12,8 +12,8 @@ fi
 # this script should be a sibling file to the directory that contains the virus sequences
 basedir="$(realpath "${1}")"
 
-read -rp $"Enter the path to your accessions list files:$'\n'" accessions_list
-read -rp $"Enter the path to your RNASeq output directory:$'\n'" seqbasedir
+read -rp $"Enter the path to your accessions list files:"$'\n' accessions_list
+read -rp $"Enter the path to your RNASeq output directory:"$'\n' seqbasedir
 
 # edit this path to point to your installation directory
 bowtie2="/hpc/projects/theory_ds/internship/jacob.paras/tools/bowtie2-2.4.5-linux-x86_64"
