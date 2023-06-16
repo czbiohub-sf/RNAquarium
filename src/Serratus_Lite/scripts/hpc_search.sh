@@ -8,8 +8,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=8G
-#SBATCH -e slurm.out/slurm-%j.err
-#SBATCH -o slurm.out/slurm-%j.out
+#SBATCH -e ../slurm.out/slurm-%A-%a.err
+#SBATCH -o ../slurm.out/slurm-%A-%a.out
 
 basedir="${1}"
 accessions_list="${2}"
@@ -33,8 +33,8 @@ declare -x idx=$(( ${SLURM_ARRAY_TASK_ID} -1))
 # -f <input is fasta>  -U <input is unpaired>
 for VIRALSEQ in ${virus_files}
 do
-    query="$(basename "${VIRALSEQ}")"
-    virus_name="$(basename "${VIRALSEQ%.*}")"
+    query="$(basename "${VIRALSEQ}")"   # virus file name
+    virus_name="$(basename "${VIRALSEQ%.*}")"   # virus name without file extension
     working_dir="${basedir}/results/${virus_name}"
     FQ1="${seqbasedir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz"
     FQ2="${seqbasedir}/${accessions[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.gsnapFiltered.fastq.gz"
