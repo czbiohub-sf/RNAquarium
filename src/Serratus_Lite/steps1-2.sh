@@ -16,11 +16,12 @@ DEFAULT_ACCESSIONS_LIST="/hpc/scratch/group.theory/jparas/Zebrafish-RNA-Quarium/
 DEFAULT_SEQBASEDIR="/hpc/projects/theory_ds/internship/jacob.paras/Gsnap_out"
 DEFAULT_TOOLS="/hpc/projects/theory_ds/internship/jacob.paras/tools"
 
-read -rep $"Enter the path to your accessions list files:"$'\n' accessions_list
+# click enter on each of these to use the default paths
+read -rep $"Enter the path to your accessions list files (press enter to use default):"$'\n' accessions_list
 accessions_list=${accessions_list:-${DEFAULT_ACCESSIONS_LIST}}
-read -rep $"Enter the path to your RNASeq output directory:"$'\n' seqbasedir
+read -rep $"Enter the path to your RNASeq output directory (press enter to use default):"$'\n' seqbasedir
 seqbasedir=${seqbasedir:-${DEFAULT_SEQBASEDIR}}
-read -rep $"Enter the directory that has your executables:"$'\n' tools
+read -rep $"Enter the directory that has your executables (press enter to use default):"$'\n' tools
 tools=${tools:-${DEFAULT_TOOLS}}
 
 # edit this path to point to your installation directory
@@ -42,7 +43,6 @@ do
         rm -rf "$res_folder"
     fi    
     mkdir -p "$res_folder"
-    mkdir "$res_folder/slurm.out"
     mkdir "$res_folder/summarized"
     mkdir "$res_folder/bam"
 done
