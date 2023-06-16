@@ -8,8 +8,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=8G
-#SBATCH -e ../slurm.out/slurm-%A-%a.err
-#SBATCH -o ../slurm.out/slurm-%A-%a.out
+#SBATCH -e slurm.out/slurm-%A-%a.err
+#SBATCH -o slurm.out/slurm-%A-%a.out
 
 basedir="${1}"
 accessions_list="${2}"
