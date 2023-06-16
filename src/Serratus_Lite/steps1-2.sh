@@ -10,7 +10,7 @@ fi
 
 # this script should be a sibling file to the directory that contains the virus sequences
 basedir="$(realpath "${1}")"
-bowtie2="/hpc/projects/theory_ds/internship/jacob.paras/tools/bowtie2-2.4.5"
+bowtie2="/hpc/projects/theory_ds/internship/jacob.paras/tools/bowtie2-2.4.5-linux-x86_64"
 
 # Step 1 make bowtie index
 for virus in $(find "${basedir}/query_virus_data" -maxdepth 1 -type f)
