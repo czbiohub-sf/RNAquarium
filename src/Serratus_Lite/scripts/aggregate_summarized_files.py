@@ -90,9 +90,9 @@ def main():
 
                     if line.startswith("famcvg"):
                         fields = line.split(";")
-                        for key, val in fields.items():
-                            fields[key] = val.split("=")[1]
-                        famcvg, fam, score, pctid, depth, aln, glb, length, top, topscore, toplen, topname = fields.values()
+                        for i, val in enumerate(fields):
+                            fields[i] = val.split("=")[1]
+                        famcvg, fam, score, pctid, depth, aln, glb, length, top, topscore, toplen, topname = fields
                         # famcvg = fields[0].split("=")[1]
                         # fam = fields[1].split("=")[1]
                         # score = fields[2].split("=")[1]
@@ -110,9 +110,9 @@ def main():
 
                     if line.startswith("seqcvg"): #TODO in future there maybe different seqs in each family
                         fields = line.split(";")
-                        for key, val in fields.items():
-                            fields[key] = val.split("=")[1]
-                        Seqcvg, Seq, Score, Pctid, Depth, Aln, Glb, Length, Family, Name = fields.values()
+                        for i, val in enumerate(fields):
+                            fields[i] = val.split("=")[1]
+                        Seqcvg, Seq, Score, Pctid, Depth, Aln, Glb, Length, Family, Name = fields
                         # Seqcvg = fields[0].split("=")[1]
                         # Seq = fields[1].split("=")[1]
                         # Score = fields[2].split("=")[1]
