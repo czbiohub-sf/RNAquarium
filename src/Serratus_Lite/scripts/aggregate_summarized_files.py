@@ -35,8 +35,7 @@ def main():
     try:
         #check input
         if (config["dir"] is None or config["dir"] == ""):
-            log.error(f"please specify --dir")
-            sys.exit("Please fix the error(s) above and rerun the script")
+            sys.exit("Please specify --dir\nPlease fix the error(s) above and rerun the script")
 
         starttime = datetime.datetime.now()
 

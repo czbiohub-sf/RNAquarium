@@ -50,5 +50,5 @@ done
 # Step 2 run search on hpc using job array
 if [ -e slurm.out/ ] ; then rm -rf slurm.out/ ; fi
 mkdir -p slurm.out
-cd scripts
+cd "${basedir}/scripts"
 sbatch hpc_search.sh "${basedir}" "$(realpath "${accessions_list}")" "$(realpath "${seqbasedir}")" "$(realpath "${tools}")"
