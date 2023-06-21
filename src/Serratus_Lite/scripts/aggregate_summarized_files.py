@@ -84,7 +84,7 @@ def main():
                     gene_count = 0
 
                     for line in infh:
-
+                        line = line.strip(";\n")
                         if line.startswith("readlength"):
                             readlength = line.split("=")[1].split(";")[0]
 
