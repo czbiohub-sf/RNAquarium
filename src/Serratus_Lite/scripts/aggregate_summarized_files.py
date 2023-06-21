@@ -26,6 +26,8 @@ def parse_args():
 
 config = vars(parse_args())
 indir = config["dir"].rstrip('/').rstrip('\\')
+virus_dir = os.path.split(indir)[0]
+virus_name = os.path.split(virus_dir)[1]
 
 
 #####################
@@ -65,7 +67,8 @@ def main():
         #         unmapped_count = sum([int(i) for i in fields[2:15]])
         #         counts[accession] = [mapped_count, unmapped_count]
 
-        with open(f"{indir}.parsed.csv", "w") as outfh:
+        with open(f"{virus_dir}/{virus_name}.parsed.csv", "w") as outfh:
+            print(f"Processing {virus_dir}...")
             #write header
             outfh.write(f"SRA_run_accession,SRA_sample_accession,tissue category,merged_attr,mapped_count,unmapped_count,readlength,famcvg,fam,score,pctid,depth,aln,glb,length,top,topscore,toplen,topname,seq_divider,seq count,seqcvg_1,seq_1,score_1,pctid_1,depth_1,aln_1,glb_1,length_1,family_1,name_1,seq_divider,seqcvg_2,seq_2,score_2,pctid_2,depth_2,aln_2,glb_2,length_2,family_2,name_2,seq_divider,seqcvg_3,seq_3,score_3,pctid_3,depth_3,aln_3,glb_3,length_3,family_3,name_3,seq_divider,seqcvg_4,seq_4,score_4,pctid_4,depth_4,aln_4,glb_4,length_4,family_4,name_4,,\n")
             file_count = 0
