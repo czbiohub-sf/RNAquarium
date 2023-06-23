@@ -131,7 +131,6 @@ def check_run(accession):
 
     success = False if size_fail else True
     error_message = None if success else error_message
-    if not success: print(error_message)
 
     return {'id': accession, 'success': success, 'msg': error_message}
 
