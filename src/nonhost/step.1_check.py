@@ -1,10 +1,11 @@
 from argparse import ArgumentParser
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import itertools
 import json
 import os
 import subprocess as sp
 import sys
+from tqdm import tqdm
 
 
 star_dir = 'STAR_out/'
@@ -40,7 +41,7 @@ def parse_args():
         sys.exit(1)
     return vars(config)
 
-
+# MAKE SURE THESE PATHS ARE CORRECT
 config_dict = parse_args()
 working_dir = os.path.realpath(config_dict['dir'].rstrip('/').rstrip('\\'))
 star_path = os.path.join(working_dir, star_dir)
@@ -129,16 +130,22 @@ def check_run(accession):
 
     return {'id': accession, 'success': success, 'msg': error_message}
 
+
 def main():
     with open(accessions_path, 'r') as f:
         accessions = [line.strip() for line in f]
-    with ProcessPoolExecutor(max_workers=num_cores) as executor:
-        results = executor.map(check_run, accessions, chunksize=num_files // num_cores)
-    with open(failed_path, 'w') as f:
-        for result in results:
-            f.write(f'{result["id"]}\n')
+    with tqdm(total=len(accessions)) as progress:
+        with ThreadPoolExecutor(max_workers=num_cores) as executor:
+            results_json = []
+            results = [executor.submit(check_run, accession) for accession in accessions]
+            with open(failed_path, 'w') as f:
+                for future in as_completed(results):
+                    result = future.result()
+                    f.write(f'{result["id"]}\n')
+                    results_json.append(result)
+                    progress.update()
     with open(results_path, 'w') as f:
-        json.dump(results, f)
+        json.dump(results_json, f)
 
 
 if __name__ == '__main__':
