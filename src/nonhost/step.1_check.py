@@ -117,10 +117,10 @@ def check_run(accession):
     # SE
     else:
         # TODO: make sure htseq files are created properly in the pipeline
-        SE_size_check = os.path.join(single_path, mate1_file)
+        SE_size_check = [os.path.join(single_path, mate1_file)]
         # SE_size_check = itertools.starmap(os.path.join, [(counts_path, htseq_count_file), (single_path, mate1_file)])
         SE_files_size_mask = map(lambda file: os.path.getsize(file) < min_file_size, SE_size_check)
-        if failed_files := list(itertools.compress(data=SE_size_check, selectors=SE_files_size_mask)):
+        if failed_files := list(itertools.compress(-am data=SE_size_check, selectors=SE_files_size_mask)):
             size_fail = True
             error_message += f'Files failed size check: {*failed_files,}\n'
         zipfile = os.path.join(single_path, mate1_file)
