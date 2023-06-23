@@ -65,27 +65,27 @@ def check_run(accession):
     # TODO: fix htseq portion of pipeline
     counts_files = [os.path.join(counts_path, log_file)]
     # counts_files = itertools.starmap(os.path.join, [(counts_path, log_file), (counts_path, htseq_count_file)])
-    PE_files = itertools.starmap(os.path.join, [(pair_path, log_file), (pair_path, mate1_file), (pair_path, mate2_file)])
-    SE_files = itertools.starmap(os.path.join, [(single_path, log_file), (single_path, mate1_file)])
+    PE_files = list(itertools.starmap(os.path.join, [(pair_path, log_file), (pair_path, mate1_file), (pair_path, mate2_file)]))
+    SE_files = list(itertools.starmap(os.path.join, [(single_path, log_file), (single_path, mate1_file)]))
 
     # creating a mask over the list of paths to see whether or not the files exist
-    counts_files_existence_mask = map(os.path.isfile, counts_files)
-    PE_files_existence_mask = map(os.path.isfile, PE_files)
-    SE_files_existence_mask = map(os.path.isfile, SE_files)
+    counts_files_existence_mask = list(map(os.path.isfile, counts_files))
+    PE_files_existence_mask = list(map(os.path.isfile, PE_files))
+    SE_files_existence_mask = list(map(os.path.isfile, SE_files))
 
     # checking counts directory files
     if not all(counts_files_existence_mask):
-        error_message += f'Counts failed mask: {list(counts_files_existence_mask)} '
+        error_message += f'Counts failed mask: {counts_files_existence_mask} '
         nonexistent = True
     # checking PE files
     if any(PE_files_existence_mask):
         PE = True
         if not all(PE_files_existence_mask):
-            error_message += f'PE failed mask: {list(PE_files_existence_mask)} '
+            error_message += f'PE failed mask: {PE_files_existence_mask} '
             nonexistent = True
     # checking SE files
     elif not all(SE_files_existence_mask):
-        error_message += f'SE failed mask: {list(SE_files_existence_mask)} '
+        error_message += f'SE failed mask: {SE_files_existence_mask} '
         nonexistent = True
 
     # handling nonexistent files
