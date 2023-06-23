@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import itertools
 import json
 import os
@@ -127,6 +127,7 @@ def check_run(accession):
 
     success = False if size_fail else True
     error_message = None if success else error_message
+    if not success: print(error_message)
 
     return {'id': accession, 'success': success, 'msg': error_message}
 
@@ -135,7 +136,7 @@ def main():
     with open(accessions_path, 'r') as f:
         accessions = [line.strip() for line in f]
     with tqdm(total=len(accessions)) as progress:
-        with ThreadPoolExecutor(max_workers=num_cores) as executor:
+        with ProcessPoolExecutor(max_workers=num_cores) as executor:
             results_json = []
             results = [executor.submit(check_run, accession) for accession in accessions]
             with open(failed_path, 'w') as f:
