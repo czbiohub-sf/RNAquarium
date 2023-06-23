@@ -62,7 +62,9 @@ def check_run(accession):
     single_path = os.path.join(star_path, single_dir, accession)
 
     # creating paths using os.path.join
-    counts_files = itertools.starmap(os.path.join, [(counts_path, log_file), (counts_path, htseq_count_file)])
+    # TODO: fix htseq portion of pipeline
+    counts_files = [os.path.join(counts_path, log_file)]
+    # counts_files = itertools.starmap(os.path.join, [(counts_path, log_file), (counts_path, htseq_count_file)])
     PE_files = itertools.starmap(os.path.join, [(pair_path, log_file), (pair_path, mate1_file), (pair_path, mate2_file)])
     SE_files = itertools.starmap(os.path.join, [(single_path, log_file), (single_path, mate1_file)])
 
