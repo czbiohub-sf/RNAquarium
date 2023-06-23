@@ -73,17 +73,14 @@ def check_run(accession):
 
     # checking counts directory files
     if not all(counts_files_existence_mask):
-        error_message += f'Counts DNE: {counts_files_existence_mask}\n'
         nonexistent = True
     # checking PE files
     if any(PE_files_existence_mask):
-        error_message += f'PE DNE: {counts_files_existence_mask}\n'
         PE = True
         if not all(PE_files_existence_mask):
             nonexistent = True
     # checking SE files
     elif not all(SE_files_existence_mask):
-        error_message += f'SE DNE: {SE_files_existence_mask}\n'
         nonexistent = True
 
     # handling nonexistent files
@@ -133,7 +130,7 @@ def check_run(accession):
             error_message += f'Files not compressed properly: {zipfile}'
 
     success = False if size_fail else True
-    error_message = None if success else error_message
+    # error_message = None if success else error_message
 
     return {'id': accession, 'success': success, 'msg': error_message}
 
