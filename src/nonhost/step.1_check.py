@@ -93,7 +93,7 @@ def check_run(accession):
         else:
             nonexistent_files = itertools.compress(data=itertools.chain(counts_files, SE_files),
                                                    selectors=(not f for f in itertools.chain(counts_files_existence_mask, SE_files_existence_mask)))
-        msg = f'Nonexistent files: {*nonexistent_files,}'
+        error_message = f'Nonexistent files: {*nonexistent_files,}'
         return {'id': accession, 'success': success, 'msg': error_message}
 
     if PE:
