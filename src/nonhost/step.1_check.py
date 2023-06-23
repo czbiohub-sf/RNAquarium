@@ -75,17 +75,14 @@ def check_run(accession):
 
     # checking counts directory files
     if not all(counts_files_existence_mask):
-        error_message += f'Counts failed mask: {counts_files_existence_mask} '
         nonexistent = True
     # checking PE files
     if any(PE_files_existence_mask):
         PE = True
         if not all(PE_files_existence_mask):
-            error_message += f'PE failed mask: {PE_files_existence_mask} '
             nonexistent = True
     # checking SE files
     elif not all(SE_files_existence_mask):
-        error_message += f'SE failed mask: {SE_files_existence_mask} '
         nonexistent = True
 
     # handling nonexistent files
@@ -151,7 +148,7 @@ def main():
                 for future in as_completed(results):
                     result = future.result()
                     if not result['success']:
-                        f.write(f'{result["id"]}\n{result}\n')
+                        f.write(f'{result["id"]}\n')
                     results_json.append(result)
                     progress.update()
     with open(results_path, 'w') as f:
