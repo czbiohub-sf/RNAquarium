@@ -75,14 +75,17 @@ def check_run(accession):
 
     # checking counts directory files
     if not all(counts_files_existence_mask):
+        error_message += f'Counts failed mask: {counts_files_existence_mask} '
         nonexistent = True
     # checking PE files
     if any(PE_files_existence_mask):
         PE = True
         if not all(PE_files_existence_mask):
+            error_message += f'PE failed mask: {PE_files_existence_mask} '
             nonexistent = True
     # checking SE files
     elif not all(SE_files_existence_mask):
+        error_message += f'SE failed mask: {SE_files_existence_mask} '
         nonexistent = True
 
     # handling nonexistent files
@@ -95,7 +98,7 @@ def check_run(accession):
         else:
             nonexistent_files = itertools.compress(data=itertools.chain(counts_files, SE_files),
                                                    selectors=(not f for f in itertools.chain(counts_files_existence_mask, SE_files_existence_mask)))
-        error_message = f'Nonexistent files: {*nonexistent_files,}'
+        error_message += f'Nonexistent files: {*nonexistent_files,}'
         return {'id': accession, 'success': success, 'msg': error_message}
 
     if PE:
