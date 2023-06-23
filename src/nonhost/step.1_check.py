@@ -103,15 +103,15 @@ def check_run(accession):
         # mask to check if file size is larger than an arbitrarily small, but nonzero, size
         PE_files_size_mask = map(lambda f: os.path.getsize(f) < min_file_size, PE_size_check)
         # empty compression means files passed and will evaluate to False
-        if failed_files := itertools.compress(data=PE_size_check, selectors=PE_files_size_mask):
+        if failed_files := list(itertools.compress(data=PE_size_check, selectors=PE_files_size_mask)):
             size_fail = True
-            error_message += f'Files failed size check: {*failed_files,}\n'
+            error_message += f'Files failed size check: {*failed_files,}'
 
         zipped_files = itertools.starmap(os.path.join, [(pair_path, mate1_file), (pair_path, mate2_file)])
         # checking if .gzip files are properly zipped
         PE_zip_mask = map(lambda f: sp.getstatusoutput(f'gzip -t {f}')[0], zipped_files)
         # empty compression means files passed and will evaluate to False
-        if not_compressed := itertools.compress(data=zipped_files, selectors=PE_zip_mask):
+        if not_compressed := list(itertools.compress(data=zipped_files, selectors=PE_zip_mask)):
             size_fail = True
             error_message += f'Files not compressed properly: {*not_compressed,}'
     # SE
@@ -122,7 +122,7 @@ def check_run(accession):
         SE_files_size_mask = map(lambda file: os.path.getsize(file) < min_file_size, SE_size_check)
         if failed_files := list(itertools.compress(data=SE_size_check, selectors=SE_files_size_mask)):
             size_fail = True
-            error_message += f'Files failed size check: {*failed_files,}\n'
+            error_message += f'Files failed size check: {*failed_files,} '
         zipfile = os.path.join(single_path, mate1_file)
         # 1 on failure which evaluates to True, 0 on success which evaluates to False
         if sp.getstatusoutput(f'gzip -t {zipfile}')[0]:
