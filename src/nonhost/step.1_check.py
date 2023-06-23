@@ -103,7 +103,7 @@ def check_run(accession):
         # mask to check if file size is larger than an arbitrarily small, but nonzero, size
         PE_files_size_mask = map(lambda f: os.path.getsize(f) < min_file_size, PE_size_check)
         # empty compression means files passed and will evaluate to False
-        if failed_files := list(itertools.compress(data=PE_size_check, selectors=PE_files_size_mask)):
+        if failed_files := itertools.compress(data=PE_size_check, selectors=PE_files_size_mask):
             size_fail = True
             error_message += f'Files failed size check: {*failed_files,}\n'
 
@@ -111,7 +111,7 @@ def check_run(accession):
         # checking if .gzip files are properly zipped
         PE_zip_mask = map(lambda f: sp.getstatusoutput(f'gzip -t {f}')[0], zipped_files)
         # empty compression means files passed and will evaluate to False
-        if not_compressed := list(itertools.compress(data=zipped_files, selectors=PE_zip_mask)):
+        if not_compressed := itertools.compress(data=zipped_files, selectors=PE_zip_mask):
             size_fail = True
             error_message += f'Files not compressed properly: {*not_compressed,}'
     # SE
@@ -146,7 +146,7 @@ def main():
                 for future in as_completed(results):
                     result = future.result()
                     if not result['success']:
-                        f.write(f'{result["id"]}\n{result}\n')
+                        f.write(f'{result["id"]}\n')
                     results_json.append(result)
                     progress.update()
     with open(results_path, 'w') as f:
