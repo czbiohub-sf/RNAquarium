@@ -73,14 +73,17 @@ def check_run(accession):
 
     # checking counts directory files
     if not all(counts_files_existence_mask):
+        error_message += f'Counts DNE: {counts_files_existence_mask}\n'
         nonexistent = True
     # checking PE files
     if any(PE_files_existence_mask):
+        error_message += f'PE DNE: {counts_files_existence_mask}\n'
         PE = True
         if not all(PE_files_existence_mask):
             nonexistent = True
     # checking SE files
     elif not all(SE_files_existence_mask):
+        error_message += f'SE DNE: {SE_files_existence_mask}\n'
         nonexistent = True
 
     # handling nonexistent files
