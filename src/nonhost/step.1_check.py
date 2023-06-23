@@ -141,7 +141,8 @@ def main():
             with open(failed_path, 'w') as f:
                 for future in as_completed(results):
                     result = future.result()
-                    f.write(f'{result["id"]}\n')
+                    if not result['success']:
+                        f.write(f'{result["id"]}\n')
                     results_json.append(result)
                     progress.update()
     with open(results_path, 'w') as f:
