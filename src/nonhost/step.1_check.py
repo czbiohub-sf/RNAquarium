@@ -146,7 +146,7 @@ def main():
                 for future in as_completed(results):
                     result = future.result()
                     if not result['success']:
-                        f.write(f'{result["id"]}\n')
+                        f.write(f'{result["id"]}\n{result}\n')
                     results_json.append(result)
                     progress.update()
     with open(results_path, 'w') as f:
