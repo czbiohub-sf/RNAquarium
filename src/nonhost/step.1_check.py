@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import itertools
 import json
 import os
@@ -120,7 +120,7 @@ def check_run(accession):
         SE_size_check = [os.path.join(single_path, mate1_file)]
         # SE_size_check = itertools.starmap(os.path.join, [(counts_path, htseq_count_file), (single_path, mate1_file)])
         SE_files_size_mask = map(lambda file: os.path.getsize(file) < min_file_size, SE_size_check)
-        if failed_files := list(itertools.compress(-am data=SE_size_check, selectors=SE_files_size_mask)):
+        if failed_files := list(itertools.compress(data=SE_size_check, selectors=SE_files_size_mask)):
             size_fail = True
             error_message += f'Files failed size check: {*failed_files,}\n'
         zipfile = os.path.join(single_path, mate1_file)
@@ -139,7 +139,7 @@ def main():
     with open(accessions_path, 'r') as f:
         accessions = [line.strip() for line in f]
     with tqdm(total=len(accessions)) as progress:
-        with ThreadPoolExecutor(max_workers=num_cores) as executor:
+        with ProcessPoolExecutor(max_workers=num_cores) as executor:
             results_json = []
             results = [executor.submit(check_run, accession) for accession in accessions]
             with open(failed_path, 'w') as f:
