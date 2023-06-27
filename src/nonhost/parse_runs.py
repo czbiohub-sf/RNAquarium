@@ -63,10 +63,10 @@ def main():
                 continue
             log_df = pd.read_table(log_path, header=None, converters={0: lambda s: s.strip()})
             log_df = log_df.set_index(0)
-            num_reads = log_df.loc['Number of input reads |']
+            num_reads = log_df.loc['Number of input reads |'][1]
             with open(readlength_path) as f:
                 try:
-                    readlength1, *readlength2 = f.readline().strip()
+                    readlength1, *readlength2 = f.readline().strip().split()
                 except ValueError:
                     continue
             readlength2 = readlength2 or None
