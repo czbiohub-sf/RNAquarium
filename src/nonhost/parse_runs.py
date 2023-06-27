@@ -63,14 +63,14 @@ def main():
                 continue
             log_df = pd.read_table(log_path, header=None, converters={0: lambda s: s.strip()})
             log_df = log_df.set_index(0)
-            num_reads = log_df.loc['Number of input reads |'][1]
+            num_reads = int(log_df.loc['Number of input reads |'][1])
             if endedness == 'SE':
-                readlength1 = log_df.loc['Average input read length |'][1]
+                readlength1 = int(log_df.loc['Average input read length |'][1])
                 readlength2 = None
             else:
                 with open(readlength_path) as f:
                     try:
-                        readlength1, readlength2 = f.readline().strip().split()
+                        readlength1, readlength2 = [int(num) for num in f.readline().strip().split()]
                     except ValueError:
                         continue
             df_list.append((accession, num_reads, readlength1, readlength2))
