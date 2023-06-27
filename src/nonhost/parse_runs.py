@@ -15,6 +15,7 @@ other_dir = 'other_stdout_stderr'
 log_file = 'Log.final.out'
 readlength_file = 'readlength.txt'
 saved_file = 'parsed_reads.csv'
+min_file_size = 10
 
 
 class MyParser(ArgumentParser):
@@ -48,7 +49,7 @@ def main():
     with tqdm(total=len(accessions)) as progress:
         for accession in accessions:
             if not ((readlength_path := star_path.joinpath(other_dir, accession, readlength_file)).is_file() and
-                    readlength_path.stat().st_size):
+                    readlength_path.stat().st_size > min_file_size):
                 continue
             if star_path.joinpath(pair_dir, accession).is_dir():
                 endedness = 'PE'
@@ -57,7 +58,7 @@ def main():
             else:
                 continue
             if not ((log_path := working_dir.joinpath(star_dir, endedness, accession, log_file)).is_file() and
-                    log_path.stat().st_size):
+                    log_path.stat().st_size > min_file_size):
                 continue
             log_df = pd.read_table(log_path, header=None, converters={0: lambda s: s.strip()})
             log_df = log_df.set_index(0)
