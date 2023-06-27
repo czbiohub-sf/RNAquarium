@@ -67,8 +67,7 @@ def main():
                 try:
                     readlength1, *readlength2 = f.readline().strip()
                 except ValueError:
-                    print(readlength_path)
-                    return
+                    continue
             readlength2 = readlength2 or None
             df_list.append((accession, num_reads, readlength1, readlength2))
             progress.update()
