@@ -64,7 +64,11 @@ def main():
             log_df = log_df.set_index(0)
             num_reads = log_df.loc['Number of input reads |']
             with open(readlength_path) as f:
-                readlength1, *readlength2 = f.readline().strip()
+                try:
+                    readlength1, *readlength2 = f.readline().strip()
+                except ValueError:
+                    print(readlength_path)
+                    return
             readlength2 = readlength2 or None
             df_list.append((accession, num_reads, readlength1, readlength2))
             progress.update()
