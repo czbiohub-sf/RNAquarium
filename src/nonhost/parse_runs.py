@@ -60,11 +60,12 @@ def main():
             log_df = pd.read_table(log_path, header=None, converters={0: lambda s: s.strip()})
             log_df = log_df.set_index(0)
             num_reads = log_df.loc['Number of input reads |']
-            with open(readlength_file) as f:
-                readlength = float(f.read().strip())
-            df_list.append((accession, num_reads, readlength))
+            with open(readlength_path) as f:
+                readlength1, *readlength2 = f.readline().strip()
+            readlength2 = readlength2 or None
+            df_list.append((accession, num_reads, readlength1, readlength2))
             progress.update()
-    df = pd.DataFrame(df_list, columns=['Run ID', 'Number of reads', 'Readlength'])
+    df = pd.DataFrame(df_list, columns=['Run ID', 'Number of reads', 'Mate1', 'Mate2'])
     df.to_csv(saved_file)
 
 
