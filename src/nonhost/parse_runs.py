@@ -48,6 +48,7 @@ def main():
     df_list = []
     with tqdm(total=len(accessions)) as progress:
         for accession in accessions:
+            progress.update()
             if not ((readlength_path := star_path.joinpath(other_dir, accession, readlength_file)).is_file() and
                     readlength_path.stat().st_size > min_file_size):
                 continue
@@ -64,7 +65,6 @@ def main():
             log_df = log_df.set_index(0)
             num_reads = log_df.loc['Number of input reads |']
             with open(readlength_path) as f:
-                progress.update()
                 try:
                     readlength1, *readlength2 = f.readline().strip()
                 except ValueError:
