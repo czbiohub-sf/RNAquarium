@@ -64,15 +64,15 @@ def main():
             log_df = log_df.set_index(0)
             num_reads = log_df.loc['Number of input reads |']
             with open(readlength_path) as f:
+                progress.update()
                 try:
                     readlength1, *readlength2 = f.readline().strip()
                 except ValueError:
                     continue
             readlength2 = readlength2 or None
             df_list.append((accession, num_reads, readlength1, readlength2))
-            progress.update()
     df = pd.DataFrame(df_list, columns=['Run ID', 'Number of reads', 'Mate1', 'Mate2'])
-    df.to_csv(saved_file)
+    df.to_csv(saved_file, index=False)
 
 
 if __name__ == '__main__':
