@@ -48,13 +48,13 @@ if [ -e ${FDIR}/${ACCESSIONS[$idx]} ]
 then
     rm -rf ${FDIR}/${ACCESSIONS[$idx]}
 fi
-mkdir ${FDIR}/${ACCESSIONS[$idx]}
+mkdir -p ${FDIR}/${ACCESSIONS[$idx]}
 
 if [ -e ${STDDIR}/${ACCESSIONS[$idx]} ]
 then
     rm -rf ${STDDIR}/${ACCESSIONS[$idx]}
 fi
-mkdir ${STDDIR}/${ACCESSIONS[$idx]}
+mkdir -p ${STDDIR}/${ACCESSIONS[$idx]}
 
 #prefetch
 ${SRA_BIN}/prefetch --max-size 1t --force ALL --output-directory ${PDIR} ${ACCESSIONS[$idx]} 1> ${STDDIR}/${ACCESSIONS[$idx]}/prefetch.stdout.txt 2> ${STDDIR}/${ACCESSIONS[$idx]}/prefetch.stderr.txt
