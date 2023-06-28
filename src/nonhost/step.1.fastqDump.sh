@@ -23,14 +23,14 @@ module load anaconda
 conda activate zf_pipeline
 
 # declare arrays
-readarray -t accessions < <(cat "${ACCESSIONS_LIST}") #54189 64G 4cpu
+readarray -t ACCESSIONS < <(cat "${ACCESSIONS_LIST}") #54189 64G 4cpu
 
 #output directories
-fdir=${WORKING_DIR}/fastq
-pdir=${WORKING_DIR}/prefetched
-sdir=${WORKING_DIR}/STAR_out
+FDIR=${WORKING_DIR}/fastq
+PDIR=${WORKING_DIR}/prefetched
+STDDIR=${WORKING_DIR}/other_stdout_stderr
 
-echo "accession: ${accessions[$idx]}"
+echo "accession: ${ACCESSIONS[$idx]}"
 
 ############################
 # proceed with current job #
@@ -40,35 +40,28 @@ echo "processing..." >> ${WORKING_DIR}/logs/STAR.process.log
 sleep $((idx % 120))
 cd $WORKING_DIR
 
-# make directories for non STAR stdout and stderr.  STAR out directories for this accession will be purged later in the STAR section
-if [ -e "${sdir}/other_stdout_stderr/${accessions[$idx]}" ]
-then
-    rm -rf ${sdir}/other_stdout_stderr/${accessions[$idx]}
-fi
-mkdir ${sdir}/other_stdout_stderr/${accessions[$idx]}
-
 ###############
 # fasterqdump #
 ###############
 #create folder for fastq
-if [ -e ${fdir}/${accessions[$idx]} ]
+if [ -e ${FDIR}/${ACCESSIONS[$idx]} ]
 then
-    rm -rf ${fdir}/${accessions[$idx]}
+    rm -rf ${FDIR}/${ACCESSIONS[$idx]}
 fi
-mkdir ${fdir}/${accessions[$idx]}
+mkdir ${FDIR}/${ACCESSIONS[$idx]}
 
 #prefetch
-${SRA_BIN}/prefetch --max-size 1t --force ALL --output-directory ${pdir} ${accessions[$idx]} 1> ${sdir}/other_stdout_stderr/${accessions[$idx]}/prefetch.stdout.txt 2> ${sdir}/other_stdout_stderr/${accessions[$idx]}/prefetch.stderr.txt
+${SRA_BIN}/prefetch --max-size 1t --force ALL --output-directory ${PDIR} ${ACCESSIONS[$idx]} 1> STDDIR/${ACCESSIONS[$idx]}/prefetch.stdout.txt 2> STDDIR/${ACCESSIONS[$idx]}/prefetch.stderr.txt
 
 #fasterq-dump
-cd ${pdir}
-${SRA_BIN}/fasterq-dump --split-3 --mem 24G --outdir ${fdir}/${accessions[$idx]} ${accessions[$idx]} 1> ${sdir}/other_stdout_stderr/${accessions[$idx]}/fqdump.stdout.txt 2> ${sdir}/other_stdout_stderr/${accessions[$idx]}/fqdump.stderr.txt  && {
+cd ${PDIR}
+${SRA_BIN}/fasterq-dump --split-3 --mem 24G --outdir ${FDIR}/${ACCESSIONS[$idx]} ${ACCESSIONS[$idx]} 1> STDDIR/${ACCESSIONS[$idx]}/fqdump.stdout.txt 2> STDDIR/${ACCESSIONS[$idx]}/fqdump.stderr.txt  && {
     echo fasterq-dump: no error
 } || {
     echo fasterq-dump encounterd error, reverting back to using fastqdump
-    ${SRA_BIN}/fastq-dump --split-3 --disable-multithreading --outdir ${fdir}/${accessions[$idx]} ${accessions[$idx]} 1> ${sdir}/other_stdout_stderr/${accessions[$idx]}/fqdump.stdout.txt 2> ${sdir}/other_stdout_stderr/${accessions[$idx]}/fqdump.stderr.txt
+    ${SRA_BIN}/fastq-dump --split-3 --disable-multithreading --outdir ${FDIR}/${ACCESSIONS[$idx]} ${ACCESSIONS[$idx]} 1> STDDIR/${ACCESSIONS[$idx]}/fqdump.stdout.txt 2> STDDIR/${ACCESSIONS[$idx]}/fqdump.stderr.txt
 }
 
 #remove prefretched data
 cd ..
-rm -rf ${pdir}/${accessions[$idx]}
+rm -rf ${PDIR}/${ACCESSIONS[$idx]}
