@@ -28,7 +28,7 @@ readarray -t ACCESSIONS < <(cat "${ACCESSIONS_LIST}") #54189 64G 4cpu
 #output directories
 FDIR=${WORKING_DIR}/fastq
 PDIR=${WORKING_DIR}/prefetched
-STDDIR=${WORKING_DIR}/other_stdout_stderr
+STDDIR=${WORKING_DIR}/stdout_stderr
 
 echo "accession: ${ACCESSIONS[$idx]}"
 
@@ -49,6 +49,12 @@ then
     rm -rf ${FDIR}/${ACCESSIONS[$idx]}
 fi
 mkdir ${FDIR}/${ACCESSIONS[$idx]}
+
+if [ -e ${STDDIR}/${ACCESSIONS[$idx]} ]
+then
+    rm -rf ${STDDIR}/${ACCESSIONS[$idx]}
+fi
+mkdir ${STDDIR}/${ACCESSIONS[$idx]}
 
 #prefetch
 ${SRA_BIN}/prefetch --max-size 1t --force ALL --output-directory ${PDIR} ${ACCESSIONS[$idx]} 1> ${STDDIR}/${ACCESSIONS[$idx]}/prefetch.stdout.txt 2> ${STDDIR}/${ACCESSIONS[$idx]}/prefetch.stderr.txt
