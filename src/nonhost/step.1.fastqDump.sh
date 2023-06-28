@@ -28,7 +28,7 @@ readarray -t ACCESSIONS < <(cat "${ACCESSIONS_LIST}") #54189 64G 4cpu
 #output directories
 FDIR=${WORKING_DIR}/fastq
 PDIR=${WORKING_DIR}/prefetched
-${STDDIR}=${WORKING_DIR}/other_stdout_stderr
+STDDIR=${WORKING_DIR}/other_stdout_stderr
 
 echo "accession: ${ACCESSIONS[$idx]}"
 
