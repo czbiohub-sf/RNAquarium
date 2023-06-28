@@ -28,7 +28,7 @@ readarray -t ACCESSIONS < <(cat "${ACCESSIONS_LIST}") #54189 64G 4cpu
 #output directories
 FDIR=${WORKING_DIR}/fastq
 PDIR=${WORKING_DIR}/prefetched
-STDDIR=${WORKING_DIR}/other_stdout_stderr
+${STDDIR}=${WORKING_DIR}/other_stdout_stderr
 
 echo "accession: ${ACCESSIONS[$idx]}"
 
@@ -51,15 +51,15 @@ fi
 mkdir ${FDIR}/${ACCESSIONS[$idx]}
 
 #prefetch
-${SRA_BIN}/prefetch --max-size 1t --force ALL --output-directory ${PDIR} ${ACCESSIONS[$idx]} 1> STDDIR/${ACCESSIONS[$idx]}/prefetch.stdout.txt 2> STDDIR/${ACCESSIONS[$idx]}/prefetch.stderr.txt
+${SRA_BIN}/prefetch --max-size 1t --force ALL --output-directory ${PDIR} ${ACCESSIONS[$idx]} 1> ${STDDIR}/${ACCESSIONS[$idx]}/prefetch.stdout.txt 2> ${STDDIR}/${ACCESSIONS[$idx]}/prefetch.stderr.txt
 
 #fasterq-dump
 cd ${PDIR}
-${SRA_BIN}/fasterq-dump --split-3 --mem 24G --outdir ${FDIR}/${ACCESSIONS[$idx]} ${ACCESSIONS[$idx]} 1> STDDIR/${ACCESSIONS[$idx]}/fqdump.stdout.txt 2> STDDIR/${ACCESSIONS[$idx]}/fqdump.stderr.txt  && {
+${SRA_BIN}/fasterq-dump --split-3 --mem 24G --outdir ${FDIR}/${ACCESSIONS[$idx]} ${ACCESSIONS[$idx]} 1> ${STDDIR}/${ACCESSIONS[$idx]}/fqdump.stdout.txt 2> ${STDDIR}/${ACCESSIONS[$idx]}/fqdump.stderr.txt  && {
     echo fasterq-dump: no error
 } || {
     echo fasterq-dump encounterd error, reverting back to using fastqdump
-    ${SRA_BIN}/fastq-dump --split-3 --disable-multithreading --outdir ${FDIR}/${ACCESSIONS[$idx]} ${ACCESSIONS[$idx]} 1> STDDIR/${ACCESSIONS[$idx]}/fqdump.stdout.txt 2> STDDIR/${ACCESSIONS[$idx]}/fqdump.stderr.txt
+    ${SRA_BIN}/fastq-dump --split-3 --disable-multithreading --outdir ${FDIR}/${ACCESSIONS[$idx]} ${ACCESSIONS[$idx]} 1> ${STDDIR}/${ACCESSIONS[$idx]}/fqdump.stdout.txt 2> ${STDDIR}/${ACCESSIONS[$idx]}/fqdump.stderr.txt
 }
 
 #remove prefretched data
