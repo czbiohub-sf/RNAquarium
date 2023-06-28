@@ -36,19 +36,4 @@ if [ ! -d "${WORKING_DIR}/logs" ]
         mkdir "${WORKING_DIR}/logs"
 fi
 
-echo "removing previous log files"
-
-if [ -e $log0 ]
-    then
-        rm $log0
-fi
-if [ -e $log1 ]
-    then
-        rm $log1
-fi
-if [ -e $log2 ]
-    then
-        rm $log2
-fi
-
 sbatch step.1.fastqDump.sh "${WORKING_DIR}" "${ACCESSIONS_LIST}" "${TOOLS}"
