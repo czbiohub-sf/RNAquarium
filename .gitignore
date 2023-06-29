@@ -37,11 +37,12 @@ inc/
 .idea/
 
 # Output directories and files
-/fastq/
-/logs/
-/prefetched/
-/slurm.out/
-/STAR_out/
+/src/nonhost/fastq/
+/src/nonhost/logs/
+/src/nonhost/prefetched/
+/src/nonhost/slurm.out/
+/src/nonhost/STAR_out/
+/src/nonhost/stdout_stderr
 /src/Serratus_Lite/query_virus_data/*.fa.*
 !/src/Serratus_Lite/query_virus_data/*.tsv
 /src/Serratus_Lite/slurm.out/
