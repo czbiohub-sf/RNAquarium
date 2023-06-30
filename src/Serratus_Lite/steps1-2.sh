@@ -51,3 +51,6 @@ if [ -e slurm.out/ ] ; then rm -rf slurm.out/ ; fi
 mkdir -p slurm.out
 cd "${basedir}/scripts"
 sbatch hpc_search.sh "${basedir}" "$(realpath "${accessions_list}")" "$(realpath "${seqbasedir}")" "$(realpath "${tools}")"
+
+# get the total number of reads for each run
+multi-processing pytho scrupt
