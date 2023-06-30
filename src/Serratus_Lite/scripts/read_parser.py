@@ -12,6 +12,7 @@ seq_base_dir = Path('/hpc/projects/theory_ds/internship/jacob.paras/Gsnap_out')
 results_file = 'counts.csv'
 mate1_file = 'Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz'
 mate2_file = 'Unmapped.out.mate2.filteredbyBT.dedup.gsnapFiltered.fastq.gz'
+num_cores = 100
 
 
 class MyParser(ArgumentParser):
@@ -55,7 +56,8 @@ def return_count(accession):
 def main():
     accessions = [subdir for subdir in os.listdir(seq_base_dir)]
     with ProcessPoolExecutor() as executor:
-        results = list(tqdm(executor.map(return_count, accessions), total=len(accessions)))
+        results = list(tqdm(executor.map(return_count, accessions, chunksize=len(accessions) // num_cores),
+                            total=len(accessions)))
     results_df = pd.DataFrame(results, columns=['SRA_run_accession', 'count'])
     results_df.to_csv(results_file)
 
