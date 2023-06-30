@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import os
 import pandas as pd
 from pathlib import Path
@@ -55,10 +55,15 @@ def return_count(accession):
 
 def main():
     accessions = [subdir for subdir in os.listdir(seq_base_dir)]
-    with ProcessPoolExecutor() as executor:
-        results = list(tqdm(executor.map(return_count, accessions, chunksize=len(accessions) // num_cores),
-                            total=len(accessions)))
-    results_df = pd.DataFrame(results, columns=['SRA_run_accession', 'count'])
+    with tqdm(total=len(accessions)) as progress:
+        with ProcessPoolExecutor(max_workers=num_cores) as executor:
+            results_list = []
+            results = [executor.submit(return_count, accession) for accession in accessions]
+            for future in as_completed(results):
+                result = future.result()
+                results_list.append(result)
+                progress.update()
+    results_df = pd.DataFrame(results_list, columns=['SRA_run_accession', 'count'])
     results_df.to_csv(results_file)
 
 
