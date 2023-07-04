@@ -64,7 +64,7 @@ def main():
                 results_list.append(result)
                 progress.update()
     results_df = pd.DataFrame(results_list, columns=['SRA_run_accession', 'count'])
-    results_df.to_csv(results_file)
+    results_df.to_csv(results_file, index=False)
 
 
 if __name__ == '__main__':
