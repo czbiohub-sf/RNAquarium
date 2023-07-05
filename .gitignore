@@ -35,7 +35,6 @@ inc/
 /*.zip
 
 .idea/
-**/.ipynb_checkpoints
 
 # Output directories and files
 /src/nonhost/fastq/
