@@ -48,3 +48,5 @@ inc/
 !/src/Serratus_Lite/query_virus_data/*.tsv
 /src/Serratus_Lite/slurm.out/
 /src/Serratus_Lite/results/
+/src/nonhost/test10/
+/src/nonhost/slurm.out/
