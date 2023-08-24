@@ -23,7 +23,7 @@ TOOLS=${tools:-${DEFAULT_TOOLS}}
 read -rep $"Enter the name of the conda environment to use (press enter to use default: ${DEFAULT_ENVNAME}):"$'\n' envname
 ENVNAME=${envname:-${DEFAULT_ENVNAME}}
 read -rep $"Remove fastq after STAR run: yes/no (press enter to use default: ${REMOVEFQ}):"$'\n' rmfq
-REMOVEFQ=${rmfq:-${DEFAULT_ENVNAME}}
+REMOVEFQ=${rmfq:-${REMOVEFQ}}
 
 SLURM_OUTDIR="slurm.out"
 echo "removing folder $SLURM_OUTDIR"
