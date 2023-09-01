@@ -6,6 +6,7 @@
 *.o
 *.pm.tdy
 *.bs
+.nextflow*
 
 # Devel::Cover
 cover_db/
