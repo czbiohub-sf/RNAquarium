@@ -7,6 +7,7 @@
 *.pm.tdy
 *.bs
 .nextflow*
+report*.html
 
 # Devel::Cover
 cover_db/

@@ -3,39 +3,56 @@
 nextflow.enable.dsl=2
 
 params.accessions_list = "SRA_accession_list.test.txt"
-
+/*
+#SBATCH --job-name=fastqDump
+#SBATCH --time=14-00:00:00
+#SBATCH --array=1-10%10
+#SBATCH --partition cpu
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --mem=24G
+#SBATCH --cpus-per-task=4
+#SBATCH -e slurm.out/slurm-%A_%a.err
+#SBATCH -o slurm.out/slurm-%A_%a.out
+*/
+ 
 process prefetch {
 	debug true
-//	cache true
-//	cpus 4
-//	memory 24G
+	label 'sratools'
+	// cpus 4
+	// memory '24GB'
 	// todo: scratch directive for hpc
-	// todo: container 'fastq_dump'
 	input:
 	val sra_id
 
 	output:
 	path '[S,E,D]RR*[0-9]'
-
-	//beforeScript 'mkdir -p prefetched'
 	
 	// fastq-dump wants sras in the current directory. this is a problem for
 	// nf's usually directory-agnostic behavior - it could be that the input is
 	// cached from a previous run and the absolute dir invisible,
 	script:
-	out_file = sra_id.trim()
 	"""
+	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	prefetch --output-directory . --max-size 1t --force ALL $sra_id 
+	"""
+
+	stub:
+	"""
+	touch $sra_id/$sra_id.sra
 	"""
 }
 
 process fastq_dump {
 	debug true
+	label 'sratools'
+	errorStrategy { task.exitStatus != 3 ? 'retry' : 'terminate' }
+	maxRetries 1
 	//memory '24GB'
 	memory '16GB'
 
 	input:
-	path sra_id
+	path sra_file
 	
 	output:
 	path 'fastq'
@@ -43,21 +60,25 @@ process fastq_dump {
 	beforeScript 'mkdir -p fastq'
 	
 	script:
+	mem = task.memory.toString() - ~/ /
 	if (task.attempt == 1)
 		"""
-		fasterq-dump --split-3 --mem ${task.memory.toString().replace(" ", "")} --outdir fastq ${sra_id.baseName}
+		set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
+		fasterq-dump --split-3 --mem $mem --outdir fastq ${sra_file.baseName}
 		gzip fastq/*.fastq
 		"""
 	else
 		"""
+		set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 		echo fasterq-dump encountered error, reverting to using fastq-dump
-		fastq-dump --split-3 --disable-multithreading --outdir fastq ${sra_id.baseName}
+		fastq-dump --split-3 --disable-multithreading --outdir fastq ${sra_file.baseName}
 		gzip fastq/*.fastq
 		"""
 
 	stub:
 	"""
-	touch fastq/${sra_file.baseName}.fastq.gz
+	if [ -f ${sra_file.baseName}/${sra_file.baseName}.sra ]
+	then touch fastq/${sra_file.baseName}.fastq.gz; fi
 	"""
 }
 
