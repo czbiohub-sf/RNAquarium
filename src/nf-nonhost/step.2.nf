@@ -43,52 +43,66 @@ process filter_barcodes {
 	'''*/
 }
 
-
-process fastp_pe {
-	debug true
-	label 'fastp'
-	// cpus 4
-	// memory '24GB'
-	// todo: scratch directive for hpc
-
-	input:
-	tuple path(fq1), path(fq2)
-
-	output:
-	path '*.trimmed.fastq'
-	
-	script:
-	def extension = ".trimmed.fastq"
-	"""
-	fastp --disable_quality_filtering --disable_length_filtering \
-		--compression 6 --thread ${task.cpus} --detect_adapter_for_pe \
-		--in1 ${fq1} --in2 ${fq2} \
-		--out1 ${fq1.baseName}${extension} --out2 ${fq2.baseName}${extension} \
-		--json fastp.json --html fastp.html
-	rm ${fq1} ${fq2}
-	"""
-}
-process fastp_se {
+process fastp {
 	label 'fastp'
 
 	input:
-	path fq
+	path fqs
 
 	output:
 	path '*.trimmed.fastq'
 
 	script:
 	def extension = ".trimmed.fastq"
+	if (fqs.getClass() == nextflow.util.BlankSeparatedList)
 	"""
 	fastp --disable_quality_filtering --disable_length_filtering \
 		--compression 6 --thread ${task.cpus} \
-		--in1 ${fq} --out1 ${fq.baseName}${extension} \
+		--detect_adapter_for_pe --in1 ${fqs[0]} --in2 ${fqs[1]} \
+		--out1 ${fqs[0].baseName}${extension} --out2 ${fqs[1].baseName}${extension} \
 		--json fastp.json --html fastp.html
-	rm ${fq}
+	rm ${fqs}
+	"""
+	else if (fqs.getClass() == nextflow.processor.TaskPath)
+	"""
+	fastp --disable_quality_filtering --disable_length_filtering \
+		--compression 6 --thread ${task.cpus} \
+		--in1 ${fqs} --out1 ${fqs.baseName}${extension} \
+		--json fastp.json --html fastp.html
+	rm ${fqs}
+	"""
+}
+
+process priceseqfilter {
+//	label 'price'
+	debug true
+	input:
+	path fqs
+
+	output:
+	path '*.PRICEfiltered.fastq'
+	
+// -a thread, -log c concise output, -fp input, -op output
+// -rnf 90:    90 percentage of nucleotides in a read that must be called
+// -rqf 85 0.98:       85% of the read length must be 98% accurate (parameterized after CZID, Joe uses 95% of the read length 98% accurate)
+	script:
+	def extension = ".PRICEfiltered.fastq"
+	if (fqs.getClass() == nextflow.util.BlankSeparatedList)
+	"""
+	PriceSeqFilter -a ${task.cpus} -rnf 90 -rqf 85 0.98 -log c \
+		-fp ${fqs} \
+		-op ${fqs[0].baseName}${extension} ${fqs[1].baseName}${extension}
+	rm ${fqs}
+	"""
+	else if (fqs.getClass() == nextflow.processor.TaskPath)
+	"""
+	PriceSeqFilter -a ${task.cpus} -rnf 90 -rqf 85 0.98 -log c \
+		-f ${fqs} -o ${fqs.baseName}${extension}
+	rm ${fqs}	
 	"""
 }
 
 workflow {
 	fastqs = channel.fromPath(params.fastq_path)
-	fastqs.view { "$it" }
+	filter_barcodes(fastqs) | fastp | priceseqfilter
 }

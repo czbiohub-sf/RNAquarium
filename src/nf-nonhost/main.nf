@@ -10,9 +10,8 @@ include {
 } from './step.1.nf'
 include {
 	filter_barcodes;
-	fastp_pe;
-	fastp_se;
-	//price
+	fastp;
+	priceseqfilter;
 } from './step.2.nf'
 
 workflow {
@@ -22,15 +21,6 @@ workflow {
 	fastqs = prefetch(accessions) | fastq_dump
 
 	// step 2
-	filter_barcodes(fastqs)
-		.branch {
-			SE: it.size() != 2
-			PE: it.size() == 2
-		}
-		.set { fastqs_filtered }
-	fastp_pe(fastqs_filtered.PE)
-	fastp_se(fastqs_filtered.SE)
-
+	filter_barcodes(fastqs) | fastp | priceseqfilter
 	
 }
-	
