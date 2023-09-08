@@ -3,6 +3,9 @@
 nextflow.enable.dsl=2
 
 params.accessions_list = "SRA_accession_list.test.txt"
+params.parallel_downloads = 10
+params.publish_dir = "$PWD"
+params.publish_intermediate = true
 /*
 #SBATCH --job-name=fastqDump
 #SBATCH --time=14-00:00:00
@@ -17,11 +20,9 @@ params.accessions_list = "SRA_accession_list.test.txt"
 */
  
 process prefetch {
-	debug true
 	label 'sratools'
-	// cpus 4
-	// memory '24GB'
-	// todo: scratch directive for hpc
+	maxForks params.parallel_downloads
+
 	input:
 	val sra_id
 
@@ -44,11 +45,11 @@ process prefetch {
 }
 
 process fastq_dump {
-	debug true
 	label 'sratools'
+	publishDir params.publish_dir, enabled: params.publish_intermediate
 	errorStrategy { task.exitStatus != 3 ? 'retry' : 'terminate' }
 	maxRetries 1
-	//memory '24GB'
+
 	memory '16GB'
 
 	input:
@@ -66,6 +67,9 @@ process fastq_dump {
 		set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 		fasterq-dump --split-3 --mem $mem --outdir fastq ${sra_file.baseName}
 		gzip fastq/*.fastq
+
+		# TODO: this doesn't work..
+		rm -rf ${sra_file.baseName}/
 		"""
 	else
 		"""
@@ -73,6 +77,7 @@ process fastq_dump {
 		echo fasterq-dump encountered error, reverting to using fastq-dump
 		fastq-dump --split-3 --disable-multithreading --outdir fastq ${sra_file.baseName}
 		gzip fastq/*.fastq
+		rm -rf ${sra_file.baseName}/
 		"""
 
 	stub:

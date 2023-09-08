@@ -16,52 +16,49 @@ git clone https://github.com/czbiohub-sf/Zebrafish-RNAquarium
 ```
 ### Install dependencies
 The non-zebrafish reads pipeline requires the following dependencies in `PATH`:
- - BBMap=39.01
- - bowtie2
- - czid-deup=0.1.0
- - fastp=0.23.2
- - FastQC=0.12.1
- - gmap-gsnap=2021-12-17
- - HTSeq=2.0.2
- - Price=1.2
- - samtools=1.16.1
- - sratoolkit=3.0.0
- - STAR=2.7.10
- - Trimmomatic=0.38
+ - BBMap=39.01 ( https://sourceforge.net/projects/bbmap/files/ )
+ - bowtie2 ( https://sourceforge.net/projects/bowtie-bio/files/bowtie2/ )
+ - czid-dedup=0.1.0 ( https://github.com/chanzuckerberg/czid-dedup )
+ - fastp=0.23.2 ( https://github.com/OpenGene/fastp )
+ - FastQC=0.12.1 ( https://www.bioinformatics.babraham.ac.uk/projects/fastqc/ )
+ - gmap-gsnap=2021-12-17 ( http://research-pub.gene.com/gmap/ )
+ - HTSeq=2.0.2 ( https://htseq.readthedocs.io/en/master/install.html )
+ - Price=1.2 ( https://derisilab.ucsf.edu/software/price/index.html )
+ - samtools=1.16.1 ( https://www.htslib.org/download/ )
+ - sratoolkit=3.0.0 ( https://github.com/ncbi/sra-tools/wiki/02.-Installing-SRA-Toolkit )
+ - STAR=2.7.10 ( https://github.com/alexdobin/STAR )
+ - Trimmomatic=0.38 ( https://github.com/usadellab/Trimmomatic )
 
-it is recommended to run the pipeline using the docker/singularity container.  
+Alternatively, most pre-installation can be skipped by running the nextflow
+pipeline with either the `-with-docker` or `-with-singularity` parameters,
+which will automatically pull and use containers for most steps.  
+in this case, currently `fastq-lengths`, `PRICE`, and `czid-dedup` are not
+available as containers.
+The script `setup-minimal.sh` will download these.
 e.g.:
 ```
-TODO
+./setup-minimal.sh
+nextflow run -with-singularity
 ```
 
-Price can be obtained from https://derisilab.ucsf.edu/software/price/index.html
-czid-dedup can be obtained from https://github.com/chanzuckerberg/czid-dedup/releases/
-```
-wget https://derisilab.ucsf.edu/software/price/PriceSource140408.tar.gz -O PriceSource140408.tar.gz
-tar -xzvf PriceSource140408.tar.gz && cd PriceSource140408 && make && cd ..
-export PATH=$PATH:$PWD/PriceSource140408
-rm PriceSource140408/
-```
 
 ### Create a working directory and input list
 ```
 cd Zebrafish-RNAquarium/src/nonhost
-mkdir test && cp data/SRA_accession_list.test.txt test/SRA_accession_list.test.txt
+mkdir test && cp data/SRA_accession_list.test.txt SRA_accession_list.test.txt
 ```
 
 ### Step 1 fastqdump
 ```
-bash step.1.start.sh test
+nextflow run step.1.nf --accessions_list SRA_accession_list.test.txt --parallel_downloads 10 -resume
 ```
-`test` is the name of our working directory  
-output is in `test/fastq/{accession}/*.fastq.gz`
+output is in `fastq/{accession}/*.fastq.gz`
 
 ### Step 2 QC
 ```
-bash step.2.start.sh test
+nextflow run step.2.nf --accessions_list SRA_accession_list.test.txt -resume
 ```
-output is in `test/fastq/{accession}/*.PRICEfiltered.fastq.gz`
+output is in `fastq/{accession}/*.PRICEfiltered.fastq.gz`
 
 ### Step 3 STAR
 ```

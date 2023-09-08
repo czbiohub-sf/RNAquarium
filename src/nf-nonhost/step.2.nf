@@ -3,6 +3,8 @@
 nextflow.enable.dsl=2
 
 params.fastq_path = "fastq/*/"
+params.publish_dir = "$PWD"
+params.publish_intermediate = true
 
 process filter_barcodes {
 	label 'median'
@@ -36,11 +38,6 @@ process filter_barcodes {
 		fi
 	fi
 	'''
-
-/*	stub:
-	'''
-	find fastq -name "*.gz" -exec sh -c 'mv "$1" "${1%.gz}"' _ {} \\;
-	'''*/
 }
 
 process fastp {
@@ -74,13 +71,14 @@ process fastp {
 }
 
 process priceseqfilter {
-//	label 'price'
-	debug true
+	label 'price'
+	publishDir params.publish_dir, enabled: params.publish_intermediate
+	
 	input:
 	path fqs
 
 	output:
-	path '*.PRICEfiltered.fastq'
+	path '*.PRICEfiltered.fastq.gz'
 	
 // -a thread, -log c concise output, -fp input, -op output
 // -rnf 90:    90 percentage of nucleotides in a read that must be called
@@ -92,13 +90,15 @@ process priceseqfilter {
 	PriceSeqFilter -a ${task.cpus} -rnf 90 -rqf 85 0.98 -log c \
 		-fp ${fqs} \
 		-op ${fqs[0].baseName}${extension} ${fqs[1].baseName}${extension}
+	gzip *${extension}
 	rm ${fqs}
 	"""
 	else if (fqs.getClass() == nextflow.processor.TaskPath)
 	"""
 	PriceSeqFilter -a ${task.cpus} -rnf 90 -rqf 85 0.98 -log c \
 		-f ${fqs} -o ${fqs.baseName}${extension}
-	rm ${fqs}	
+	gzip *${extension}
+	rm ${fqs}
 	"""
 }
 
