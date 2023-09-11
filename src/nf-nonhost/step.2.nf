@@ -43,7 +43,7 @@ process filter_barcodes {
 
 process fastp {
 	label 'fastp'
-	label 'mem_med'
+	label 'mem_medium'
 
 	input:
 	path fqs
@@ -74,7 +74,7 @@ process fastp {
 
 process priceseqfilter {
 	label 'price'
-	label 'cpu_med'
+	label 'cpu_medium'
 	publishDir params.publish_dir+"/fastq/", enabled: params.publish_intermediate
 	
 	input:

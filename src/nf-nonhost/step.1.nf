@@ -52,8 +52,6 @@ process fastq_dump {
 	errorStrategy { task.exitStatus != 3 ? 'retry' : 'terminate' }
 	maxRetries 1
 
-	memory '16GB'
-
 	input:
 	path sra_file
 	

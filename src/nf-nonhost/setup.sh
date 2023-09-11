@@ -8,7 +8,7 @@ mkdir -p ${DESTDIR}${bindir}
 # sra-toolkit: vdb-config, prefetch, fasterq-dump
 wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.0/sratoolkit.3.0.0-ubuntu64.tar.gz -O sratoolkit.3.0.0-ubuntu64.tar.gz && \
 	tar -xzvf sratoolkit.3.0.0-ubuntu64.tar.gz && mv sratoolkit.3.0.0-ubuntu64/bin/* ${DESTDIR}${bindir} && rm -rf sratoolkit.3.0.0-ubuntu64 sratoolkit.3.0.0-ubuntu64.tar.gz && \
-	RUN set +e; yes "q" | ${DESTDIR}${bindir}/vdb-config -i > /dev/null 2>&1; set -e																   
+	RUN set +e; yes "q" | ${DESTDIR}${bindir}/vdb-config -i > /dev/null 2>&1; set -e
 
 # median, fastp, price
 wget https://github.com/yttria-aniseia/fastq-lengths/releases/download/v0.1.1/fastq-lengths-0.1.1-x86_64.gz && \
