@@ -21,6 +21,7 @@ params.publish_intermediate = true
  
 process prefetch {
 	label 'sratools'
+	label 'network_limited'
 	maxForks params.parallel_downloads
 
 	input:
@@ -46,6 +47,7 @@ process prefetch {
 
 process fastq_dump {
 	label 'sratools'
+	label 'mem_medium'
 	publishDir params.publish_dir, enabled: params.publish_intermediate
 	errorStrategy { task.exitStatus != 3 ? 'retry' : 'terminate' }
 	maxRetries 1

@@ -8,6 +8,7 @@ params.publish_intermediate = true
 
 process filter_barcodes {
 	label 'median'
+	label 'mem_low'
 
 	input:
 	path fastq
@@ -42,6 +43,7 @@ process filter_barcodes {
 
 process fastp {
 	label 'fastp'
+	label 'mem_med'
 
 	input:
 	path fqs
@@ -72,7 +74,8 @@ process fastp {
 
 process priceseqfilter {
 	label 'price'
-	publishDir params.publish_dir, enabled: params.publish_intermediate
+	label 'cpu_med'
+	publishDir params.publish_dir+"/fastq/", enabled: params.publish_intermediate
 	
 	input:
 	path fqs

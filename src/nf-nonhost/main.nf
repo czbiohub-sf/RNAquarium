@@ -8,6 +8,8 @@ params.accessions_list = ""
 params.parallel_downloads = 10
 params.publish_dir = "$PWD"
 params.publish_intermediate = false
+params.publish_fastqs = true
+params.publish_pricefiltered = true
 
 include {
 	prefetch;
@@ -15,7 +17,7 @@ include {
 } from './step.1.nf' params(
 	parallel_downloads: params.parallel_downloads,
 	publish_dir: params.publish_dir,
-	publish_intermediate: params.publish_intermediate
+	publish_intermediate: params.publish_intermediate & params.publish_fastqs
 )
 include {
 	filter_barcodes;
@@ -23,7 +25,7 @@ include {
 	priceseqfilter;
 } from './step.2.nf' params(
 	publish_dir: params.publish_dir,
-	publish_intermediate: params.publish_intermediate
+	publish_intermediate: params.publish_intermediate & params.publish_pricefiltered
 )
 
 //dependencies:
