@@ -5,42 +5,53 @@ nextflow.enable.dsl=2
 params.help = false
 params.h = false
 params.accessions_list = ""
+
+params.ref_indexes_ercc = null // "Danio_rerio.GRCz11.108.ERCC"
+params.ref_indexes = null //"Danio_rerio.GRCz11.108"
+// https://ftp.ensembl.org/pub/release-108/fasta/danio_rerio/dna/
+// https://ftp.ensembl.org/pub/release-108/fasta/danio_rerio/dna/Danio_rerio.GRCz11.dna_sm.primary_assembly.fa.gz
+params.ref_genome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
+// https://ftp.ensembl.org/pub/release-108/gtf/danio_rerio/
+// https://ftp.ensembl.org/pub/release-108/gtf/danio_rerio/Danio_rerio.GRCz11.108.gtf.gz
+params.gtf_no_ercc = "Danio_rerio.GRCz11.108.gtf"
+// https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip
+params.ercc = "ERCC92.fa"
+params.ercc_gtf = "ERCC92.gtf"
+
 params.parallel_downloads = 10
 params.publish_dir = "$PWD"
 params.publish_intermediate = false
 params.publish_fastqs = true
 params.publish_pricefiltered = true
+params.publish_star = true
 
 include {
 	prefetch;
 	fastq_dump;
-} from './step.1.nf' params(
+} from './modules/step.1.nf' params(
 	parallel_downloads: params.parallel_downloads,
 	publish_dir: params.publish_dir,
-	publish_intermediate: params.publish_intermediate & params.publish_fastqs
+	publish_intermediate: params.publish_intermediate && params.publish_fastqs
 )
 include {
 	filter_barcodes;
 	fastp;
 	priceseqfilter;
-} from './step.2.nf' params(
+} from './modules/step.2.nf' params(
 	publish_dir: params.publish_dir,
-	publish_intermediate: params.publish_intermediate & params.publish_pricefiltered
+	publish_intermediate: params.publish_intermediate && params.publish_pricefiltered
+)
+include {
+	generate_indexes;
+	star;
+	star_counts;
+	sort_bam;
+	htseq_count;
+} from './modules/step.3.nf' params(
+	publish_dir: params.publish_dir,
+	publish_intermediate: params.publish_intermediate && params.publish_star
 )
 
-//dependencies:
-// nextflow seems to have two easy options
-// - processes can define containers to run in
-// - programs in the ./bin/ directory are available (?) to processes
-// so we may want to allow running in either 'use containers' or
-// 'i have pre-installed the dependencies' mode.
-// this gets a little awkward with our hpc, where the preferred method
-// of using some software is `module load`.
-// so for specific cases it may be a 
-// 'i have pre-installed the dependencies without the provided instructions
-// and don't hold the pipeline accountable for issues with that configuration'
-// right, perhaps 'instructions to install to the bin/ path that nextflow wants
-// htseq is annoying!!!!!!
 
 
 def helpMessage() {
@@ -67,9 +78,38 @@ workflow {
 	main:
 	// step 1
 	accessions = channel.fromPath(params.accessions_list).splitText()
+		.map { acc -> [[id: acc.trim()], acc.trim()] }
 	fastqs = accessions | prefetch | fastq_dump
 
 	// step 2
-	filter_barcodes(fastqs) | fastp | priceseqfilter
+	fastqs_2 = filter_barcodes(fastqs)
+		.map { meta, fastq ->
+			def fmeta = meta
+			if (fastq.size() == 2) {
+				fmeta.single_end = false
+			} else {
+				fmeta.single_end = true
+			}
+			[ fmeta, fastq ]
+		}
+	fastqs_2.view()
+	filtered_fastqs = fastqs_2 | fastp | priceseqfilter
+	filtered_fastqs.view()
+
+
+	if (params.ref_indexes && params.ref_indexes_ercc) {
+		indexes = params.ref_indexes_ercc
+		indexes2 = params.ref_indexes
+	} else {
+		(indexes, indexes2) = generate_indexes(file(params.ref_genome),
+											   file(params.gtf_no_ercc),
+											   file(params.ercc),
+											   file(params.indexes_ercc))
+	}
+
+	unmapped_reads = star(fastqs_2, indexes)
+	bam = star_counts(fastqs_2, indexes2)
+	bam_sorted = sort_bam(bam)
+	count = htseq_count(bam_sorted, params.gtf_no_ercc)
 
 }
