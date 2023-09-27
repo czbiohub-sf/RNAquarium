@@ -92,9 +92,7 @@ workflow {
 			}
 			[ fmeta, fastq ]
 		}
-	fastqs_2.view()
 	filtered_fastqs = fastqs_2 | fastp | priceseqfilter
-	filtered_fastqs.view()
 
 
 	if (params.ref_indexes && params.ref_indexes_ercc) {
@@ -104,11 +102,11 @@ workflow {
 		(indexes, indexes2) = generate_indexes(file(params.ref_genome),
 											   file(params.gtf_no_ercc),
 											   file(params.ercc),
-											   file(params.indexes_ercc))
+											   file(params.ercc_gtf))
 	}
 
-	unmapped_reads = star(fastqs_2, indexes)
-	bam = star_counts(fastqs_2, indexes2)
+	unmapped_reads = star(filtered_fastqs, indexes)
+	bam = star_counts(filtered_fastqs, indexes2)
 	bam_sorted = sort_bam(bam)
 	count = htseq_count(bam_sorted, params.gtf_no_ercc)
 

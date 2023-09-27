@@ -18,9 +18,11 @@ params.gtf_no_ercc = "Danio_rerio.GRCz11.108.gtf"
 params.ercc = "ERCC92.fa"
 params.ercc_gtf = "ERCC92.gtf"
 
+params.star_sjdbOverhang = 100
+
 process generate_indexes {
 	label 'star'
-	cpus 16
+	cpus 6
 	cache true
 	publishDir params.publish_dir
 
@@ -41,17 +43,19 @@ process generate_indexes {
 
 	STAR --runMode genomeGenerate --runThreadN $task.cpus --genomeFastaFiles \
 		$ref_genome_fa --sjdbGTFfile $ref_genome_gtf \
+		--sjdbOverhang $sjdbOverhang \
 		--genomeDir	./indexes
 
 	STAR --runMode genomeGenerate --runThreadN $task.cpus --genomeFastaFiles \
 		dna_sm.primary_assembly_ERCC.fa --sjdbGTFfile indexes_ERCC.gtf \
+		--sjdbOverhang $sjdbOverhang \
 		--genomeDir	./indexes.ERCC
 	"""
 }
 	
 process star {
 	label 'star'
-	cpus 16
+	cpus 12
 	publishDir "$params.publish_dir/STAR_out/$meta.id", enabled: params.publish_intermediate
 
 	input:
@@ -76,7 +80,7 @@ process star {
 		--outFileNamePrefix PE/ \
 		--readFilesIn ${fqgz[0]} ${fqgz[1]}
 
-	gzip Unmapped.out.mate*
+	gzip PE/Unmapped.out.mate*
 	"""
 	else if (meta.single_end)
 	"""
@@ -86,13 +90,13 @@ process star {
 		--outFileNamePrefix SE/ \
 		--readFilesIn ${fqgz}
 
-	gzip Unmapped.out.mate1
+	gzip SE/Unmapped.out.mate1
 	"""
 }
 
 process star_counts {
 	label 'star'
-	cpus 16
+	cpus 12
 	publishDir "$params.publish_dir/STAR_out/counts/$meta.id", enabled: params.publish_intermediate
 
 	input:
@@ -132,6 +136,7 @@ process star_counts {
 
 process sort_bam {
 	label 'samtools'
+	cpus 6
 	input:
 	tuple val(meta), path(bam)
 
@@ -140,12 +145,13 @@ process sort_bam {
 
 	script:
 	"""
-	samtools sort -m 45G -n -o -@ $task.cpus -o Aligned.out.namesorted.bam $bam
+	samtools sort -m 45G -n -@ $task.cpus -o Aligned.out.namesorted.bam $bam
 	"""
 }
 
 process htseq_count {
 	label 'htseq'
+	cpus 6
 	publishDir "$params.publish_dir/counts/$meta.id", enabled: params.publish_intermediate
 
 	input:
@@ -159,7 +165,7 @@ process htseq_count {
 	"""
 	htseq-count -r name -s no -f bam -m intersection-nonempty \
 		$sorted_bam	$gtf_noERCC > htseq-count.txt
-	rm sorted_bam
+	rm $sorted_bam
 	"""
 }
 
