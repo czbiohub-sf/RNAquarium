@@ -59,6 +59,7 @@ params.ercc_gtf = "ERCC92.gtf"
 params.parallel_downloads = 100
 params.skip_host_counts = false
 params.skip_hisat2 = false
+params.hisat2_use_transcript = true
 
 params.publish_dir = "$PWD"
 params.publish_intermediate = false
@@ -87,6 +88,7 @@ include {
 	publish_dir: params.publish_dir,
 	star_index_gen_options: params.star_index_gen_options,
 	hisat2_index_gen_options: params.hisat2_index_gen_options
+	hisat2_use_transcript: params.hisat2_use_transcript
 )
 include {
 	prefetch;
