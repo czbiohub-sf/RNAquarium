@@ -2,52 +2,21 @@
 
 nextflow.enable.dsl=2
 
-params.fastq_path = "fastq/*/"
 params.publish_dir = "$PWD"
 params.publish_intermediate = true
 
-// after the filter_barcodes step, meta must be annotated
-// 'single_end: true' for single files.  future steps will
-// use that meta value for conditional processing.
-process filter_barcodes {
-	label 'median'
-	label 'mem_low'
+params.fastp_options = ""
+params.price_options = ""
 
-	input:
-	tuple val(meta), path(fastq)
-
-	output:
-	tuple val(meta), path('fastq/*.fastq')
-
-	script:
-	"""
-	# unzipped may be cached
-	if [ \$(ls fastq/*.gz | wc -w) -gt 0 ]; then gunzip -q fastq/*.gz; fi
-
-	# one set of reads, or two?
-	if [[ \$(ls -1 fastq | wc -l) -lt 2 ]]
-	then # single
-		#echo \$(fastq-lengths median 1 fastq/${meta.id}.fastq)
-		echo $meta.id SE
-	else # possibly paired, but may be scRNAseq barcodes
-		if [ \$(fastq-lengths median fastq/${meta.id}_1.fastq) -lt 32 ] && \
-			[ \$(fastq-lengths median fastq/${meta.id}_2.fastq) -gt 80 ]
-		then
-			echo $meta.id scRNAseq
-			rm fastq/${meta.id}_1.fastq # discard read 1 (cell barcode)
-			mv fastq/${meta.id}_2.fastq fastq/${meta.id}.fastq
-		else
-			echo $meta.id PE
-		fi
-	fi
-	"""
-}
+params.meta_in = 'step_1_sheet.csv'
+params.meta_out = 'step_2_sheet.csv'
+include {
+	LOAD_METASHEET;
+	SAVE_METASHEET;
+} from './utils.nf'
 
 process fastp {
 	label 'fastp'
-	//label 'mem_medium'
-	cpus 8
-	memory 8.GB
 
 	input:
 	tuple val(meta), path(fqs)
@@ -57,19 +26,19 @@ process fastp {
 
 	script:
 	def extension = ".trimmed.fastq"
-	def fastp_cmd = """fastp --disable_quality_filtering --disable_length_filtering \
-		--compression 6 --thread 8 \
-		--json fastp.json --html fastp.html"""
+	def FASTP_CMD = """fastp --disable_quality_filtering --disable_length_filtering \
+		--compression 6 --thread ${task.cpus} \
+		--json fastp.json --html fastp.html $params.fastp_options"""
 	if (!meta.single_end)
 	"""
-	${fastp_cmd} \
+	${FASTP_CMD} \
 		--detect_adapter_for_pe --in1 ${fqs[0]} --in2 ${fqs[1]} \
 		--out1 ${meta.id}_1${extension} --out2 ${meta.id}_2${extension} \
 	rm ${fqs}
 	"""
 	else if (meta.single_end)
 	"""
-	${fastp_cmd} \
+	${FASTP_CMD} \
 		--in1 ${fqs} --out1 ${meta.id}${extension} \
 	rm ${fqs}
 	"""
@@ -77,8 +46,7 @@ process fastp {
 
 process priceseqfilter {
 	label 'price'
-	label 'cpu_medium'
-	cpus 8
+
 	publishDir "$params.publish_dir/fastq/$meta.id", enabled: params.publish_intermediate
 	
 	input:
@@ -92,7 +60,8 @@ process priceseqfilter {
 // -rqf 85 0.98:       85% of the read length must be 98% accurate (parameterized after CZID, Joe uses 95% of the read length 98% accurate)
 	script:
 	def extension = ".PRICEfiltered.fastq"
-	def price_cmd = """PriceSeqFilter -a 8 -rnf 90 -rqf 85 0.98 -log c """
+	def price_cmd = """PriceSeqFilter -a ${task.cpus} -rnf 90 -rqf 85 0.98 \
+		-log c $params.price_options"""
 	if (!meta.single_end)
 	"""
 	${price_cmd} \
@@ -111,8 +80,10 @@ process priceseqfilter {
 }
 
 workflow {
-	fastqs = channel.fromPath(params.fastq_path)
-		.map { fq -> [[id: fq.baseName() - ~/_[12]/], fq] }
+	fastqs = LOAD_METASHEET(params.meta_in)
 	
-	filter_barcodes(fastqs) | fastp | priceseqfilter
+	fastp(fastqs)
+	priceseqfilter(fastp.out)
+	
+	SAVE_METASHEET(priceseqfilter.out, params.meta_out)
 }
