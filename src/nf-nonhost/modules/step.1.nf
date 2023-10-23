@@ -97,15 +97,16 @@ process filter_barcodes {
 	tuple val(meta), path(fastq)
 
 	output:
-	tuple val(meta), path('fastq/*.fastq.gz'), env(median), env(count), env(size)
+	tuple val(meta), path('*.fastq.gz'), env(median), env(count), env(size)
 
 	script:
 	"""
 	# one set of reads, or two?
-	if [[ \$(ls -1 fastq | wc -l) -lt 2 ]]
+	if [[ \$(ls -1 fastq/*.fastq | wc -l) -lt 2 ]]
 	then # single
 		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary fastq/${meta.id}.fastq)"
 		echo $meta.id SE
+		gzip -k6c fastq/${meta.id}.fastq > ${meta.id}.fastq.gz
 	else # possibly paired, but may be scRNAseq barcodes
 		IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary fastq/${meta.id}_1.fastq)"
 		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary fastq/${meta.id}_2.fastq)"
@@ -114,12 +115,13 @@ process filter_barcodes {
 			echo $meta.id scRNAseq
 			rm fastq/${meta.id}_1.fastq # discard read 1 (cell barcode)
 			mv fastq/${meta.id}_2.fastq fastq/${meta.id}.fastq
+			gzip -k6c fastq/${meta.id}.fastq > ${meta.id}.fastq.gz
 		else
 			echo $meta.id PE
+			gzip -k6c fastq/${meta.id}_1.fastq > ${meta.id}_1.fastq.gz
+			gzip -k6c fastq/${meta.id}_2.fastq > ${meta.id}_2.fastq.gz
 		fi
 	fi
-	
-	gzip -6 -k fastq/*.fastq
 	"""
 }
 

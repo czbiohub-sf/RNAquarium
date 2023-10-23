@@ -87,7 +87,7 @@ include {
 } from './modules/step.0.generate_indexes.nf' params(
 	publish_dir: params.publish_dir,
 	star_index_gen_options: params.star_index_gen_options,
-	hisat2_index_gen_options: params.hisat2_index_gen_options
+	hisat2_index_gen_options: params.hisat2_index_gen_options,
 	hisat2_use_transcript: params.hisat2_use_transcript
 )
 include {
@@ -172,8 +172,8 @@ workflow {
 	sra = prefetch(accessions)
 		.map { meta, sra, reads, sra_size ->
 			def new_meta = [id: meta.id,
-							reads: reads.toInteger(),
-							sra_size: sra_size.toInteger() ]
+							reads: reads.toLong(),
+							sra_size: sra_size.toLong() ]
 			[ new_meta, sra ]
 		}
 		
@@ -182,9 +182,9 @@ workflow {
 	fastqs_2 = filter_barcodes(fastqs)
 		.map { meta, fastq, median, count, fsize ->
 			def new_meta = meta.clone()
-			new_meta.reads = count.toInteger()
-			new_meta.readlen = median.toInteger()
-			new_meta.fastq_size = fsize.toInteger()
+			new_meta.reads = count.toLong()
+			new_meta.readlen = median.toLong()
+			new_meta.fastq_size = fsize.toLong()
 			new_meta.single_end = fastq.size() != 2
 			[ new_meta, fastq ]
 		}
