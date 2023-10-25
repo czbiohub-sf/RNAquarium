@@ -16,7 +16,7 @@ params.ercc_gtf = "ERCC92.gtf"
 
 params.star_sjdbOverhang = 100
 
-params.hisat2_use_transcript = true
+params.hisat2_use_transcript = false
 
 params.star_index_gen_options = ""
 params.hisat2_index_gen_options = ""
@@ -73,12 +73,12 @@ process hisat2_generate_indexes {
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
 	cat $ref_genome_gtf $ERCC_gtf > indexes_ERCC.gtf
 
-	hisat2_extract_splice_sites.py indexes_ERCC.gtf > genome.ss
+	#hisat2_extract_splice_sites.py indexes_ERCC.gtf > genome.ss
 	hisat2_extract_exons.py indexes_ERCC.gtf > genome.exon
 
 	mkdir -p ${genome_name}_genome
 	hisat2-build -p $task.cpus $params.hisat2_index_gen_options \
-		--exon genome.exon -ss genome.ss \
+		--exon genome.exon \
 		dna_sm.primary_assembly_ERCC.fa ${genome_name}_genome/${genome_name}_genome
 	"""
 	else

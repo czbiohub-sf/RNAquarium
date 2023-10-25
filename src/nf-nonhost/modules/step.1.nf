@@ -51,7 +51,6 @@ process fastq_dump {
 	label 'sratools'
 
 	publishDir "$params.publish_dir", enabled: params.publish_intermediate
-	errorStrategy { task.exitStatus != 3 ? 'retry' : 'terminate' }
 
 	input:
 	tuple val(meta), path(sra_file)
@@ -118,8 +117,8 @@ process filter_barcodes {
 			gzip -k6c fastq/${meta.id}.fastq > ${meta.id}.fastq.gz
 		else
 			echo $meta.id PE
-			gzip -k6c fastq/${meta.id}_1.fastq > ${meta.id}_1.fastq.gz
-			gzip -k6c fastq/${meta.id}_2.fastq > ${meta.id}_2.fastq.gz
+			gzip -k6c fastq/${meta.id}_1.fastq > ${meta.id}_1.fastq.gz & \
+				gzip -k6c fastq/${meta.id}_2.fastq > ${meta.id}_2.fastq.gz
 		fi
 	fi
 	"""

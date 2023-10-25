@@ -4,8 +4,8 @@ nextflow.enable.dsl=2
 
 def container_usage() {
 	return """Containerization options:
--with-docker              use docker containers to run commands when possible
--with-singularity         use singularity containers to run commands when possible
+-profile docker           use docker containers to run commands when possible
+-profile singularity      use singularity containers to run commands when possible
                             (avoid most pre-installation procedure)
 """
 }
@@ -31,9 +31,9 @@ def helpMessage() {
 --accessions_list path    file containing sra accessions to process, one per line
                             (required)
 --parallel_prefetch n     maximum sra prefetch downloads to run at once
-                            (default: 10)
+                            (default: 100)
 --help, -h                print this text and exit
-
+--genome_size n           genome size (approximate), in bytes
 ${star_usage()}
 ${container_usage()}
 ${publish_usage()}
@@ -59,7 +59,7 @@ params.ercc_gtf = "ERCC92.gtf"
 params.parallel_downloads = 100
 params.skip_host_counts = false
 params.skip_hisat2 = false
-params.hisat2_use_transcript = true
+params.hisat2_use_transcript = false
 
 params.publish_dir = "$PWD"
 params.publish_intermediate = false
