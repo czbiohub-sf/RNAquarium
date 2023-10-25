@@ -49,6 +49,7 @@ process hisat2 {
 	${HISAT2_CMD} \
 		-1 ${fqgz[0]} -2 ${fqgz[1]} \
 		--un-conc-gz PE/Unmapped.out.mate%.gz
+	gzip -t PE/Unmapped.out.mate*.gz
 	"""
 	else if (meta.single_end)
 	"""
@@ -56,6 +57,7 @@ process hisat2 {
 	${HISAT2_CMD} \
 		-U ${fqgz} \
 		--un-gz SE/Unmapped.out.mate1.gz
+	gzip -t SE/Unmapped.out.mate1.gz
 	"""
 }
 

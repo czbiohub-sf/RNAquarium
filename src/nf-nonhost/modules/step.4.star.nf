@@ -77,6 +77,7 @@ process star {
 		--readFilesIn ${fqgz[0]} ${fqgz[1]}
 
 	gzip PE/Unmapped.out.mate*
+	gzip -t PE/Unmapped.out.mate*.gz
 	"""
 	else if (meta.single_end)
 	"""
@@ -87,6 +88,7 @@ process star {
 		--readFilesIn ${fqgz}
 
 	gzip SE/Unmapped.out.mate1
+	gzip -t SE/Unmapped.out.mate1.gz
 	"""
 }
 
