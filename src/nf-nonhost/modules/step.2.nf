@@ -26,7 +26,7 @@ process fastp {
 
 	script:
 	def extension = ".trimmed.fastq"
-	def FASTP_CMD = """fastp --disable_quality_filtering --disable_length_filtering \
+	def FASTP_CMD = """fastp --disable_quality_filtering --length_required 2 \
 		--compression 6 --thread ${task.cpus} \
 		--json fastp.json --html fastp.html $params.fastp_options"""
 	if (!meta.single_end)
