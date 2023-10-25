@@ -77,7 +77,7 @@ process hisat2_generate_indexes {
 	hisat2_extract_exons.py indexes_ERCC.gtf > genome.exon
 
 	mkdir -p ${genome_name}_genome
-	hisat2-build -p $task.cpus $params.hisat2_index_gen_options \
+	hisat2-build -q -p $task.cpus $params.hisat2_index_gen_options \
 		--exon genome.exon \
 		dna_sm.primary_assembly_ERCC.fa ${genome_name}_genome/${genome_name}_genome
 	"""
@@ -87,7 +87,7 @@ process hisat2_generate_indexes {
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
 
 	mkdir -p ${genome_name}_genome
-	hisat2-build -p $task.cpus $params.hisat2_index_gen_options \
+	hisat2-build -q -p $task.cpus $params.hisat2_index_gen_options \
 		dna_sm.primary_assembly_ERCC.fa ${genome_name}_genome/${genome_name}_genome
 	"""
 }

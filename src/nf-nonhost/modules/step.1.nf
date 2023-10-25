@@ -121,6 +121,7 @@ process filter_barcodes {
 				gzip -k6c fastq/${meta.id}_2.fastq > ${meta.id}_2.fastq.gz
 		fi
 	fi
+	gzip -t fastq/*.fastq.gz
 	"""
 }
 

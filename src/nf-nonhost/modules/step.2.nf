@@ -71,6 +71,7 @@ process priceseqfilter {
 		-fp ${fqs} \
 		-op ${meta.id}_1${extension} ${meta.id}_2${extension}
 	gzip *${extension}
+	gzip -t *{$extension}.gz
 	rm ${fqs}
 	"""
 	else if (meta.single_end)
@@ -78,6 +79,7 @@ process priceseqfilter {
 	${price_cmd} \
 		-f ${fqs} -o ${meta.id}${extension}
 	gzip *${extension}
+	gzip -t *{$extension}.gz	
 	rm ${fqs}
 	"""
 }
