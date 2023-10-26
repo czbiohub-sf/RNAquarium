@@ -63,11 +63,11 @@ process star {
 	script:
 	def STAR_CMD = """STAR --outFilterMultimapNmax 99999 --outFilterMismatchNmax 999 \
 		--outFilterScoreMinOverLread 0.5 --outFilterMatchNminOverLread 0.5 \
-		--outSAMmode None --quantMode GeneCounts \
+		--outSAMmode None \
 		--clip3pNbases 0 --limitOutSJcollapsed 200000000 \
 		--genomeLoad NoSharedMemory --outReadsUnmapped Fastx \
 		--runThreadN ${task.cpus} \
-		params.star_options"""
+		${params.star_options}"""
 	if (!meta.single_end)
 	"""
 	${STAR_CMD} \
