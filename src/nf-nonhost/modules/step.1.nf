@@ -117,8 +117,8 @@ process filter_barcodes {
 			gzip -k6c fastq/${meta.id}.fastq > ${meta.id}.fastq.gz
 		else
 			echo $meta.id PE
-			gzip -k6c fastq/${meta.id}_1.fastq > ${meta.id}_1.fastq.gz & \
-				gzip -k6c fastq/${meta.id}_2.fastq > ${meta.id}_2.fastq.gz
+			gzip -k6c fastq/${meta.id}_1.fastq > ${meta.id}_1.fastq.gz
+			gzip -k6c fastq/${meta.id}_2.fastq > ${meta.id}_2.fastq.gz
 		fi
 	fi
 	gzip -t *.fastq.gz
