@@ -105,7 +105,8 @@ process filter_barcodes {
 	then # single
 		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary fastq/${meta.id}.fastq)"
 		echo $meta.id SE
-		gzip -k6c fastq/${meta.id}.fastq > ${meta.id}.fastq.gz
+		gzip -k6c fastq/${meta.id}.fastq > ${meta.id}.fastq.gz.staging
+		mv ${meta.id}.fastq.gz.staging ${meta.id}.fastq.gz
 	else # possibly paired, but may be scRNAseq barcodes
 		IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary fastq/${meta.id}_1.fastq)"
 		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary fastq/${meta.id}_2.fastq)"
@@ -114,11 +115,14 @@ process filter_barcodes {
 			echo $meta.id scRNAseq
 			rm fastq/${meta.id}_1.fastq # discard read 1 (cell barcode)
 			mv fastq/${meta.id}_2.fastq fastq/${meta.id}.fastq
-			gzip -k6c fastq/${meta.id}.fastq > ${meta.id}.fastq.gz
+			gzip -k6c fastq/${meta.id}.fastq > ${meta.id}.fastq.gz.staging
+			mv ${meta.id}.fastq.gz.staging ${meta.id}.fastq.gz
 		else
 			echo $meta.id PE
-			gzip -k6c fastq/${meta.id}_1.fastq > ${meta.id}_1.fastq.gz
-			gzip -k6c fastq/${meta.id}_2.fastq > ${meta.id}_2.fastq.gz
+			gzip -k6c fastq/${meta.id}_1.fastq > ${meta.id}_1.fastq.gz.staging
+			gzip -k6c fastq/${meta.id}_2.fastq > ${meta.id}_2.fastq.gz.staging
+			mv ${meta.id}_1.fastq.gz.staging ${meta.id}_1.fastq.gz
+			mv ${meta.id}_2.fastq.gz.staging ${meta.id}_2.fastq.gz
 		fi
 	fi
 	gzip -t *.fastq.gz

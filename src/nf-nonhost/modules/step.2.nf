@@ -36,14 +36,12 @@ process fastp {
 	${FASTP_CMD} \
 		--detect_adapter_for_pe --in1 fq1.fastq --in2 fq2.fastq \
 		--out1 ${meta.id}_1${extension} --out2 ${meta.id}_2${extension}
-	rm ${fqs}
 	"""
 	else if (meta.single_end)
 	"""
 	gzip -dc ${fqs} > fq1.fastq
 	${FASTP_CMD} \
 		--in1 fq1.fastq --out1 ${meta.id}${extension}
-	rm ${fqs}
 	"""
 }
 
@@ -70,17 +68,19 @@ process priceseqfilter {
 	${price_cmd} \
 		-fp ${fqs} \
 		-op ${meta.id}_1${extension} ${meta.id}_2${extension}
-	gzip *${extension}
+	gzip -c ${meta.id}_1${extension} > ${meta.id}_1${extension}.gz.staging 
+	gzip -c ${meta.id}_2${extension} > ${meta.id}_2${extension}.gz.staging 
+	mv ${meta.id}_1${extension}.gz.staging ${meta.id}_1${extension}.gz
+	mv ${meta.id}_2${extension}.gz.staging ${meta.id}_2${extension}.gz
 	gzip -t *${extension}.gz
-	rm ${fqs}
 	"""
 	else if (meta.single_end)
 	"""
 	${price_cmd} \
 		-f ${fqs} -o ${meta.id}${extension}
-	gzip *${extension}
-	gzip -t *${extension}.gz	
-	rm ${fqs}
+	gzip -c ${meta.id}${extension} > ${meta.id}${extension}.gz.staging
+	mv ${meta.id}${extension}.gz.staging ${meta.id}${extension}.gz
+	gzip -t *${extension}.gz
 	"""
 }
 

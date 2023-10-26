@@ -48,16 +48,17 @@ process hisat2 {
 	mkdir -p PE
 	${HISAT2_CMD} \
 		-1 ${fqgz[0]} -2 ${fqgz[1]} \
-		--un-conc-gz PE/Unmapped.out.mate%.gz
-	gzip -t PE/Unmapped.out.mate*.gz
+		--un-conc-gz PE/Unmapped.out.mate%.gz.staging
+	mv PE/Unmapped.out.mate1.gz.staging PE/Unmapped.out.mate1.gz
+	mv PE/Unmapped.out.mate2.gz.staging PE/Unmapped.out.mate2.gz
 	"""
 	else if (meta.single_end)
 	"""
 	mkdir -p SE
 	${HISAT2_CMD} \
 		-U ${fqgz} \
-		--un-gz SE/Unmapped.out.mate1.gz
-	gzip -t SE/Unmapped.out.mate1.gz
+		--un-gz SE/Unmapped.out.mate1.gz.staging
+	mv SE/Unmapped.out.mate1.gz.staging SE/Unmapped.out.mate1.gz
 	"""
 }
 
