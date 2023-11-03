@@ -11,174 +11,224 @@ def container_usage() {
 }
 def publish_usage() {
 	return """Intermediate output options:
---publish_intermediate    if true, publish some intermediate step output
+--publish-intermediate    if true, publish some intermediate step output
                             (default: false)
---publish_dir path        path to write useful intermediate output of each step
+--publish-dir path        path to write useful intermediate output of each step
                             (default: \$PWD)
---publish_fastqs          whether to publish output from fastq dump
+--publish-fastqs          whether to publish output from fastq dump
                             (default: true)
---publish_pricefiltered   whether to publish output from PRICE filtering
+--publish-pricefiltered   whether to publish output from PRICE filtering
                             (default: true)
---publish_star            whether to publish output from STAR mapping
+--publish-star            whether to publish output from STAR mapping
                             (default: true)
---publish_readcounts      whether to publish output from the read count pipeline
+--publish-readcounts      whether to publish output from the read count pipeline
                             (default: true)
 """
 }
 
 def helpMessage() {
 	log.info """
---accessions_list path    file containing sra accessions to process, one per line
+--accession-list path    file containing sra accessions to process, one per line
                             (required)
---parallel_prefetch n     maximum sra prefetch downloads to run at once
+--parallel-prefetch n     maximum sra prefetch downloads to run at once
                             (default: 100)
 --help, -h                print this text and exit
---genome_size n           genome size (approximate), in bytes
+--genome-size n           genome size (approximate), in bytes
 ${star_usage()}
 ${container_usage()}
 ${publish_usage()}
 """
 }
 
+params.accessionList = ""
+params.fastqPath = "$PWD/fastq"
+params.parallelDownloads = 100
+params.skipHostCounts = false
+params.skipHisat = false
+params.hisatUseTranscript = false
 params.help = false
 params.h = false
-params.accessions_list = ""
 
-params.genome_size = null // must be filled
-params.star_ref_indexes_ercc = null // "Danio_rerio.GRCz11.108.ERCC"
-params.star_ref_indexes = null // "Danio_rerio.GRCz11.108"
-params.hisat2_ref_indexes = null
+params.genomeSize = null // must be filled
+params.starRefIndexesErcc = null // "Danio_rerio.GRCz11.108.ERCC"
+params.starRefIndexes = null // "Danio_rerio.GRCz11.108"
+params.hisatRefIndexes = null
 // https://ftp.ensembl.org/pub/release-108/fasta/danio_rerio/dna/
-params.ref_genome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
+params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
 // https://ftp.ensembl.org/pub/release-108/gtf/danio_rerio/
-params.ref_genome_gtf = "Danio_rerio.GRCz11.108.gtf"
+params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
 // https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip
-params.ercc_fa = "ERCC92.fa"
-params.ercc_gtf = "ERCC92.gtf"
+params.erccFa = "ERCC92.fa"
+params.erccGtf = "ERCC92.gtf"
 
-params.parallel_downloads = 100
-params.skip_host_counts = false
-params.skip_hisat2 = false
-params.hisat2_use_transcript = false
+params.publishDir = "$PWD"
+params.publishIntermediate = false
+params.publishFastqs = true
+params.publishPricefiltered = true
+params.publishReadcounts = true
+params.publishHisat = true
+params.publishStar = true
 
-params.publish_dir = "$PWD"
-params.publish_intermediate = false
-params.publish_fastqs = true
-params.publish_pricefiltered = true
-params.publish_readcounts = true
-params.publish_hisat2 = true
-params.publish_star = true
-
-params.star_index_gen_options = ""
-params.hisat2_index_gen_options = ""
-params.sra_prefetch_options = ""
-params.fastq_dump_options = ""
-params.fastp_options = ""
-params.price_options = ""
-params.star_count_options = "" // host read counts pipeline
-params.samtools_sort_options = ""
-params.htseq_count_options = ""
-params.hisat2_options = "" // nonhost pipeline
-params.star_options = ""
+params.starIndexGenOptions = ""
+params.hisatIndexGenOptions = ""
+params.sraPrefetchOptions = ""
+params.fastqDumpOptions = ""
+params.fastpOptions = ""
+params.priceOptions = ""
+params.starCountOptions = "" // host read counts pipeline
+params.samtoolsSortOptions = ""
+params.htseqCountOptions = ""
+params.hisatOptions = "" // nonhost pipeline
+params.starOptions = ""
 
 include {
 	star_generate_indexes;
 	hisat2_generate_indexes;
 } from './modules/step.0.generate_indexes.nf' params(
-	publish_dir: params.publish_dir,
-	star_index_gen_options: params.star_index_gen_options,
-	hisat2_index_gen_options: params.hisat2_index_gen_options,
-	hisat2_use_transcript: params.hisat2_use_transcript
+	publishDir: params.publishDir,
+	starIndexGenOptions: params.starIndexGenOptions,
+	hisatIndexGenOptions: params.hisatIndexGenOptions,
+	hisatUseTranscript: params.hisatUseTranscript
 )
 include {
 	prefetch;
 	fastq_dump;
 	filter_barcodes;
 } from './modules/step.1.nf' params(
-	parallel_downloads: params.parallel_downloads,
-	publish_dir: params.publish_dir,
-	publish_intermediate: params.publish_intermediate && params.publish_fastqs,
-	sra_prefetch_options: params.sra_prefetch_options,
-	fastq_dump_options: params.fastq_dump_options
+	parallelDownloads: params.parallelDownloads,
+	publishDir: params.publishDir,
+	publishIntermediate: params.publishIntermediate && params.publishFastqs,
+	sraPrefetchOptions: params.sraPrefetchOptions,
+	fastqDumpOptions: params.fastqDumpOptions
 )
 include {
 	fastp;
 	priceseqfilter;
 } from './modules/step.2.nf' params(
-	publish_dir: params.publish_dir,
-	publish_intermediate: params.publish_intermediate && params.publish_pricefiltered,
-	fastp_options: params.fastp_options,
-	price_options: params.price_options
+	publishDir: params.publishDir,
+	publishIntermediate: params.publishIntermediate && params.publishPricefiltered,
+	fastpOptions: params.fastpOptions,
+	priceOptions: params.priceOptions
 )
 include {
 	star_counts;
 	sort_bam;
 	htseq_count;
 } from './modules/step.readcounts.nf' params(
-	genome_size: params.genome_size,
-	publish_dir: params.publish_dir,
-	publish_intermediate: params.publish_intermediate && params.publish_readcounts,
-	star_count_options: params.star_count_options,
-	samtools_sort_options: params.samtools_sort_options,
-	htseq_count_options: params.htseq_count_options
+	genomeSize: params.genomeSize,
+	publishDir: params.publishDir,
+	publishIntermediate: params.publishIntermediate && params.publishReadcounts,
+	starCountOptions: params.starCountOptions,
+	samtoolsSortOptions: params.samtoolsSortOptions,
+	htseqCountOptions: params.htseqCountOptions
 )
 include {
 	hisat2;
 	ensure_hisat2_indexes;
 } from './modules/step.3.hisat2.nf' params(
-	genome_size: params.genome_size,
-	publish_dir: params.publish_dir,
-	publish_intermediate: params.publish_intermediate && params.publish_hisat2,
-	hisat2_options: params.hisat2_options
+	genomeSize: params.genomeSize,
+	publishDir: params.publishDir,
+	publishIntermediate: params.publishIntermediate && params.publishHisat,
+	hisatOptions: params.hisatOptions
 )
 include {
 	star_usage;
 	star;
 	ensure_star_indexes;
 } from './modules/step.4.star.nf' params(
-	genome_size: params.genome_size,
-	publish_dir: params.publish_dir,
-	publish_intermediate: params.publish_intermediate && params.publish_star,
-	star_options: params.star_options
+	genomeSize: params.genomeSize,
+	publishDir: params.publishDir,
+	publishIntermediate: params.publishIntermediate && params.publishStar,
+	starOptions: params.starOptions
 )
 
 
 workflow {
-	if (params.help || params.h || !params.accessions_list) {
+	// parameter validation:
+	// at least one of accessionList or fastqPath MUST be specified
+	// genomeSize MUST be specified (todo?: if starRefIndexesErcc not present)
+	// parallelDownloads MUST be >= 1
+	// refGenomeGtf MUST be specified if skipHostCounts is NOT specified
+	// starRefIdx, starRefIdxErcc MUST be present
+	//    if refGenome, refGenomeGtf, erccFa, OR erccGtf are not
+	// if hisatUse  hisatRefIdx 
+	if (params.help || params.h || !(params.accessionList || params.fastqPath)) {
 		helpMessage()
 		exit params.help || params.h ? 0 : 1
+	} else if (!params.genomeSize || params.genomeSize <= 0) {
+		log.error "--genome-size must be specified (approximate, in bytes)"
+		exit 1
+	} else if (params.parallelDownloads <= 0) {
+		log.error "--parallel-downloads must be >= 1"
+		exit 1
+	} else if (!params.skipHostCounts && !file(params.refGenomeGtf).exists()) {
+		log.error "--ref-genome-gtf annotations are required for host read counts"
+		exit 1
 	}
+
+	StringBuilder param_info = new StringBuilder()
+	for (e in params) {
+		if (e.key.equals(e.key.toLowerCase()) && !(e.key in ['help', 'h']))
+			param_info.append("${e.key.padLeft(23)}:\t$e.value\n")
+	}
+	log.info param_info.toString()
 	
 	main:
 	// step 0: generating hisat2 indexes
-	hisat2_indexes = ensure_hisat2_indexes(params.hisat2_ref_indexes,
-										   params.ref_genome,
-										   params.ref_genome_gtf,
-										   params.ercc_fa,
-										   params.ercc_gtf)
+	hisat2_indexes = ensure_hisat2_indexes(params.hisatRefIndexes,
+										   params.refGenome,
+										   params.refGenomeGtf,
+										   params.erccFa,
+										   params.erccGtf)
 	// step 0: generating STAR indexes
-	(star_indexes, star_indexes2) = ensure_star_indexes(params.star_ref_indexes,
-														params.star_ref_indexes_ercc,
-														params.ref_genome,
-														params.ref_genome_gtf,
-														params.ercc_fa,
-														params.ercc_gtf)
-
+	(star_indexes, star_indexes2) = ensure_star_indexes(params.starRefIndexes,
+														params.starRefIndexesErcc,
+														params.refGenome,
+														params.refGenomeGtf,
+														params.erccFa,
+														params.erccGtf)
 
 	// step 1: download and convert to fastq
-	accessions = channel.fromPath(params.accessions_list).splitText()
-		.map { acc -> [[id: acc.trim()], acc.trim()] }
+	// find existing fastqs
+	if (params.fastqPath) {
+		direct_fastqs = Channel.fromPath("$params.fastqPath/*", type: 'dir')
+			.map { path ->
+				def new_meta = [ id: path.getSimpleName(),
+								 sra_size: files("$path/*.fastq")[0].size() ]
+				[ new_meta, path ]
+			}
+		direct_fastq_ids = direct_fastqs
+			.map { meta, _ ->
+				[ meta.id, true ]
+			}
+	} else {
+		direct_fastq_ids = Channel.empty()
+		direct_fastqs = Channel.empty()
+	}
 
+	// remove ids that exist in pre-dumped fastq path from accessions list
+	accessions = Channel.fromPath(params.accessionList, type: 'file').splitText()
+		.map { acc -> acc.trim() }
+		.join(direct_fastq_ids, remainder: true, by: 0)
+		.filter { key, v2 -> !v2 }
+		.map { key, _ ->
+			[ [id: key], key ]
+		}
+	
+	// prefetch SRAs by remaining accessions
 	sra = prefetch(accessions)
 		.map { meta, sra, reads, sra_size ->
 			def new_meta = [id: meta.id,
 							reads: reads.toLong(),
 							sra_size: sra_size.toLong() ]
 			[ new_meta, sra ]
-		}
-		
-	fastqs = fastq_dump(sra)
+ 	}
 
+	// and convert SRA to fastq
+	fastqs = fastq_dump(sra)
+		.mix(direct_fastqs) // , merging any existing fastqs
+
+	// heuristic filter scRNAseq barcode files and add metadata for resource optimization
 	fastqs_2 = filter_barcodes(fastqs)
 		.map { meta, fastq, median, count, fsize ->
 			def new_meta = meta.clone()
@@ -192,15 +242,15 @@ workflow {
 	// step 2: adapter trimming & filtering
 	filtered_fastqs = fastqs_2 | fastp | priceseqfilter
 
-	// read counts path
-	if (!params.skip_host_counts) {
+	// host read counts path
+	if (!params.skipHostCounts) {
 		bam = star_counts(filtered_fastqs, star_indexes2)
 		bam_sorted = sort_bam(bam)
-		count = htseq_count(bam_sorted, file(params.ref_genome_gtf))
+		count = htseq_count(bam_sorted, file(params.refGenomeGtf))
 	}
 
 	// step 3: hisat2
-	if (!params.skip_hisat2) {
+	if (!params.skipHisat) {
 		unmapped_reads_1 = hisat2(filtered_fastqs, hisat2_indexes)
 	} else {
 		unmapped_reads_1 = filtered_fastqs

@@ -50,13 +50,14 @@ process prefetch {
 process fastq_dump {
 	label 'sratools'
 
+	// omit 'fastq/$meta.id' because we output that entire folder here
 	publishDir "$params.publish_dir", enabled: params.publish_intermediate
 
 	input:
 	tuple val(meta), path(sra_file)
 
 	output:
-	tuple val(meta), path('fastq')
+	tuple val(meta), path("fastq/${meta.id}")
 
 	beforeScript 'mkdir -p fastq'
 	
@@ -65,7 +66,7 @@ process fastq_dump {
 	if (task.attempt == 1)
 		"""
 		set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-		fasterq-dump --split-3 -e ${task.cpus} $params.fastq_dump_options --outdir fastq ${meta.id}
+		fasterq-dump --split-3 -e ${task.cpus} $params.fastq_dump_options --outdir fastq/${meta.id} ${meta.id}
 	
 		# TODO: this doesn't work..
 		rm -rf ${sra_file}
@@ -74,7 +75,7 @@ process fastq_dump {
 		"""
 		echo fasterq-dump encountered error, reverting to using fastq-dump
 		set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-		fastq-dump --split-3 --disable-multithreading --outdir fastq ${meta.id}
+		fastq-dump --split-3 --disable-multithreading --outdir fastq/${meta.id} ${meta.id}
 
 		rm -rf ${sra_file}
 		"""
@@ -101,26 +102,26 @@ process filter_barcodes {
 	script:
 	"""
 	# one set of reads, or two?
-	if [[ \$(ls -1 fastq/*.fastq | wc -l) -lt 2 ]]
+	if [ $fastq/${meta.id}.fastq -nt $fastq/${meta.id}_2.fastq ]
 	then # single
-		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary fastq/${meta.id}.fastq)"
+		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary $fastq/${meta.id}.fastq)"
 		echo $meta.id SE
-		gzip -k6c fastq/${meta.id}.fastq > ${meta.id}.fastq.gz.staging
+		gzip -k6c $fastq/${meta.id}.fastq > ${meta.id}.fastq.gz.staging
 		mv ${meta.id}.fastq.gz.staging ${meta.id}.fastq.gz
 	else # possibly paired, but may be scRNAseq barcodes
-		IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary fastq/${meta.id}_1.fastq)"
-		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary fastq/${meta.id}_2.fastq)"
+		IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary $fastq/${meta.id}_1.fastq)"
+		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary $fastq/${meta.id}_2.fastq)"
 		if [ \$median1 -lt 32 ] && [ \$median -gt 80 ]
 		then
 			echo $meta.id scRNAseq
-			rm fastq/${meta.id}_1.fastq # discard read 1 (cell barcode)
-			mv fastq/${meta.id}_2.fastq fastq/${meta.id}.fastq
-			gzip -k6c fastq/${meta.id}.fastq > ${meta.id}.fastq.gz.staging
+			rm $fastq/${meta.id}_1.fastq # discard read 1 (cell barcode)
+			mv $fastq/${meta.id}_2.fastq $fastq/${meta.id}.fastq
+			gzip -k6c $fastq/${meta.id}.fastq > ${meta.id}.fastq.gz.staging
 			mv ${meta.id}.fastq.gz.staging ${meta.id}.fastq.gz
 		else
 			echo $meta.id PE
-			gzip -k6c fastq/${meta.id}_1.fastq > ${meta.id}_1.fastq.gz.staging
-			gzip -k6c fastq/${meta.id}_2.fastq > ${meta.id}_2.fastq.gz.staging
+			gzip -k6c $fastq/${meta.id}_1.fastq > ${meta.id}_1.fastq.gz.staging
+			gzip -k6c $fastq/${meta.id}_2.fastq > ${meta.id}_2.fastq.gz.staging
 			mv ${meta.id}_1.fastq.gz.staging ${meta.id}_1.fastq.gz
 			mv ${meta.id}_2.fastq.gz.staging ${meta.id}_2.fastq.gz
 		fi
