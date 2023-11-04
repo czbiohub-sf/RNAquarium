@@ -208,14 +208,16 @@ workflow {
 		accessions = accessions
 			.join(direct_fastq_ids, remainder: true, by: 0)
 			.filter { key, v2 -> !v2 }
+			.map { key, _ ->
+				[ [id: key], key ]
+			}
 	} else {
-		direct_fastq_ids = Channel.empty()
 		direct_fastqs = Channel.empty()
+		accessions = accessions
+			.map { key ->
+				[ [id: key], key ]
+			}
 	}
-	accessions = accessions
-		.map { key ->
-			[ [id: key], key ]
-		}
 	
 	// prefetch SRAs by remaining accessions
 	sra = prefetch(accessions)
