@@ -2,14 +2,14 @@
 
 nextflow.enable.dsl=2
 
-params.publish_dir = "$PWD"
-params.publish_intermediate = true
+params.publishDir = "$PWD"
+params.publishIntermediate = true
 
-params.fastp_options = ""
-params.price_options = ""
+params.fastpOptions = ""
+params.priceOptions = ""
 
-params.meta_in = 'step_1_sheet.csv'
-params.meta_out = 'step_2_sheet.csv'
+params.metaIn = 'step_1_sheet.csv'
+params.metaOut = 'step_2_sheet.csv'
 include {
 	LOAD_METASHEET;
 	SAVE_METASHEET;
@@ -28,7 +28,7 @@ process fastp {
 	def extension = ".trimmed.fastq"
 	def FASTP_CMD = """fastp --disable_quality_filtering --length_required 2 \
 		--compression 6 --thread ${task.cpus} \
-		--json fastp.json --html fastp.html $params.fastp_options"""
+		--json fastp.json --html fastp.html $params.fastpOptions"""
 	if (!meta.single_end)
 	"""
 	gzip -dc ${fqs[0]} > fq1.fastq
@@ -48,7 +48,7 @@ process fastp {
 process priceseqfilter {
 	label 'price'
 
-	publishDir "$params.publish_dir/fastq/$meta.id", enabled: params.publish_intermediate
+	publishDir "$params.publishDir/fastq/$meta.id", enabled: params.publishIntermediate
 	
 	input:
 	tuple val(meta), path(fqs)
@@ -62,7 +62,7 @@ process priceseqfilter {
 	script:
 	def extension = ".PRICEfiltered.fastq"
 	def price_cmd = """PriceSeqFilter -a ${task.cpus} -rnf 90 -rqf 85 0.98 \
-		-log c $params.price_options"""
+		-log c $params.priceOptions"""
 	if (!meta.single_end)
 	"""
 	${price_cmd} \
@@ -85,10 +85,10 @@ process priceseqfilter {
 }
 
 workflow {
-	fastqs = LOAD_METASHEET(params.meta_in)
+	fastqs = LOAD_METASHEET(params.metaIn)
 	
 	fastp(fastqs)
 	priceseqfilter(fastp.out)
 	
-	SAVE_METASHEET(priceseqfilter.out, params.meta_out)
+	SAVE_METASHEET(priceseqfilter.out, params.metaOut)
 }

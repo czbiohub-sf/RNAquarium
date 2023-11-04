@@ -20,29 +20,29 @@ Option 2:
 """
 }
 
-params.publish_dir = "$PWD"
-params.publish_intermediate = true
-params.genome_size = null
-params.ref_indexes_ercc = null // "Danio_rerio.GRCz11.108.ERCC"
-params.ref_indexes = null //"Danio_rerio.GRCz11.108"
+params.publishDir = "$PWD"
+params.publishIntermediate = true
+params.genomeSize = null
+params.refIndexesErcc = null // "Danio_rerio.GRCz11.108.ERCC"
+params.refIndexes = null //"Danio_rerio.GRCz11.108"
 
-params.ref_genome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
-params.ref_genome_gtf = "Danio_rerio.GRCz11.108.gtf"
-params.ercc_fa = "ERCC92.fa"
-params.ercc_gtf = "ERCC92.gtf"
+params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
+params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
+params.erccFa = "ERCC92.fa"
+params.erccGtf = "ERCC92.gtf"
 
-params.star_options = ""
-params.star_index_gen_options = ""
+params.starOptions = ""
+params.starIndexGenOptions = ""
 
 include {
 	star_generate_indexes;
 } from './step.0.generate_indexes.nf' params(
-	publish_dir: params.publish_dir,
-	star_index_gen_options: params.star_index_gen_options
+	publishDir: params.publishDir,
+	starIndexGenOptions: params.starIndexGenOptions
 )
 
-params.meta_in = 'step_3_sheet.csv'
-params.meta_out = 'step_4_sheet.csv'
+params.metaIn = 'step_3_sheet.csv'
+params.metaOut = 'step_4_sheet.csv'
 include {
 	LOAD_METASHEET;
 	SAVE_METASHEET;
@@ -51,7 +51,7 @@ include {
 
 process star {
 	label 'star'
-	publishDir "$params.publish_dir/STAR_out/$meta.id", enabled: params.publish_intermediate
+	publishDir "$params.publishDir/STAR_out/$meta.id", enabled: params.publishIntermediate
 	
 	input:
 	tuple val(meta), path(fqgz)
@@ -67,7 +67,7 @@ process star {
 		--clip3pNbases 0 --limitOutSJcollapsed 200000000 \
 		--genomeLoad NoSharedMemory --outReadsUnmapped Fastx \
 		--runThreadN ${task.cpus} \
-		${params.star_options}"""
+		${params.starOptions}"""
 	if (!meta.single_end)
 	"""
 	${STAR_CMD} \
@@ -93,7 +93,7 @@ process star {
 }
 
 def set_genome_size(n) {
-	params.star_genome_size = n
+	params.starGenomeSize = n
 }
 def ensure_genome_size(explicit_size, ref_genome_fa) {
 	if (explicit_size && explicit_size > 0) {
@@ -122,18 +122,18 @@ def ensure_star_indexes(ref_indexes, ref_indexes_ercc,
 }
 
 workflow {
-	ensure_genome_size(params.genome_size, file(params.ref_genome))
+	ensure_genome_size(params.genomeSize, file(params.refGenome))
 
-	(indexes, indexes2) = ensure_star_indexes(params.ref_indexes,
-											  params.ref_indexes_ercc,
-											  params.ref_genome,
-											  params.ref_genome_gtf,
+	(indexes, indexes2) = ensure_star_indexes(params.refIndexes,
+											  params.refIndexesErcc,
+											  params.refGenome,
+											  params.refGenomeGtf,
 											  params.ercc,
-											  params.ercc_gtf)
+											  params.erccGtf)
 
-	fastqs = LOAD_METASHEET(params.meta_in)
+	fastqs = LOAD_METASHEET(params.metaIn)
 
 	unmapped_reads = star(fastqs, indexes)
 
-	SAVE_METASHEET(unmapped_reads, params.meta_out)
+	SAVE_METASHEET(unmapped_reads, params.metaOut)
 }

@@ -2,15 +2,15 @@
 
 nextflow.enable.dsl=2
 
-params.accessions_list = "SRA_accession_list.test.txt"
-params.parallel_downloads = 10
-params.publish_dir = "$PWD"
-params.publish_intermediate = true
+params.accessionsList = "SRA_accession_list.test.txt"
+params.parallelDownloads = 10
+params.publishDir = "$PWD"
+params.publishIntermediate = true
 
-params.sra_prefetch_options = ""
-params.fastq_dump_options = ""
+params.sraPrefetchOptions = ""
+params.fastqDumpOptions = ""
 
-params.meta_out = 'step_1_sheet.csv'
+params.metaOut = 'step_1_sheet.csv'
 include {
 	SAVE_METASHEET;
 } from './utils.nf'
@@ -18,7 +18,7 @@ include {
 process prefetch {
 	debug true
 	label 'sratools'
-	maxForks params.parallel_downloads
+	maxForks params.parallelDownloads
 	
 	input:
 	tuple val(meta), val(sra_id)
@@ -33,7 +33,7 @@ process prefetch {
 	"""
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	prefetch --output-directory . --max-size 1t --force ALL \
-		$params.sra_prefetch_options $sra_id
+		$params.sraPrefetchOptions $sra_id
 	vdb-validate -I no $sra_id 2> validate.txt
 	vdb-dump --info $sra_id > info.txt
 	sra_size=\$(awk -F': ' '/^size/{gsub(/,/,"",\$2);print \$2}' info.txt)
@@ -51,7 +51,7 @@ process fastq_dump {
 	label 'sratools'
 
 	// omit 'fastq/$meta.id' because we output that entire folder here
-	publishDir "$params.publish_dir", enabled: params.publish_intermediate
+	publishDir "$params.publishDir", enabled: params.publishIntermediate
 
 	input:
 	tuple val(meta), path(sra_file)
@@ -66,7 +66,7 @@ process fastq_dump {
 	if (task.attempt == 1)
 		"""
 		set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-		fasterq-dump --split-3 -e ${task.cpus} $params.fastq_dump_options --outdir fastq/${meta.id} ${meta.id}
+		fasterq-dump --split-3 -e ${task.cpus} $params.fastqDumpOptions --outdir fastq/${meta.id} ${meta.id}
 	
 		# TODO: this doesn't work..
 		rm -rf ${sra_file}
@@ -132,7 +132,7 @@ process filter_barcodes {
 
 
 workflow {
-	accessions = channel.fromPath(params.accessions_list).splitText()
+	accessions = channel.fromPath(params.accessionsList).splitText()
 		.map { acc -> [[id: acc.trim()], acc.trim()] }
 
 	sra = prefetch(accessions)
@@ -155,5 +155,5 @@ workflow {
 			[ new_meta, fastq ]
 		}
 
-	SAVE_METASHEET(fastqs_2, params.meta_out)
+	SAVE_METASHEET(fastqs_2, params.metaOut)
 }

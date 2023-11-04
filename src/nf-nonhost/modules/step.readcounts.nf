@@ -2,16 +2,16 @@
 
 nextflow.enable.dsl=2
 
-params.fastq_path = "fastq/*/"
-params.publish_dir = "$PWD"
-params.publish_intermediate = true
-params.ref_indexes = null //"Danio_rerio.GRCz11.108"
+params.fastqPath = "fastq/*/"
+params.publishDir = "$PWD"
+params.publishIntermediate = true
+params.refIndexes = null //"Danio_rerio.GRCz11.108"
 
-params.star_count_options = ""
-params.samtools_sort_options = ""
-params.htseq_count_options = ""
+params.starCountOptions = ""
+params.samtoolsSortOptions = ""
+params.htseqCountOptions = ""
 
-params.meta_in = 'step_2_sheet.csv'
+params.metaIn = 'step_2_sheet.csv'
 include {
 	LOAD_METASHEET;
 } from './utils.nf'
@@ -35,7 +35,7 @@ process star_counts {
 		--outSAMtype BAM Unsorted --outSAMattributes NH HI NM MD \
 		--genomeLoad NoSharedMemory --outReadsUnmapped None \
 		--runThreadN ${task.cpus} \
-		$params.star_count_options"""
+		$params.starCountOptions"""
 	if (!meta.single_end)
 	"""
 	${STAR_READCOUNTS_CMD} \
@@ -67,7 +67,7 @@ process sort_bam {
 	script:
 	def mem = "${task.memory.toGiga()}G"
 	"""
-	samtools sort -m $mem -n -@ $task.cpus $params.samtools_sort_options \
+	samtools sort -m $mem -n -@ $task.cpus $params.samtoolsSortOptions \
 		-o Aligned.out.namesorted.bam $bam
 	"""
 }
@@ -85,18 +85,18 @@ process htseq_count {
 	script:
 	"""
 	htseq-count -r name -s no -f bam -m intersection-nonempty \
-		$params.htseq_count_options $sorted_bam $gtf_noERCC > htseq-count.txt
+		$params.htseqCountOptions $sorted_bam $gtf_noERCC > htseq-count.txt
 	rm $sorted_bam
 	"""
 }
 
 workflow {
-	indexes2 = params.ref_indexes
+	indexes2 = params.refIndexes
 	
-	fastqs = channel.fromFilePairs("$params.fastq_path/[SED]RR*_?[12]?.fastq",
+	fastqs = channel.fromFilePairs("$params.fastqPath/[SED]RR*_?[12]?.fastq",
 								   size: -1)
 	
 	bam = star_counts(fastqs, indexes2)
 	bam_sorted = sort_bam(bam)
-	count = htseq_count(bam_sorted, params.gtf_no_ercc)
+	count = htseq_count(bam_sorted, params.gtfNoErcc)
 }
