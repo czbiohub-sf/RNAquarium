@@ -41,7 +41,7 @@ ${publish_usage()}
 }
 
 params.accessionList = ""
-params.fastqPath = "$PWD/fastq"
+params.fastqPath = null // "$PWD/fastq"
 params.parallelDownloads = 100
 params.skipHostCounts = false
 params.skipHisat = false
@@ -193,24 +193,29 @@ workflow {
 	accessions = Channel.fromPath(params.accessionList, type: 'file').splitText()
 		.map { acc -> acc.trim() }
 
-	if (file(params.fastqPath).exists()) {
-		direct_fastqs = Channel.fromPath("$params.fastqPath/*", type: 'dir')
-			.map { path ->
-				def new_meta = [ id: path.getSimpleName(),
-								 sra_size: files("$path/*.fastq")[0].size() ]
-				[ new_meta, path ]
-			}
-		direct_fastq_ids = direct_fastqs
-			.map { meta, _ ->
-				[ meta.id, true ]
-			}
-		// remove ids that exist in pre-dumped fastq path from accessions list
-		accessions = accessions
-			.join(direct_fastq_ids, remainder: true, by: 0)
-			.filter { key, v2 -> !v2 }
-			.map { key, _ ->
-				[ [id: key], key ]
-			}
+	if (params.fastqPath && file(params.fastqPath).exists()) {
+		try {
+			direct_fastqs = Channel.fromPath("$params.fastqPath/*", type: 'dir')
+				.map { path -> // need to think about this more, failure handling?
+					def new_meta = [ id: path.getSimpleName(),
+									sra_size: files("$path/*.fastq")[0].size() ]
+					[ new_meta, path ]
+				}
+			direct_fastq_ids = direct_fastqs
+				.map { meta, _ ->
+					[ meta.id, true ]
+				}
+			// remove ids that exist in pre-dumped fastq path from accessions list
+			accessions = accessions
+				.join(direct_fastq_ids, remainder: true, by: 0)
+				.filter { key, v2 -> !v2 }
+				.map { key, _ ->
+					[ [id: key], key ]
+				}
+		} catch (Exception e) {
+			log.error "--fastq-path $params.fastqPath is not folders of fastq?\n$e"
+			exit(1)
+		}
 	} else {
 		direct_fastqs = Channel.empty()
 		accessions = accessions
