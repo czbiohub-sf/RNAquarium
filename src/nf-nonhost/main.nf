@@ -190,7 +190,10 @@ workflow {
 
 	// step 1: download and convert to fastq
 	// find existing fastqs
-	if (params.fastqPath) {
+	accessions = Channel.fromPath(params.accessionList, type: 'file').splitText()
+		.map { acc -> acc.trim() }
+
+	if (file(params.fastqPath).exists()) {
 		direct_fastqs = Channel.fromPath("$params.fastqPath/*", type: 'dir')
 			.map { path ->
 				def new_meta = [ id: path.getSimpleName(),
@@ -201,17 +204,16 @@ workflow {
 			.map { meta, _ ->
 				[ meta.id, true ]
 			}
+		// remove ids that exist in pre-dumped fastq path from accessions list
+		accessions = accessions
+			.join(direct_fastq_ids, remainder: true, by: 0)
+			.filter { key, v2 -> !v2 }
 	} else {
 		direct_fastq_ids = Channel.empty()
 		direct_fastqs = Channel.empty()
 	}
-
-	// remove ids that exist in pre-dumped fastq path from accessions list
-	accessions = Channel.fromPath(params.accessionList, type: 'file').splitText()
-		.map { acc -> acc.trim() }
-		.join(direct_fastq_ids, remainder: true, by: 0)
-		.filter { key, v2 -> !v2 }
-		.map { key, _ ->
+	accessions = accessions
+		.map { key ->
 			[ [id: key], key ]
 		}
 	
