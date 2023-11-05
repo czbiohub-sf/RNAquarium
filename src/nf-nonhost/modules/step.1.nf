@@ -32,12 +32,16 @@ process prefetch {
 	script:
 	"""
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-	prefetch --output-directory . --max-size 1t --force ALL \
+	prefetch --output-directory staging --max-size 1t --force ALL \
 		$params.sraPrefetchOptions $sra_id
-	vdb-validate -I no $sra_id 2> validate.txt
-	vdb-dump --info $sra_id > info.txt
+	cd staging
+	vdb-validate -I no $sra_id 2> ../validate.txt
+	vdb-dump --info $sra_id > ../info.txt
+	cd ..
 	sra_size=\$(awk -F': ' '/^size/{gsub(/,/,"",\$2);print \$2}' info.txt)
 	reads=\$(awk -F': ' '/^SEQ/{gsub(/,/,"",\$2);print \$2}' info.txt)
+	trap -- '' SIGTERM
+	mv staging/$sra_id $sra_id 
 	"""
 
 	stub:
@@ -66,18 +70,22 @@ process fastq_dump {
 	if (task.attempt == 1)
 		"""
 		set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-		fasterq-dump --split-3 -e ${task.cpus} $params.fastqDumpOptions --outdir fastq/${meta.id} ${meta.id}
-	
+		fasterq-dump --split-3 -e ${task.cpus} $params.fastqDumpOptions --outdir fastq/${meta.id}.staging ${meta.id}
 		# TODO: this doesn't work..
 		rm -rf ${sra_file}
+	
+		trap -- '' SIGTERM
+		mv fastq/${meta.id}.staging fastq/${meta.id}
 		"""
 	else
 		"""
 		echo fasterq-dump encountered error, reverting to using fastq-dump
 		set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-		fastq-dump --split-3 --disable-multithreading --outdir fastq/${meta.id} ${meta.id}
-
+		fastq-dump --split-3 --disable-multithreading --outdir fastq/${meta.id}.staging ${meta.id}
 		rm -rf ${sra_file}
+	
+		trap -- '' SIGTERM
+		mv fastq/${meta.id}.staging fastq/${meta.id}
 		"""
 
 	stub:
