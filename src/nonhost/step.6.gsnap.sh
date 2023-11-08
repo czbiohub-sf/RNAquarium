@@ -2,52 +2,58 @@
 
 #SBATCH --job-name=sra_gsnap
 #SBATCH --time=14-00:00:00
-#SBATCH --array=1-526%500
+#SBATCH --array=1-10%10
 #SBATCH --nodes=1
-#SBATCH --partition preempted
+#SBATCH --partition cpu
 #SBATCH --ntasks=1
 #SBATCH --mem=96G
 #SBATCH --cpus-per-task=2
-#SBATCH -e slurm.out.gsnap/slurm-%A_%a.err
-#SBATCH -o slurm.out.gsnap/slurm-%A_%a.out
+#SBATCH -e slurm.out/slurm-%A_%a.err
+#SBATCH -o slurm.out/slurm-%A_%a.out
+
+#setting directories
+WORKING_DIR="${1}"
+ACCESSIONS_LIST="${2}"
+TOOLS="${3}"
+ENVNAME="${4}"
+REMOVEFQ="${5}"
+THREAD=4
 
 declare -x idx=$(( ${SLURM_ARRAY_TASK_ID} -1))
 
 module load anaconda
-conda activate zf_pipeline
+conda activate "${ENVNAME}"
 
 #parameters
 max_mismatch=0.3
 rm_dedup_res=0 #whether to remove dedup results, 0=don't remove, 1=remove
 
 #setting directories
-#working_dir="/hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/unmapped_dev"
-working_dir="/hpc/scratch/group.theory/jparas/zf_pipeline"
-ddir=${working_dir}/Dedup_out
-gdir=${working_dir}/Gsnap_out
+#WORKING_DIR="/hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/unmapped_dev"
+ddir=${WORKING_DIR}/Dedup_out
+gdir=${WORKING_DIR}/Gsnap_out
 
 # declare arrays
-#readarray -t accessions < <(cat /hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/SRA_accession_list.1.27.23.txt)
-readarray -t accessions < <(cat "${working_dir}/data/gsnap.missing.txt")
+#readarray -t ACCESSIONS < <(cat /hpc/projects/balla_group/sra_experiments/all_zebrafish_RNAseq/SRA_accession_list.1.27.23.txt)
+readarray -t ACCESSIONS < <(cat "${ACCESSIONS_LIST}") 
 
-tools="/hpc/projects/theory_ds/internship/jacob.paras/tools"
-bbmap_dir="${tools}/bbmap"
-gsnap_out_bin_path="${tools}/gmap-2021-12-17/bin/gsnap" #For small genomes of less than 2^32 (4 billion) bp, please run gsnap
-gdbdir="${tools}/gmap-2021-12-17/db"
+bbmap_dir="${TOOLS}/bbmap"
+gsnap_out_bin_path="${TOOLS}/gmap-2021-12-17/bin/gsnap" #For small genomes of less than 2^32 (4 billion) bp, please run gsnap
+gdbdir="${TOOLS}/gmap-2021-12-17/db"
 
 gdbidx="Danio_rerio.GRCz11.dna_sm.primary_assembly"
 
 #check if gsnap result already exists for the current accession, if so, check gzip file integrity. If all pass, exit the script
-# if [ -e ${gdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz ] && [ -e ${gdir}/${accessions[$idx]}/gsnap.stats.txt ] && [ -e ${gdir}/${accessions[$idx]}/gsnap.mapped.names.txt ] 
+# if [ -e ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz ] && [ -e ${gdir}/${ACCESSIONS[$idx]}/gsnap.stats.txt ] && [ -e ${gdir}/${ACCESSIONS[$idx]}/gsnap.mapped.names.txt ] 
 # then
-#     if $(gzip -t ${gdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz) 
+#     if $(gzip -t ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz) 
 #     then
-#         countFileSize=$(gzip -c ${gdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz | wc -c | awk '{print $1}')
-#         countFileSize2=$(wc -c ${gdir}/${accessions[$idx]}/gsnap.stats.txt | awk '{print $1}')
-#         countFileSize3=$(wc -c ${gdir}/${accessions[$idx]}/gsnap.mapped.names.txt | awk '{print $1}')
+#         countFileSize=$(gzip -c ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz | wc -c | awk '{print $1}')
+#         countFileSize2=$(wc -c ${gdir}/${ACCESSIONS[$idx]}/gsnap.stats.txt | awk '{print $1}')
+#         countFileSize3=$(wc -c ${gdir}/${ACCESSIONS[$idx]}/gsnap.mapped.names.txt | awk '{print $1}')
 #         if [ $countFileSize -gt 100 ] && [ $countFileSize2 -gt 4 ] && [ $countFileSize3 -gt 4 ]
 #         then
-#             echo "gsnap result already exists for ${accessions[$idx]} and gzip file integrity and sizes are good, skipping gsnap" >> ${working_dir}/logs/gsnap.skip.log
+#             echo "gsnap result already exists for ${ACCESSIONS[$idx]} and gzip file integrity and sizes are good, skipping gsnap" >> ${WORKING_DIR}/logs/gsnap.skip.log
 #             exit 0
 #         fi
 #     fi
@@ -55,14 +61,14 @@ gdbidx="Danio_rerio.GRCz11.dna_sm.primary_assembly"
 
 
 # PE reads
-if [ -e ${ddir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz ] && [ -e ${ddir}/${accessions[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.fastq.gz ]
+if [ -e ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz ] && [ -e ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.fastq.gz ]
 then 
-    if $(gzip -t ${ddir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz) && $(gzip -t ${ddir}/${accessions[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.fastq.gz)
+    if $(gzip -t ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz) && $(gzip -t ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.fastq.gz)
     then
-        echo "running gsnap using ${ddir}/${accessions[$idx]} PE reads" >> ${working_dir}/logs/gsnap.process.log
-        if [ ! -d "${gdir}/${accessions[$idx]}" ] 
+        echo "running gsnap using ${ddir}/${ACCESSIONS[$idx]} PE reads" >> ${WORKING_DIR}/logs/gsnap.process.log
+        if [ ! -d "${gdir}/${ACCESSIONS[$idx]}" ] 
         then
-            mkdir ${gdir}/${accessions[$idx]}
+            mkdir ${gdir}/${ACCESSIONS[$idx]}
         fi
         #gsnap command
         ${gsnap_out_bin_path} \
@@ -74,56 +80,56 @@ then
             --ordered `#Print output in same order as input (relevant only if there is more than one worker thread)` \
             -t 2 `#thread` \
             --max-mismatches=${max_mismatch} `#czID uses 40bp ( defult is 30% of read length)` \
-            -D ${gdbdir}  `#Genome directory.  Default (as specified by --with-gmapdb to the configure program) is /hpc/projects/balla_group/sra_experiments/tools/gmap-2021-12-17/db` \
+            -D ${gdbdir}  `#Genome directory.  Default (as specified by --with-gmapdb to the configure program) is /hpc/projects/balla_group/sra_experiments/TOOLS/gmap-2021-12-17/db` \
             -d ${gdbidx} \
-            -o ${gdir}/${accessions[$idx]}/gsnap_out.sam \
+            -o ${gdir}/${ACCESSIONS[$idx]}/gsnap_out.sam \
             --gunzip `#Uncompress gzipped input files` \
-            ${ddir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz ${ddir}/${accessions[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.fastq.gz  `# Two input FASTAs means paired reads.` \
+            ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.fastq.gz  `# Two input FASTAs means paired reads.` \
         #process Sam file
-            if [ -e ${gdir}/${accessions[$idx]}/gsnap_out.sam ]
+            if [ -e ${gdir}/${ACCESSIONS[$idx]}/gsnap_out.sam ]
             then #get stats
-                samtools view ${gdir}/${accessions[$idx]}/gsnap_out.sam | cut -f2 | sort | uniq -c > ${gdir}/${accessions[$idx]}/gsnap.stats.txt
+                samTOOLS view ${gdir}/${ACCESSIONS[$idx]}/gsnap_out.sam | cut -f2 | sort | uniq -c > ${gdir}/${ACCESSIONS[$idx]}/gsnap.stats.txt
                 # 0: mapped forward (unpaired)
                 # 16: mapped reverse (unpaired)
                 # 4: unmapped (unpaired)
                 #get name of mapped reads
-                samtools view ${gdir}/${accessions[$idx]}/gsnap_out.sam | awk '{if( and($2,4)==0 && and($2,8)==0) {print $1}}' > ${gdir}/${accessions[$idx]}/gsnap.mapped.names.txt # print out read name if both read and mate are mapped ( that is SAM bitwise flag does not contain 4 or 8 )
+                samTOOLS view ${gdir}/${ACCESSIONS[$idx]}/gsnap_out.sam | awk '{if( and($2,4)==0 && and($2,8)==0) {print $1}}' > ${gdir}/${ACCESSIONS[$idx]}/gsnap.mapped.names.txt # print out read name if both read and mate are mapped ( that is SAM bitwise flag does not contain 4 or 8 )
 
                 #filter dedup out using names of mapped reads
-                gunzip -c ${ddir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz | ${bbmap_dir}/filterbyname.sh in=stdin names=${gdir}/${accessions[$idx]}/gsnap.mapped.names.txt out=${gdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq include=f
-                gunzip -c ${ddir}/${accessions[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.fastq.gz | ${bbmap_dir}/filterbyname.sh in=stdin names=${gdir}/${accessions[$idx]}/gsnap.mapped.names.txt out=${gdir}/${accessions[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.gsnapFiltered.fastq include=f
+                gunzip -c ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz | ${bbmap_dir}/filterbyname.sh in=stdin names=${gdir}/${ACCESSIONS[$idx]}/gsnap.mapped.names.txt out=${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq include=f
+                gunzip -c ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.fastq.gz | ${bbmap_dir}/filterbyname.sh in=stdin names=${gdir}/${ACCESSIONS[$idx]}/gsnap.mapped.names.txt out=${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.gsnapFiltered.fastq include=f
                 #compress filtered reads
-                gzip ${gdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq
-                gzip ${gdir}/${accessions[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.gsnapFiltered.fastq
+                gzip ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq
+                gzip ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.gsnapFiltered.fastq
 
                 #remove dedup result out
                 if [ $rm_dedup_res -eq 1 ]
                 then
-                    if [ -e ${gdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz ] && $(gzip -t ${gdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz)
+                    if [ -e ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz ] && $(gzip -t ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz)
                     then
-                        rm ${ddir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz
+                        rm ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz
                     fi
-                    if [ -e ${gdir}/${accessions[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.gsnapFiltered.fastq.gz ] && $(gzip -t ${gdir}/${accessions[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.gsnapFiltered.fastq.gz)
+                    if [ -e ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.gsnapFiltered.fastq.gz ] && $(gzip -t ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.gsnapFiltered.fastq.gz)
                     then
-                        rm ${ddir}/${accessions[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.fastq.gz
+                        rm ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate2.filteredbyBT.dedup.fastq.gz
                     fi
                 fi
 
                 #remove gsnap bam file
-                rm ${gdir}/${accessions[$idx]}/gsnap_out.sam
+                rm ${gdir}/${ACCESSIONS[$idx]}/gsnap_out.sam
             fi
     else
-        echo "At least one of the ${ddir}/${accessions[$idx]}/*.filteredbyBT.dedup.fastq.gz files failed the integrity test" >> ${working_dir}/logs/gsnap.error.log
+        echo "At least one of the ${ddir}/${ACCESSIONS[$idx]}/*.filteredbyBT.dedup.fastq.gz files failed the integrity test" >> ${WORKING_DIR}/logs/gsnap.error.log
     fi
 else #SE reads
-    if [ -e ${ddir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz ]
+    if [ -e ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz ]
     then
-        if $(gzip -t ${ddir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz)
+        if $(gzip -t ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz)
         then
-            echo "running gsnap using ${ddir}/${accessions[$idx]} SE reads" >> ${working_dir}/logs/gsnap.process.log
-            if [ ! -d "${gdir}/${accessions[$idx]}" ] 
+            echo "running gsnap using ${ddir}/${ACCESSIONS[$idx]} SE reads" >> ${WORKING_DIR}/logs/gsnap.process.log
+            if [ ! -d "${gdir}/${ACCESSIONS[$idx]}" ] 
             then
-                mkdir ${gdir}/${accessions[$idx]}
+                mkdir ${gdir}/${ACCESSIONS[$idx]}
             fi
         #gsnap command
         ${gsnap_out_bin_path} \
@@ -135,42 +141,42 @@ else #SE reads
             --ordered `#Print output in same order as input (relevant only if there is more than one worker thread)` \
             -t 2 `#thread` \
             --max-mismatches=${max_mismatch} `#czID uses 40bp ( defult is 30% of read length)` \
-            -D ${gdbdir}  `#Genome directory.  Default (as specified by --with-gmapdb to the configure program) is /hpc/projects/balla_group/sra_experiments/tools/gmap-2021-12-17/db` \
+            -D ${gdbdir}  `#Genome directory.  Default (as specified by --with-gmapdb to the configure program) is /hpc/projects/balla_group/sra_experiments/TOOLS/gmap-2021-12-17/db` \
             -d ${gdbidx} \
-            -o ${gdir}/${accessions[$idx]}/gsnap_out.sam \
+            -o ${gdir}/${ACCESSIONS[$idx]}/gsnap_out.sam \
             --gunzip `#Uncompress gzipped input files` \
-            ${ddir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz `# Two input FASTAs means paired reads.` \
+            ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz `# Two input FASTAs means paired reads.` \
         #process Sam file
-            if [ -e ${gdir}/${accessions[$idx]}/gsnap_out.sam ]
+            if [ -e ${gdir}/${ACCESSIONS[$idx]}/gsnap_out.sam ]
             then #get stats
-                samtools view ${gdir}/${accessions[$idx]}/gsnap_out.sam | cut -f2 | sort | uniq -c > ${gdir}/${accessions[$idx]}/gsnap.stats.txt
+                samTOOLS view ${gdir}/${ACCESSIONS[$idx]}/gsnap_out.sam | cut -f2 | sort | uniq -c > ${gdir}/${ACCESSIONS[$idx]}/gsnap.stats.txt
                 # 0: mapped forward (unpaired)
                 # 16: mapped reverse (unpaired)
                 # 4: unmapped (unpaired)
                 #get name of mapped reads
-                samtools view ${gdir}/${accessions[$idx]}/gsnap_out.sam | awk '{if( and($2,4)==0 && and($2,8)==0) {print $1}}' > ${gdir}/${accessions[$idx]}/gsnap.mapped.names.txt # print out read name if both read and mate are mapped ( that is SAM bitwise flag does not contain 4 or 8 )
+                samTOOLS view ${gdir}/${ACCESSIONS[$idx]}/gsnap_out.sam | awk '{if( and($2,4)==0 && and($2,8)==0) {print $1}}' > ${gdir}/${ACCESSIONS[$idx]}/gsnap.mapped.names.txt # print out read name if both read and mate are mapped ( that is SAM bitwise flag does not contain 4 or 8 )
                 #filter dedup out using names of mapped reads
-                gunzip -c ${ddir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz | ${bbmap_dir}/filterbyname.sh in=stdin names=${gdir}/${accessions[$idx]}/gsnap.mapped.names.txt out=${gdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq include=f
+                gunzip -c ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz | ${bbmap_dir}/filterbyname.sh in=stdin names=${gdir}/${ACCESSIONS[$idx]}/gsnap.mapped.names.txt out=${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq include=f
                 #compress filtered reads
-                gzip ${gdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq
+                gzip ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq
 
                 #remove dedup result out
                 if [ $rm_dedup_res -eq 1 ]
                 then
-                    if [ -e ${gdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz ] && $(gzip -t ${gdir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz)
+                    if [ -e ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz ] && $(gzip -t ${gdir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.gsnapFiltered.fastq.gz)
                     then
-                        rm ${ddir}/${accessions[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz
+                        rm ${ddir}/${ACCESSIONS[$idx]}/Unmapped.out.mate1.filteredbyBT.dedup.fastq.gz
                     fi
                 fi
 
                 #remove gsnap bam file
-                rm ${gdir}/${accessions[$idx]}/gsnap_out.sam
+                rm ${gdir}/${ACCESSIONS[$idx]}/gsnap_out.sam
             fi
         else
-            echo "At least one of the ${ddir}/${accessions[$idx]}/*.filteredbyBT.dedup.fastq.gz files failed the integrity test" >> ${working_dir}/logs/gsnap.error.log
+            echo "At least one of the ${ddir}/${ACCESSIONS[$idx]}/*.filteredbyBT.dedup.fastq.gz files failed the integrity test" >> ${WORKING_DIR}/logs/gsnap.error.log
         fi
     else 
-        echo "At least one of the ${ddir}/${accessions[$idx]}/*.filteredbyBT.dedup.fastq.gz files were not found" >> ${working_dir}/logs/gsnap.error.log
+        echo "At least one of the ${ddir}/${ACCESSIONS[$idx]}/*.filteredbyBT.dedup.fastq.gz files were not found" >> ${WORKING_DIR}/logs/gsnap.error.log
     fi
 fi
 
