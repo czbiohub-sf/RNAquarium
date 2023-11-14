@@ -19,10 +19,10 @@ process prefetch {
 	debug true
 	label 'sratools'
 	maxForks params.parallelDownloads
-	
+
 	input:
 	tuple val(meta), val(sra_id)
-	
+
 	output:
 	tuple val(meta), path('[S,E,D]RR*[0-9]'), env(reads), env(sra_size)
 
@@ -41,7 +41,7 @@ process prefetch {
 	sra_size=\$(awk -F': ' '/^size/{gsub(/,/,"",\$2);print \$2}' info.txt)
 	reads=\$(awk -F': ' '/^SEQ/{gsub(/,/,"",\$2);print \$2}' info.txt)
 	trap -- '' SIGTERM
-	mv staging/$sra_id $sra_id 
+	mv staging/$sra_id $sra_id
 	"""
 
 	stub:
@@ -61,10 +61,10 @@ process fastq_dump {
 	tuple val(meta), path(sra_file)
 
 	output:
-	tuple val(meta), path("fastq/${meta.id}")
+	tuple val(meta), path("fastq/${meta.id}/*.fastq")
 
 	beforeScript 'mkdir -p fastq'
-	
+
 	script:
 	mem = task.memory.toString() - ~/ /
 	if (task.attempt == 1)
@@ -73,7 +73,7 @@ process fastq_dump {
 		fasterq-dump --split-3 -e ${task.cpus} $params.fastqDumpOptions --outdir fastq/${meta.id}.staging ${meta.id}
 		# TODO: this doesn't work..
 		rm -rf ${sra_file}
-	
+
 		trap -- '' SIGTERM
 		mv fastq/${meta.id}.staging fastq/${meta.id}
 		"""
@@ -83,7 +83,7 @@ process fastq_dump {
 		set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 		fastq-dump --split-3 --disable-multithreading --outdir fastq/${meta.id}.staging ${meta.id}
 		rm -rf ${sra_file}
-	
+
 		trap -- '' SIGTERM
 		mv fastq/${meta.id}.staging fastq/${meta.id}
 		"""
@@ -95,14 +95,26 @@ process fastq_dump {
 	"""
 }
 
+process check_direct_fastqs {
+	input:
+	tuple val(meta), path(fastqs)
+
+	output:
+	tuple val(meta), path("$fastqs/*.fastq")
+
+	script:
+	"""
+	"""
+}
+
 // after the filter_barcodes step, meta must be annotated
 // 'single_end: true' for single files.  future steps will
 // use that meta value for conditional processing.
 process filter_barcodes {
 	label 'median'
-	
+
 	input:
-	tuple val(meta), path(fastq)
+	tuple val(meta), path(fastqs)
 
 	output:
 	tuple val(meta), path('*.fastq.gz'), env(median), env(count), env(size)
@@ -110,26 +122,26 @@ process filter_barcodes {
 	script:
 	"""
 	# one set of reads, or two?
-	if [ $fastq/${meta.id}.fastq -nt $fastq/${meta.id}_2.fastq ]
+	if [ \$(echo "$fastqs" | wc -w) -ne 2 ]
 	then # single
-		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary $fastq/${meta.id}.fastq)"
+	IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary $fastqs)"
 		echo $meta.id SE
-		gzip -k6c $fastq/${meta.id}.fastq > ${meta.id}.fastq.gz.staging
+		gzip -k6c $fastqs > ${meta.id}.fastq.gz.staging
 		mv ${meta.id}.fastq.gz.staging ${meta.id}.fastq.gz
 	else # possibly paired, but may be scRNAseq barcodes
-		IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary $fastq/${meta.id}_1.fastq)"
-		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary $fastq/${meta.id}_2.fastq)"
+	IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary ${fastqs[0]})"
+	IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary ${fastqs[1]})"
 		if [ \$median1 -lt 32 ] && [ \$median -gt 80 ]
 		then
 			echo $meta.id scRNAseq
-			rm $fastq/${meta.id}_1.fastq # discard read 1 (cell barcode)
-			mv $fastq/${meta.id}_2.fastq $fastq/${meta.id}.fastq
-			gzip -k6c $fastq/${meta.id}.fastq > ${meta.id}.fastq.gz.staging
+			rm ${fastqs[0]} # discard read 1 (cell barcode)
+			mv ${fastqs[1]} ${meta.id}.fastq
+			gzip -k6c ${meta.id}.fastq > ${meta.id}.fastq.gz.staging
 			mv ${meta.id}.fastq.gz.staging ${meta.id}.fastq.gz
 		else
 			echo $meta.id PE
-			gzip -k6c $fastq/${meta.id}_1.fastq > ${meta.id}_1.fastq.gz.staging
-			gzip -k6c $fastq/${meta.id}_2.fastq > ${meta.id}_2.fastq.gz.staging
+			gzip -k6c ${fastqs[0]} > ${meta.id}_1.fastq.gz.staging
+			gzip -k6c ${fastqs[1]} > ${meta.id}_2.fastq.gz.staging
 			mv ${meta.id}_1.fastq.gz.staging ${meta.id}_1.fastq.gz
 			mv ${meta.id}_2.fastq.gz.staging ${meta.id}_2.fastq.gz
 		fi
@@ -150,7 +162,7 @@ workflow {
 							sra_size: sra_size.toInteger() ]
 			[ new_meta, sra ]
 		}
-		
+
 	fastqs = fastq_dump(sra)
 
 	fastqs_2 = filter_barcodes(fastqs)

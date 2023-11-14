@@ -34,7 +34,6 @@ def helpMessage() {
                             (default: 100)
 --help, -h                print this text and exit
 --genome-size n           genome size (approximate), in bytes
-${star_usage()}
 ${container_usage()}
 ${publish_usage()}
 """
@@ -47,7 +46,7 @@ params.skipHostCounts = false
 params.skipHisat = false
 params.hisatUseTranscript = false
 params.help = false
-params.h = false
+params.h
 
 params.genomeSize = null // must be filled
 params.starRefIndexesErcc = null // "Danio_rerio.GRCz11.108.ERCC"
@@ -69,6 +68,7 @@ params.publishReadcounts = true
 params.publishHisat = true
 params.publishStar = true
 
+params.starUseSharedMem = false
 params.starIndexGenOptions = ""
 params.hisatIndexGenOptions = ""
 params.sraPrefetchOptions = ""
@@ -81,6 +81,7 @@ params.htseqCountOptions = ""
 params.hisatOptions = "" // nonhost pipeline
 params.starOptions = ""
 
+include { validateParameters; paramsHelp; paramsSummaryLog } from 'plugin/nf-validation'
 include {
 	star_generate_indexes;
 	hisat2_generate_indexes;
@@ -93,6 +94,7 @@ include {
 include {
 	prefetch;
 	fastq_dump;
+	check_direct_fastqs;
 	filter_barcodes;
 } from './modules/step.1.nf' params(
 	parallelDownloads: params.parallelDownloads,
@@ -132,11 +134,11 @@ include {
 	hisatOptions: params.hisatOptions
 )
 include {
-	star_usage;
 	star;
 	ensure_star_indexes;
 } from './modules/step.4.star.nf' params(
 	genomeSize: params.genomeSize,
+	starUseSharedMem: params.starUseSharedMem,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishStar,
 	starOptions: params.starOptions
@@ -153,7 +155,10 @@ workflow {
 	//    if refGenome, refGenomeGtf, erccFa, OR erccGtf are not
 	// if hisatUse  hisatRefIdx 
 	if (params.help || params.h || !(params.accessionList || params.fastqPath)) {
-		helpMessage()
+		log.info paramsHelp("""PATH=\$PATH:\$PWD/bin nextflow run main.nf
+	--accession-list sras.txt --ref-genome Danio_rerio.GRCz11.dna_sm.primary_assembly.fa
+	--ref-genome-gtf Danio_rerio.GRCz11.108.gtf --ercc-fa ERCC92.fa --ercc-gtf ERCC92.gtf --genome-size 1396431182 -profile slurm,apptainer
+	--tmp=/tmp/""")
 		exit params.help || params.h ? 0 : 1
 	} else if (!params.genomeSize || params.genomeSize <= 0) {
 		log.error "--genome-size must be specified (approximate, in bytes)"
@@ -165,13 +170,15 @@ workflow {
 		log.error "--ref-genome-gtf annotations are required for host read counts"
 		exit 1
 	}
-
+	validateParameters()
 	StringBuilder param_info = new StringBuilder()
 	for (e in params) {
 		if (e.key.equals(e.key.toLowerCase()) && !(e.key in ['help', 'h']))
 			param_info.append("${e.key.padLeft(23)}:\t$e.value\n")
 	}
-	log.info param_info.toString()
+	//log.info param_info.toString()
+	log.info paramsSummaryLog(workflow)
+	if (!params.tmp) log.warn "--tmp=<path> not specified. using /tmp/\n(choose a scratch space appropriate for many very large files)"
 	
 	main:
 	// step 0: generating hisat2 indexes
@@ -235,7 +242,7 @@ workflow {
 
 	// and convert SRA to fastq
 	fastqs = fastq_dump(sra)
-		.mix(direct_fastqs) // , merging any existing fastqs
+		.mix(check_direct_fastqs(direct_fastqs)) // , merging any existing fastqs
 
 	// heuristic filter scRNAseq barcode files and add metadata for resource optimization
 	fastqs_2 = filter_barcodes(fastqs)

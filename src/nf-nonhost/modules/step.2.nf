@@ -35,13 +35,17 @@ process fastp {
 	gzip -dc ${fqs[1]} > fq2.fastq
 	${FASTP_CMD} \
 		--detect_adapter_for_pe --in1 fq1.fastq --in2 fq2.fastq \
-		--out1 ${meta.id}_1${extension} --out2 ${meta.id}_2${extension}
+		--out1 ${meta.id}_1${extension}.staging \
+		--out2 ${meta.id}_2${extension}.staging
+	mv ${meta.id}_1${extension}.staging ${meta.id}_1${extension}
+	mv ${meta.id}_2${extension}.staging ${meta.id}_2${extension}
 	"""
 	else if (meta.single_end)
 	"""
 	gzip -dc ${fqs} > fq1.fastq
 	${FASTP_CMD} \
-		--in1 fq1.fastq --out1 ${meta.id}${extension}
+		--in1 fq1.fastq --out1 ${meta.id}${extension}.staging
+	mv ${meta.id}${extension}.staging ${meta.id}${extension}
 	"""
 }
 

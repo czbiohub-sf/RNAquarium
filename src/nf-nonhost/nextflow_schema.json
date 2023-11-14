@@ -1,0 +1,244 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "https://raw.githubusercontent.com/czbiohub-sf/Zebrafish-RNAquarium/master/nextflow_schema.json",
+    "title": "RNAquarium pipeline parameters",
+    "description": "",
+    "type": "object",
+    "definitions": {
+        "reference_genome_options": {
+            "title": "Reference genome options",
+            "type": "object",
+            "description": "Reference genome related files and options required for the workflow.",
+            "default": "",
+            "fa_icon": "fas fa-dna",
+            "properties": {
+                "genomeSize": {
+                    "type": "number",
+                    "minimum": 1,
+                    "description": "Reference genome size, in bytes (FASTA file size is good enough)"
+                },
+                "starRefIndexes": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Pre-generated STAR indexes for reference genome (without spike-in)"
+                },
+                "starRefIndexesErcc": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Pre-generated STAR indexes, with ERCC spike-in controls"
+                },
+                "hisatRefIndexes": {
+                    "type": "string",
+                    "format": "directory-path"
+                },
+                "refGenome": {
+                    "type": "string",
+                    "pattern": "^.+\\.fa(sta)?$",
+                    "format": "file-path",
+                    "default": "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa",
+                    "description": "Path to ensembl reference genome fasta"
+                },
+                "refGenomeGtf": {
+                    "type": "string",
+                    "default": "Danio_rerio.GRCz11.108.gtf",
+                    "description": "Path to ensembl reference genome annotations"
+                },
+                "erccFa": {
+                    "type": "string",
+                    "pattern": "^.+\\.fa(sta)?$",
+                    "format": "file-path",
+                    "default": "ERCC92.fa",
+                    "description": "Path to ERCC spike-in control sequences"
+                },
+                "erccGtf": {
+                    "type": "string",
+                    "default": "ERCC92.gtf",
+                    "description": "Path to ERCC spike-in control annotations"
+                }
+            },
+            "required": [
+                "genomeSize"
+            ]
+        },
+        "input_output_options": {
+            "title": "Input/output options",
+            "type": "object",
+            "description": "Basic inputs and outputs",
+            "default": "",
+            "properties": {
+                "accessionList": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain"
+                },
+                "fastqPath": {
+                    "type": "string",
+                    "format": "directory-path"
+                }
+            },
+            "required": [
+                "accessionList"
+            ],
+            "fa_icon": "fas fa-terminal"
+        },
+        "generic_options": {
+            "title": "Generic options",
+            "type": "object",
+            "fa_icon": "fas fa-file-import",
+            "description": "Less common options for the pipeline, typically set in a config file.",
+            "help_text": "These options are common to all nf-core pipelines and allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
+            "properties": {
+                "help": {
+                    "type": "boolean",
+                    "description": "Display help text.",
+                    "fa_icon": "fas fa-question-circle",
+                    "hidden": true
+                },
+                "h": {
+                    "type": "boolean",
+                    "description": "Display help text."
+                },
+                "reportdir": {
+                    "type": "string",
+                    "default": "reports",
+                    "format": "directory-path",
+                    "description": "directory to write nextflow reports/traces to"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "default": "231108-222816",
+                    "hidden": true,
+                    "description": "timestamp to append to nextflow reports (default: current time, YYMMDD-HHmmss)"
+                },
+                "tmp": {
+                    "type": "string",
+                    "format": "directory-path"
+                },
+                "maxMemory": {
+                    "type": "string",
+                    "pattern": "^\\d+(\\.\\d+)? *[KMGT]?B$",
+                },
+                "maxCpus": {
+                    "type": "number",
+                    "default": 16
+                },
+                "parallelDownloads": {
+                    "type": "number",
+                    "minimum": 1
+                },
+                "publishDir": {
+                    "type": "string",
+                    "format": "directory-path"
+                },
+                "publishIntermediate": {
+                    "type": "boolean"
+                },
+                "publishFastqs": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "publishPricefiltered": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "publishReadcounts": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "publishHisat": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "publishStar": {
+                    "type": "boolean",
+                    "default": true
+                }
+            }
+        },
+        "pipeline_options": {
+            "title": "Pipeline options",
+            "type": "object",
+            "description": "Control for pipeline flow",
+            "default": "",
+            "properties": {
+                "skipHostCounts": {
+                    "type": "boolean"
+                },
+                "skipHisat": {
+                    "type": "boolean"
+                },
+                "hisatUseTranscript": {
+                    "type": "boolean"
+                }
+            },
+            "fa_icon": "fas fa-project-diagram"
+        },
+        "tool_extra_parameters": {
+            "title": "Tool extra parameters",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "starUseSharedMem": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "starThreads": {
+                    "type": "number",
+                    "default": 8
+                },
+                "starIndexGenOptions": {
+                    "type": "string"
+                },
+                "hisatIndexGenOptions": {
+                    "type": "string"
+                },
+                "sraPrefetchOptions": {
+                    "type": "string"
+                },
+                "fastqDumpOptions": {
+                    "type": "string"
+                },
+                "fastpOptions": {
+                    "type": "string"
+                },
+                "priceOptions": {
+                    "type": "string"
+                },
+                "starCountOptions": {
+                    "type": "string"
+                },
+                "samtoolsSortOptions": {
+                    "type": "string"
+                },
+                "htseqCountOptions": {
+                    "type": "string"
+                },
+                "hisatOptions": {
+                    "type": "string"
+                },
+                "starOptions": {
+                    "type": "string"
+                }
+            },
+            "fa_icon": "fas fa-cogs"
+        }
+    },
+    "allOf": [
+        {
+            "$ref": "#/definitions/reference_genome_options"
+        },
+        {
+            "$ref": "#/definitions/input_output_options"
+        },
+        {
+            "$ref": "#/definitions/generic_options"
+        },
+        {
+            "$ref": "#/definitions/pipeline_options"
+        },
+        {
+            "$ref": "#/definitions/tool_extra_parameters"
+        }
+    ]
+}

@@ -2,24 +2,6 @@
 
 nextflow.enable.dsl=2
 
-def star_usage() {
-	return """STAR index generation parameters (one of the below options is required):
-Option 1:
---ref_indexes_ercc path   pre-generated STAR indexes, with ERCC spike-in controls
---ref_indexes path        pre-generated STAR indexes for reference genome, without spike-in
---genome_size n           reference genome size, in bytes. (fa file size is good enough)
-Option 2:
---ref_genome path         path to ensembl reference genome fasta
-	e.g. Danio_rerio.GRCz11.dna_sm.primary_assembly.fa
---ref_genome_gtf path     path to ensembl reference genome annotations
-    e.g. Danio_rerio.GRCz11.108.gtf
---ercc_fa path            path to ERCC spike-in control sequences
-                            (default: ERCC92.fa)
---ercc_gtf path           path to ERCC spike-in control annotations
-                            (default: ERCC92.gtf)
-"""
-}
-
 params.publishDir = "$PWD"
 params.publishIntermediate = true
 params.genomeSize = null
@@ -31,6 +13,7 @@ params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
 params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
 
+params.starUseSharedMem = false
 params.starOptions = ""
 params.starIndexGenOptions = ""
 
@@ -61,11 +44,13 @@ process star {
 	tuple val(meta), path("?E/Unmapped.out.mate?.gz")
 
 	script:
+	def loadType = params.starUseSharedMem ? "NoSharedMemory" : "LoadAndRemove"
 	def STAR_CMD = """STAR --outFilterMultimapNmax 99999 --outFilterMismatchNmax 999 \
 		--outFilterScoreMinOverLread 0.5 --outFilterMatchNminOverLread 0.5 \
 		--outSAMmode None \
 		--clip3pNbases 0 --limitOutSJcollapsed 200000000 \
-		--genomeLoad NoSharedMemory --outReadsUnmapped Fastx \
+		--genomeLoad $loadType \
+		--outReadsUnmapped Fastx \
 		--runThreadN ${task.cpus} \
 		${params.starOptions}"""
 	if (!meta.single_end)
