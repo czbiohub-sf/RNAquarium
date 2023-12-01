@@ -19,7 +19,7 @@ include {
 	hisat2_generate_indexes;
 } from './step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
-	hisat2IndexGenOptions: params.hisatIndexGenOptions
+	hisatIndexGenOptions: params.hisatIndexGenOptions
 )
 
 params.metaIn = 'step_2_sheet.csv'
@@ -38,26 +38,25 @@ process hisat2 {
 	path indexes_dir
 
 	output:
-	tuple val(meta), path("?E/Unmapped.out.mate?.gz")
+	tuple val(meta), path("?E/Unmapped.out.mate?.gz"), emit: mates
+	tuple val(meta), path("stats.txt"), emit: stats
 
 	script:
 	def HISAT2_CMD = """hisat2 -q -p $task.cpus -k 1 -S /dev/null \
 		-x $indexes_dir/${indexes_dir.getName()} $params.hisatOptions"""
-	if (!meta.single_end)
-	"""
+	if (!meta.single_end) """
 	mkdir -p PE
 	${HISAT2_CMD} \
 		-1 ${fqgz[0]} -2 ${fqgz[1]} \
-		--un-conc-gz PE/Unmapped.out.mate%.gz.staging
+		--un-conc-gz PE/Unmapped.out.mate%.gz.staging 2>stats.txt
 	mv PE/Unmapped.out.mate1.gz.staging PE/Unmapped.out.mate1.gz
 	mv PE/Unmapped.out.mate2.gz.staging PE/Unmapped.out.mate2.gz
 	"""
-	else if (meta.single_end)
-	"""
+	else if (meta.single_end) """
 	mkdir -p SE
 	${HISAT2_CMD} \
 		-U ${fqgz} \
-		--un-gz SE/Unmapped.out.mate1.gz.staging
+		--un-gz SE/Unmapped.out.mate1.gz.staging 2>stats.txt
 	mv SE/Unmapped.out.mate1.gz.staging SE/Unmapped.out.mate1.gz
 	"""
 }

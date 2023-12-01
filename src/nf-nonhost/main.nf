@@ -9,35 +9,6 @@ def container_usage() {
                             (avoid most pre-installation procedure)
 """
 }
-def publish_usage() {
-	return """Intermediate output options:
---publish-intermediate    if true, publish some intermediate step output
-                            (default: false)
---publish-dir path        path to write useful intermediate output of each step
-                            (default: \$PWD)
---publish-fastqs          whether to publish output from fastq dump
-                            (default: true)
---publish-pricefiltered   whether to publish output from PRICE filtering
-                            (default: true)
---publish-star            whether to publish output from STAR mapping
-                            (default: true)
---publish-readcounts      whether to publish output from the read count pipeline
-                            (default: true)
-"""
-}
-
-def helpMessage() {
-	log.info """
---accession-list path    file containing sra accessions to process, one per line
-                            (required)
---parallel-prefetch n     maximum sra prefetch downloads to run at once
-                            (default: 100)
---help, -h                print this text and exit
---genome-size n           genome size (approximate), in bytes
-${container_usage()}
-${publish_usage()}
-"""
-}
 
 params.accessionList = ""
 params.fastqPath = null // "$PWD/fastq"
@@ -46,12 +17,12 @@ params.skipHostCounts = false
 params.skipHisat = false
 params.hisatUseTranscript = false
 params.help = false
-params.h
 
 params.genomeSize = null // must be filled
 params.starRefIndexesErcc = null // "Danio_rerio.GRCz11.108.ERCC"
 params.starRefIndexes = null // "Danio_rerio.GRCz11.108"
 params.hisatRefIndexes = null
+params.bowtieRefIndexes = null
 // https://ftp.ensembl.org/pub/release-108/fasta/danio_rerio/dna/
 params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
 // https://ftp.ensembl.org/pub/release-108/gtf/danio_rerio/
@@ -67,8 +38,14 @@ params.publishPricefiltered = true
 params.publishReadcounts = true
 params.publishHisat = true
 params.publishStar = true
+params.publishBowtie = true
 
 params.starUseSharedMem = false
+params.starThreadsSmall = 4
+params.starThreadsLarge = 16
+params.bowtieRetainMixed = true
+// consider removing these options, which are potentially dangerous for
+// public-exposed pipelines and have questionable utility even for y!!
 params.starIndexGenOptions = ""
 params.hisatIndexGenOptions = ""
 params.sraPrefetchOptions = ""
@@ -80,11 +57,13 @@ params.samtoolsSortOptions = ""
 params.htseqCountOptions = ""
 params.hisatOptions = "" // nonhost pipeline
 params.starOptions = ""
+params.bowtieOptions = ""
 
 include { validateParameters; paramsHelp; paramsSummaryLog } from 'plugin/nf-validation'
 include {
 	star_generate_indexes;
 	hisat2_generate_indexes;
+	bowtie2_generate_indexes;
 } from './modules/step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
 	starIndexGenOptions: params.starIndexGenOptions,
@@ -139,10 +118,23 @@ include {
 } from './modules/step.4.star.nf' params(
 	genomeSize: params.genomeSize,
 	starUseSharedMem: params.starUseSharedMem,
+	starThreadsSmall: params.starThreadsSmall,
+	starThreadsLarge: params.starThreadsLarge,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishStar,
 	starOptions: params.starOptions
 )
+include {
+	bowtie2;
+	process_bowtie2_sam;
+	ensure_bowtie2_indexes;
+} from './modules/step.5.bowtie.nf' params(
+	retainMixed: params.bowtieRetainMixed, // retain mixed (xor) mate align cases
+	genomeSize: params.genomeSize,
+	publishDir: params.publishDir,
+	publishIntermediate: params.publishIntermediate && params.publishBowtie,
+	bowtieOptions: params.bowtieOptions
+}
 
 
 workflow {
@@ -153,7 +145,7 @@ workflow {
 	// refGenomeGtf MUST be specified if skipHostCounts is NOT specified
 	// starRefIdx, starRefIdxErcc MUST be present
 	//    if refGenome, refGenomeGtf, erccFa, OR erccGtf are not
-	// if hisatUse  hisatRefIdx 
+	// if hisatUse  hisatRefIdx
 	if (params.help || params.h || !(params.accessionList || params.fastqPath)) {
 		log.info paramsHelp("""PATH=\$PATH:\$PWD/bin nextflow run main.nf
 	--accession-list sras.txt --ref-genome Danio_rerio.GRCz11.dna_sm.primary_assembly.fa
@@ -179,7 +171,7 @@ workflow {
 	//log.info param_info.toString()
 	log.info paramsSummaryLog(workflow)
 	if (!params.tmp) log.warn "--tmp=<path> not specified. using /tmp/\n(choose a scratch space appropriate for many very large files)"
-	
+
 	main:
 	// step 0: generating hisat2 indexes
 	hisat2_indexes = ensure_hisat2_indexes(params.hisatRefIndexes,
@@ -194,6 +186,10 @@ workflow {
 														params.refGenomeGtf,
 														params.erccFa,
 														params.erccGtf)
+	// step 0: generating bowtie2 indexes
+	bowtie2_indexes = ensure_bowtie2_indexes(params.bowtieRefIndexes,
+											 params.refGenome,
+											 params.erccFa)
 
 	// step 1: download and convert to fastq
 	// find existing fastqs
@@ -230,18 +226,18 @@ workflow {
 				[ [id: key], key ]
 			}
 	}
-	
+
 	// prefetch SRAs by remaining accessions
-	sra = prefetch(accessions)
+	sra = prefetch(accessions).sra
 		.map { meta, sra, reads, sra_size ->
 			def new_meta = [id: meta.id,
 							reads: reads.toLong(),
 							sra_size: sra_size.toLong() ]
 			[ new_meta, sra ]
- 	}
+	}
 
 	// and convert SRA to fastq
-	fastqs = fastq_dump(sra)
+	fastqs = fastq_dump(sra).mates
 		.mix(check_direct_fastqs(direct_fastqs)) // , merging any existing fastqs
 
 	// heuristic filter scRNAseq barcode files and add metadata for resource optimization
@@ -256,23 +252,33 @@ workflow {
 		}
 
 	// step 2: adapter trimming & filtering
-	filtered_fastqs = fastqs_2 | fastp | priceseqfilter
+	fastp(fastqs_2)
+	filtered_fastqs = priceseqfilter(fastp.out.mates).mates
 
 	// host read counts path
 	if (!params.skipHostCounts) {
-		bam = star_counts(filtered_fastqs, star_indexes2)
-		bam_sorted = sort_bam(bam)
-		count = htseq_count(bam_sorted, file(params.refGenomeGtf))
+		star_counts(filtered_fastqs, star_indexes2)
+		sort_bam(star_counts.bam)
+		count = htseq_count(sort_bam.out, file(params.refGenomeGtf))
 	}
 
 	// step 3: hisat2
 	if (!params.skipHisat) {
-		unmapped_reads_1 = hisat2(filtered_fastqs, hisat2_indexes)
+		hisat2(filtered_fastqs, hisat2_indexes)
+		unmapped_reads_1 = hisat2.out.mates
 	} else {
 		unmapped_reads_1 = filtered_fastqs
 	}
-	
+
 	// step 4: STAR
-	unmapped_reads_2 = star(unmapped_reads_1, star_indexes)
+	star(unmapped_reads_1, star_indexes)
+
+	// step 5: bowtie2
+	bowtie2(star.out.mates, bowtie2_indexes)
+	process_bowtie2_sam(bowtie2.out.sam, star.out.mates)
+
+
+	// process_bowtie2_sam.stats
 
 }
+

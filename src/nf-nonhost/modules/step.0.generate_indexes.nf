@@ -20,11 +20,13 @@ params.hisatUseTranscript = false
 
 params.starIndexGenOptions = ""
 params.hisatIndexGenOptions = ""
+params.bowtieIndexGenOptions = ""
+
 
 process star_generate_indexes {
 	label 'star'
 	cache true
-	
+
 	input:
 	path ref_genome_fa
 	path ref_genome_gtf
@@ -92,14 +94,37 @@ process hisat2_generate_indexes {
 	"""
 }
 
+process bowtie2_generate_indexes {
+	label 'bowtie2'
+	cache true
+
+	input:
+	path ref_genome_fa
+	path ERCC_fa
+
+	output:
+	path("bowtie2_index")
+
+	script:
+	def genome_name = ref_genome_fa.getSimpleName()
+	"""
+	mkdir bowtie2_index
+	bowtie2-build -f --threads $task.cpus $ref_genome_fa,$ERCC_fa \
+		bowtie2_index/${genome_name}
+	"""
+}
+
 workflow {
 	(star_index, star_index2) = star_generate_indexes(file(params.refGenome),
 													  file(params.refGenomeGtf),
-													  file(params.ercc),
+													  file(params.erccFa),
 													  file(params.erccGtf))
-	
+
 	hisat_index = hisat2_generate_indexes(file(params.refGenome),
 										  file(params.refGenomeGtf),
-										  file(params.ercc),
+										  file(params.erccFa),
 										  file(params.erccGtf))
+
+	bowtie2_index = bowtie2_generate_indexes(file(params.refGenome),
+											 file(params.erccFa))
 }

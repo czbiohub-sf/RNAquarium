@@ -14,6 +14,8 @@ params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
 
 params.starUseSharedMem = false
+params.starThreadsSmall = 4
+params.starThreadsLarge = 16
 params.starOptions = ""
 params.starIndexGenOptions = ""
 
@@ -41,10 +43,11 @@ process star {
 	path indexes_dir // "Danio_rerio.GRCz11.108.ERCC"
 
 	output:
-	tuple val(meta), path("?E/Unmapped.out.mate?.gz")
+	tuple val(meta), path("?E/Unmapped.out.mate?.gz"), emit: mates
+	tuple val(meta), path("Log.final.out"), emit: stats
 
 	script:
-	def loadType = params.starUseSharedMem ? "NoSharedMemory" : "LoadAndRemove"
+	def loadType = params.starUseSharedMem ? "LoadAndRemove" : "NoSharedMemory"
 	def STAR_CMD = """STAR --outFilterMultimapNmax 99999 --outFilterMismatchNmax 999 \
 		--outFilterScoreMinOverLread 0.5 --outFilterMatchNminOverLread 0.5 \
 		--outSAMmode None \
@@ -61,8 +64,10 @@ process star {
 		--outFileNamePrefix PE/ \
 		--readFilesIn ${fqgz[0]} ${fqgz[1]}
 
-	gzip PE/Unmapped.out.mate*
+	gzip PE/Unmapped.out.mate1
+	gzip PE/Unmapped.out.mate2
 	gzip -t PE/Unmapped.out.mate*.gz
+	mv PE/Log.final.out Log.final.out
 	"""
 	else if (meta.single_end)
 	"""
@@ -74,6 +79,7 @@ process star {
 
 	gzip SE/Unmapped.out.mate1
 	gzip -t SE/Unmapped.out.mate1.gz
+	mv SE/Log.final.out Log.final.out
 	"""
 }
 

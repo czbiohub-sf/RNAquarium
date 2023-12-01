@@ -22,29 +22,28 @@ process fastp {
 	tuple val(meta), path(fqs)
 
 	output:
-	tuple val(meta), path('*.trimmed.fastq')
+	tuple val(meta), path('*.trimmed.fastq'), emit: mates
+	tuple val(meta), path("stats.txt"), emit: stats
 
 	script:
 	def extension = ".trimmed.fastq"
 	def FASTP_CMD = """fastp --disable_quality_filtering --length_required 2 \
 		--compression 6 --thread ${task.cpus} \
 		--json fastp.json --html fastp.html $params.fastpOptions"""
-	if (!meta.single_end)
-	"""
+	if (!meta.single_end) """
 	gzip -dc ${fqs[0]} > fq1.fastq
 	gzip -dc ${fqs[1]} > fq2.fastq
 	${FASTP_CMD} \
 		--detect_adapter_for_pe --in1 fq1.fastq --in2 fq2.fastq \
 		--out1 ${meta.id}_1${extension}.staging \
-		--out2 ${meta.id}_2${extension}.staging
+		--out2 ${meta.id}_2${extension}.staging 2>stats.txt
 	mv ${meta.id}_1${extension}.staging ${meta.id}_1${extension}
 	mv ${meta.id}_2${extension}.staging ${meta.id}_2${extension}
 	"""
-	else if (meta.single_end)
-	"""
+	else if (meta.single_end) """
 	gzip -dc ${fqs} > fq1.fastq
 	${FASTP_CMD} \
-		--in1 fq1.fastq --out1 ${meta.id}${extension}.staging
+		--in1 fq1.fastq --out1 ${meta.id}${extension}.staging 2>stats.txt
 	mv ${meta.id}${extension}.staging ${meta.id}${extension}
 	"""
 }
@@ -58,7 +57,9 @@ process priceseqfilter {
 	tuple val(meta), path(fqs)
 
 	output:
-	tuple val(meta), path('*.PRICEfiltered.fastq.gz')
+	tuple val(meta), path('*.PRICEfiltered.fastq.gz'), emit: mates
+	tuple val(meta), stdout, emit: stats
+
 	
 // -a thread, -log c concise output, -fp input, -op output
 // -rnf 90:    90 percentage of nucleotides in a read that must be called

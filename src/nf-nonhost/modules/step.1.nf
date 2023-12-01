@@ -24,7 +24,8 @@ process prefetch {
 	tuple val(meta), val(sra_id)
 
 	output:
-	tuple val(meta), path('[S,E,D]RR*[0-9]'), env(reads), env(sra_size)
+	tuple val(meta), path('[S,E,D]RR*[0-9]'), env(reads), env(sra_size), emit: sra
+	tuple val(meta), path("info.txt"), emit: stats
 
 	// fastq-dump wants sras in the current directory. this is a problem for
 	// nf's usually directory-agnostic behavior - it could be that the input is
@@ -61,32 +62,33 @@ process fastq_dump {
 	tuple val(meta), path(sra_file)
 
 	output:
-	tuple val(meta), path("fastq/${meta.id}/*.fastq")
+	tuple val(meta), path("fastq/${meta.id}/*.fastq"), emit: mates
+	tuple val(meta), path("stats.txt"), emit: stats
 
 	beforeScript 'mkdir -p fastq'
 
 	script:
 	mem = task.memory.toString() - ~/ /
-	if (task.attempt == 1)
-		"""
-		set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-		fasterq-dump --split-3 -e ${task.cpus} $params.fastqDumpOptions --outdir fastq/${meta.id}.staging ${meta.id}
-		# TODO: this doesn't work..
-		rm -rf ${sra_file}
+	if (task.attempt == 1) """
+	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
+	fasterq-dump --split-3 -e ${task.cpus} $params.fastqDumpOptions \
+		--outdir fastq/${meta.id}.staging ${meta.id} 2>stats.txt
+	
+	# TODO: this doesn't work..
+	rm -rf ${sra_file}
 
-		trap -- '' SIGTERM
-		mv fastq/${meta.id}.staging fastq/${meta.id}
-		"""
-	else
-		"""
-		echo fasterq-dump encountered error, reverting to using fastq-dump
-		set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-		fastq-dump --split-3 --disable-multithreading --outdir fastq/${meta.id}.staging ${meta.id}
-		rm -rf ${sra_file}
+	trap -- '' SIGTERM
+	mv fastq/${meta.id}.staging fastq/${meta.id}
+	"""
+	else """
+	echo fasterq-dump encountered error, reverting to using fastq-dump
+	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
+	fastq-dump --split-3 --disable-multithreading --outdir fastq/${meta.id}.staging ${meta.id}
+	rm -rf ${sra_file}
 
-		trap -- '' SIGTERM
-		mv fastq/${meta.id}.staging fastq/${meta.id}
-		"""
+	trap -- '' SIGTERM
+	mv fastq/${meta.id}.staging fastq/${meta.id}
+	"""
 
 	stub:
 	"""
@@ -119,8 +121,7 @@ process filter_barcodes {
 	output:
 	tuple val(meta), path('*.fastq.gz'), env(median), env(count), env(size)
 
-	script:
-	"""
+	script: """
 	# one set of reads, or two?
 	if [ \$(echo "$fastqs" | wc -w) -ne 2 ]
 	then # single

@@ -24,7 +24,7 @@ process star_counts {
 	path indexes_dir2 // "Danio_rerio.GRCz11.108"
 	
 	output:
-	tuple val(meta), path("counts/Aligned.out.bam")
+	tuple val(meta), path("counts/Aligned.out.bam"), emit: bam
 
 	script:
 	def STAR_READCOUNTS_CMD = """STAR --outFilterMultimapNmax 20 --outFilterMismatchNmax 999 \
@@ -62,7 +62,7 @@ process sort_bam {
 	tuple val(meta), path(bam)
 
 	output:
-	tuple val(meta), path("Aligned.out.namesorted.bam")
+	tuple val(meta), path("Aligned.out.namesorted.bam"), emit: bam
 
 	script:
 	def mem = "${task.memory.toGiga()}G"

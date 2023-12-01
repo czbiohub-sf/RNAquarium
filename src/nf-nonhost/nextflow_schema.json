@@ -29,7 +29,13 @@
                 },
                 "hisatRefIndexes": {
                     "type": "string",
-                    "format": "directory-path"
+                    "format": "directory-path",
+                    "description": "Pre-generated hisat2 indexes for reference genome"
+                },
+                "bowtieRefIndexes": {
+                    "type": "string",
+                    "format": "path",
+                    "description": "Pre-generated bowtie2 indexes for reference genome"
                 },
                 "refGenome": {
                     "type": "string",
@@ -94,10 +100,6 @@
                     "fa_icon": "fas fa-question-circle",
                     "hidden": true
                 },
-                "h": {
-                    "type": "boolean",
-                    "description": "Display help text."
-                },
                 "reportdir": {
                     "type": "string",
                     "default": "reports",
@@ -112,23 +114,30 @@
                 },
                 "tmp": {
                     "type": "string",
-                    "format": "directory-path"
+                    "format": "directory-path",
+                    "description": "working directory for temporary files.  should have capacity for many very large files."
                 },
                 "maxMemory": {
                     "type": "string",
                     "pattern": "^\\d+(\\.\\d+)? *[KMGT]?B$",
+                    "description": "maximum amount of memory to dynamically allocate to a single job",
+                    "default": "240GB"
                 },
                 "maxCpus": {
                     "type": "number",
-                    "default": 16
+                    "default": 16,
+                    "description": "maximum number of cores to dynamically allocate to a single job"
                 },
                 "parallelDownloads": {
                     "type": "number",
-                    "minimum": 1
+                    "minimum": 1,
+                    "description": "maximum number of SRAs to fetch in parallel at once.",
+                    "default": 100
                 },
                 "publishDir": {
                     "type": "string",
-                    "format": "directory-path"
+                    "format": "directory-path",
+                    "description": "output directory"
                 },
                 "publishIntermediate": {
                     "type": "boolean"
@@ -152,6 +161,10 @@
                 "publishStar": {
                     "type": "boolean",
                     "default": true
+                },
+                "publishBowtie": {
+                    "type": "boolean",
+                    "default": true
                 }
             }
         },
@@ -162,13 +175,21 @@
             "default": "",
             "properties": {
                 "skipHostCounts": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "If true, do not perform host read counting."
                 },
                 "skipHisat": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "If true, do not use the hisat2 mapper step"
                 },
                 "hisatUseTranscript": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "When building hisat2 reference indexes from scratch, if true, don't use GTF transcript information"
+                },
+                "bowtieRetainMixed": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "whether to treat mixed alignments (only one mate in a pair has an alignment) as nonhost"
                 }
             },
             "fa_icon": "fas fa-project-diagram"
@@ -176,16 +197,22 @@
         "tool_extra_parameters": {
             "title": "Tool extra parameters",
             "type": "object",
-            "description": "",
+            "description": "Advanced tool configuration",
             "default": "",
             "properties": {
                 "starUseSharedMem": {
                     "type": "boolean",
-                    "default": false
+                    "description": "If false, STAR will not load genomes into shared memory.  you probably do not want to use this, the resource allocation scheme cannot take advantage of shared memory."
                 },
-                "starThreads": {
+                "starThreadsSmall": {
                     "type": "number",
-                    "default": 8
+                    "default": 4,
+                    "description": "threads to allocate to STAR jobs for small (<4GB) inputs"
+                },
+                "starThreadsLarge": {
+                    "type": "number",
+                    "default": 16,
+                    "description": "threads to allocate to STAR jobs for large (>=4GB) inputs"
                 },
                 "starIndexGenOptions": {
                     "type": "string"
@@ -218,6 +245,9 @@
                     "type": "string"
                 },
                 "starOptions": {
+                    "type": "string"
+                },
+                "bowtieOptions": {
                     "type": "string"
                 }
             },
