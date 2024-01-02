@@ -14,6 +14,8 @@ params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
 params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
 
+params.genomeSize = null
+
 params.starSjdbOverhang = 100
 
 params.hisatUseTranscript = false
@@ -34,22 +36,23 @@ process star_generate_indexes {
 	path ERCC_gtf
 
 	output:
-	path("*_indexes.ERCC"), emit: ercc_indexes
-	path("*_indexes"), emit: indexes
+	path("star_*_indexes.ERCC"), emit: ercc_indexes
+	path("star_*_indexes"), emit: indexes
 
 	script:
 	def genome_name = ref_genome_fa.getSimpleName()
 	def STAR_INDEXGEN_CMD = """STAR --runMode genomeGenerate --runThreadN ${task.cpus} \
-		--sjdbOverhang ${params.starSjdbOverhang} $params.starIndexGenOptions """
+		--sjdbOverhang ${params.starSjdbOverhang} --limitGenomeGenerateRAM ${task.memory.toBytes()} \
+	$params.starIndexGenOptions """
 	"""
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
 	cat $ref_genome_gtf $ERCC_gtf > indexes_ERCC.gtf
 
 	${STAR_INDEXGEN_CMD} --genomeFastaFiles $ref_genome_fa --sjdbGTFfile $ref_genome_gtf \
-		--genomeDir	./${genome_name}_indexes
+		--genomeDir	./star_${genome_name}_indexes
 
 	${STAR_INDEXGEN_CMD} --genomeFastaFiles dna_sm.primary_assembly_ERCC.fa \
-		--sjdbGTFfile indexes_ERCC.gtf --genomeDir ./${genome_name}_indexes.ERCC
+		--sjdbGTFfile indexes_ERCC.gtf --genomeDir ./star_${genome_name}_indexes.ERCC
 	"""
 }
 
@@ -64,7 +67,7 @@ process hisat2_generate_indexes {
 	path ERCC_gtf
 
 	output:
-	path("*_genome")
+	path("hisat2_*_genome")
 
 	// untested
 	script:
@@ -81,7 +84,7 @@ process hisat2_generate_indexes {
 	mkdir -p ${genome_name}_genome
 	hisat2-build -q -p $task.cpus $params.hisatIndexGenOptions \
 		--exon genome.exon \
-		dna_sm.primary_assembly_ERCC.fa ${genome_name}_genome/${genome_name}_genome
+		dna_sm.primary_assembly_ERCC.fa hisat2_${genome_name}_genome/${genome_name}_genome
 	"""
 	else
 	"""
@@ -90,7 +93,7 @@ process hisat2_generate_indexes {
 
 	mkdir -p ${genome_name}_genome
 	hisat2-build -q -p $task.cpus $params.hisatIndexGenOptions \
-		dna_sm.primary_assembly_ERCC.fa ${genome_name}_genome/${genome_name}_genome
+		dna_sm.primary_assembly_ERCC.fa hisat2_${genome_name}_genome/${genome_name}_genome
 	"""
 }
 
@@ -103,14 +106,33 @@ process bowtie2_generate_indexes {
 	path ERCC_fa
 
 	output:
-	path("bowtie2_index")
+	path("bowtie2_*_index")
 
 	script:
 	def genome_name = ref_genome_fa.getSimpleName()
 	"""
 	mkdir bowtie2_index
 	bowtie2-build -f --threads $task.cpus $ref_genome_fa,$ERCC_fa \
-		bowtie2_index/${genome_name}
+		bowtie2_${genome_name}_index/${genome_name}
+	"""
+}
+
+process gsnap_generate_indexes {
+	label 'gmap'
+	cache true
+
+	input:
+	path ref_genome_fa
+	path ERCC_fa
+
+	output:
+	path("gmap_*_index")
+	
+	script:
+	def genome_name = ref_genome_fa.getSimpleName()
+	"""
+	gmap_build -d gmap_${genome_name}_index -D gmap_${genome_name}_index \
+		$ref_genome_fa $ERCC_fa
 	"""
 }
 
@@ -127,4 +149,7 @@ workflow {
 
 	bowtie2_index = bowtie2_generate_indexes(file(params.refGenome),
 											 file(params.erccFa))
+
+	gsnap_index = gsnap_generate_indexes(file(params.refGenome),
+										 file(params.erccFa))
 }

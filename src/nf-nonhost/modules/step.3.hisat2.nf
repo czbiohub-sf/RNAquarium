@@ -63,8 +63,9 @@ process hisat2 {
 
 def ensure_hisat2_indexes(ref_indexes,
 						  ref_genome, ref_genome_gtf, ercc, ercc_gtf) {
-	if (ref_indexes) {
-		indexes = file(ref_indexes)
+	if (ref_indexes
+		&& (indexes = file(ref_indexes))
+		&& indexes.exists()) {
 	} else {
 		indexes = hisat2_generate_indexes(file(ref_genome),
 										  file(ref_genome_gtf),

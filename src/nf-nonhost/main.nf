@@ -23,6 +23,7 @@ params.starRefIndexesErcc = null // "Danio_rerio.GRCz11.108.ERCC"
 params.starRefIndexes = null // "Danio_rerio.GRCz11.108"
 params.hisatRefIndexes = null
 params.bowtieRefIndexes = null
+params.gmapRefIndexes = null
 // https://ftp.ensembl.org/pub/release-108/fasta/danio_rerio/dna/
 params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
 // https://ftp.ensembl.org/pub/release-108/gtf/danio_rerio/
@@ -39,15 +40,21 @@ params.publishReadcounts = true
 params.publishHisat = true
 params.publishStar = true
 params.publishBowtie = true
+params.publishDedup = true
+params.publishGsnap = true
 
 params.starUseSharedMem = false
 params.starThreadsSmall = 4
 params.starThreadsLarge = 16
-params.bowtieRetainMixed = true
+params.retainMixed = true
+params.dedupPercentLen = 100
+params.dedupMinLen = 20
 // consider removing these options, which are potentially dangerous for
 // public-exposed pipelines and have questionable utility even for y!!
 params.starIndexGenOptions = ""
 params.hisatIndexGenOptions = ""
+params.bowtieIndexGenOptions = ""
+params.gsnapIndexGenOptions = ""
 params.sraPrefetchOptions = ""
 params.fastqDumpOptions = ""
 params.fastpOptions = ""
@@ -58,16 +65,15 @@ params.htseqCountOptions = ""
 params.hisatOptions = "" // nonhost pipeline
 params.starOptions = ""
 params.bowtieOptions = ""
+params.gsnapOptions = ""
 
 include { validateParameters; paramsHelp; paramsSummaryLog } from 'plugin/nf-validation'
-include {
-	star_generate_indexes;
-	hisat2_generate_indexes;
-	bowtie2_generate_indexes;
-} from './modules/step.0.generate_indexes.nf' params(
+include { } from './modules/step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
 	starIndexGenOptions: params.starIndexGenOptions,
 	hisatIndexGenOptions: params.hisatIndexGenOptions,
+	bowtieIndexGenOptions: params.bowtieIndexGenOptions,
+	gsnapIndexGenOptions: params.gsnapIndexGenOptions,
 	hisatUseTranscript: params.hisatUseTranscript
 )
 include {
@@ -127,31 +133,52 @@ include {
 include {
 	bowtie2;
 	process_bowtie2_sam;
+	bowtie2_filter_by_names;
 	ensure_bowtie2_indexes;
 } from './modules/step.5.bowtie.nf' params(
-	retainMixed: params.bowtieRetainMixed, // retain mixed (xor) mate align cases
+	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishBowtie,
 	bowtieOptions: params.bowtieOptions
-}
+)
+include {
+	dedup;
+} from './modules/step.6.dedup.nf' params(
+	percentLen: params.dedupPercentLen,
+	minLen: params.dedupMinLen,
+	pubishDir: params.publishDir,
+	publishIntermediate: params.publishIntermediate && params.publishDedup,
+)
+include {
+	gsnap;
+	process_gsnap_sam;
+	gsnap_filter_by_names;
+	ensure_gsnap_indexes;
+} from './modules/step.7.gsnap.nf' params(
+	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
+	genomeSize: params.genomeSize,
+	publishDir: params.publishDir,
+	publishIntermediate: params.publishIntermediate && params.publishGsnap,
+)
 
 
 workflow {
 	// parameter validation:
+	// (in addition to format validation schema.json)
 	// at least one of accessionList or fastqPath MUST be specified
-	// genomeSize MUST be specified (todo?: if starRefIndexesErcc not present)
+	// genomeSize MUST be specified
 	// parallelDownloads MUST be >= 1
 	// refGenomeGtf MUST be specified if skipHostCounts is NOT specified
 	// starRefIdx, starRefIdxErcc MUST be present
 	//    if refGenome, refGenomeGtf, erccFa, OR erccGtf are not
 	// if hisatUse  hisatRefIdx
-	if (params.help || params.h || !(params.accessionList || params.fastqPath)) {
+	if (params.help || !(params.accessionList || params.fastqPath)) {
 		log.info paramsHelp("""PATH=\$PATH:\$PWD/bin nextflow run main.nf
 	--accession-list sras.txt --ref-genome Danio_rerio.GRCz11.dna_sm.primary_assembly.fa
 	--ref-genome-gtf Danio_rerio.GRCz11.108.gtf --ercc-fa ERCC92.fa --ercc-gtf ERCC92.gtf --genome-size 1396431182 -profile slurm,apptainer
 	--tmp=/tmp/""")
-		exit params.help || params.h ? 0 : 1
+		exit params.help ? 0 : 1
 	} else if (!params.genomeSize || params.genomeSize <= 0) {
 		log.error "--genome-size must be specified (approximate, in bytes)"
 		exit 1
@@ -190,6 +217,10 @@ workflow {
 	bowtie2_indexes = ensure_bowtie2_indexes(params.bowtieRefIndexes,
 											 params.refGenome,
 											 params.erccFa)
+	// step 0: generating gsnap indexes
+	gsnap_indexes = ensure_gsnap_indexes(params.gmapRefIndexes,
+										 params.refGenome,
+										 params.erccFa)
 
 	// step 1: download and convert to fastq
 	// find existing fastqs
@@ -258,8 +289,8 @@ workflow {
 	// host read counts path
 	if (!params.skipHostCounts) {
 		star_counts(filtered_fastqs, star_indexes2)
-		sort_bam(star_counts.bam)
-		count = htseq_count(sort_bam.out, file(params.refGenomeGtf))
+		sort_bam(star_counts.out.bam)
+		count = htseq_count(sort_bam.out.bam, file(params.refGenomeGtf))
 	}
 
 	// step 3: hisat2
@@ -275,10 +306,15 @@ workflow {
 
 	// step 5: bowtie2
 	bowtie2(star.out.mates, bowtie2_indexes)
-	process_bowtie2_sam(bowtie2.out.sam, star.out.mates)
+	process_bowtie2_sam(bowtie2.out.sam)
+	bowtie2_filter_by_names(process_bowtie2_sam.out.names.join(star.out.mates))
 
+	// step 6: deduplication
+	dedup(bowtie2_filter_by_names.out.mates.join(star.out.stats))
 
-	// process_bowtie2_sam.stats
-
+	// step 7: gsnap
+	gsnap(dedup.out.mates, gsnap_indexes)
+	process_gsnap_sam(gsnap.out.sam)
+	gsnap_filter_by_names(process_gsnap_sam.out.names.join(dedup.out.mates))
 }
 

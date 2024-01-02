@@ -5,6 +5,8 @@ bindir="bin"
 
 mkdir -p ${DESTDIR}${bindir}
 
+./setup-minimal.sh
+
 # sra-toolkit: vdb-config, prefetch, fasterq-dump
 wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.0.0/sratoolkit.3.0.0-ubuntu64.tar.gz -O sratoolkit.3.0.0-ubuntu64.tar.gz && \
 	tar -xzvf sratoolkit.3.0.0-ubuntu64.tar.gz && mv sratoolkit.3.0.0-ubuntu64/bin/* ${DESTDIR}${bindir} && rm -rf sratoolkit.3.0.0-ubuntu64 sratoolkit.3.0.0-ubuntu64.tar.gz && \
@@ -29,3 +31,4 @@ wget https://github.com/samtools/samtools/releases/download/1.16.1/samtools-1.16
 	rm -r samtools-1.16.1
 # htseq install expects python and pip. if it works... great! it probably won't.
 pip3 install --prefix=${DESTDIR} htseq==2.0.2
+

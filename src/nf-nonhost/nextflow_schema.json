@@ -37,6 +37,11 @@
                     "format": "path",
                     "description": "Pre-generated bowtie2 indexes for reference genome"
                 },
+                "gmapRefIndexes": {
+                    "type": "string",
+                    "format": "path",
+                    "description": "Pre-generated gmap/gsnap indexes for reference genome"
+                },
                 "refGenome": {
                     "type": "string",
                     "pattern": "^.+\\.fa(sta)?$",
@@ -165,6 +170,14 @@
                 "publishBowtie": {
                     "type": "boolean",
                     "default": true
+                },
+                "publishDedup": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "publishGsnap": {
+                    "type": "boolean",
+                    "default": true
                 }
             }
         },
@@ -186,10 +199,20 @@
                     "type": "boolean",
                     "description": "When building hisat2 reference indexes from scratch, if true, don't use GTF transcript information"
                 },
-                "bowtieRetainMixed": {
+                "retainMixed": {
                     "type": "boolean",
                     "default": true,
                     "description": "whether to treat mixed alignments (only one mate in a pair has an alignment) as nonhost"
+                },
+                "dedupPercentLen": {
+                    "type": "number",
+                    "default": 100,
+                    "description": "duplicate sequence identity threshold for dedup"
+                },
+                "dedupMinLen": {
+                    "type": "number",
+                    "default": 20,
+                    "description": "minimum allowed sequence length in dedup"
                 }
             },
             "fa_icon": "fas fa-project-diagram"
@@ -248,6 +271,9 @@
                     "type": "string"
                 },
                 "bowtieOptions": {
+                    "type": "string"
+                },
+                "gsnapOptions": {
                     "type": "string"
                 }
             },

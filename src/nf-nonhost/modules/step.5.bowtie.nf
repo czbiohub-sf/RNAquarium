@@ -62,11 +62,10 @@ process process_bowtie2_sam {
 	label 'samtools'
 
 	input:
-	tuple val(_), path("bowtie2.sam")
-	tuple val(meta), path(mategz)
+	tuple val(meta), path("bowtie2.sam")
 
 	output:
-	tuple val(meta), path("*.mate?.filteredbyBT.gz")
+	tuple val(meta), path("bowtie2.unmapped.names.txt"), emit: names
 	tuple val(meta), path("bowtie2.stats.txt"), emit: stats
 
 	// +discordant would be (flag.paired && !flag.proper_pair)
@@ -74,35 +73,48 @@ process process_bowtie2_sam {
 	def cond = params.retainMixed ?
 		'flag.unmap || (flag.paired && flag.munmap)' :
 		'(!flag.paired && flag.unmap) || (flag.paired && flag.unmap && flag.munmap)'
-	def PREFILTER = """samtools view -b bowtie2.sam > bowtie2.bam
-	samtools view bowtie2.bam | cut -f2 | sort | uniq -c > bowtie2.stats.txt
-	samtools view -e '$cond' bowtie2.bam | cut -f1 | sed 's/^/@/' > bowtie2.unmapped.names.txt"""
-	def FILTER_CMD = "grep -A3 --color=never -wFf bowtie2.unmapped.names.txt | sed '/^--\$/d'"
+	//def FILTER_CMD = "LC_ALL=C grep -A3 --color=never -wFf bowtie2.unmapped.names.txt | sed '/^--\$/d'"
+	"""
+	samtools view -@ ${task.cpus} bowtie2.sam | cut -f2 | sort | uniq -c > bowtie2.stats.txt
+	samtools view -@ ${task.cpus} -e '$cond' bowtie2.sam | cut -f1 > bowtie2.unmapped.names.txt
+	"""
+}
+
+process bowtie2_filter_by_names {
+	label "fastq_filter"
+
+	input:
+	tuple val(meta), path(names), path(mategz)
+
+	def SUFFIX = "filteredbyBT.fastq"
+	output:
+	tuple val(meta), path("Unmapped.out.mate?.${SUFFIX}.gz"), emit: mates
+
+	script:
+	def FILTER_CMD = "LC_ALL=C fastq-namefilter $names -"
 	if (!meta.single_end)
 	"""
-	echo $meta
-	${PREFILTER}
-	gunzip -c ${mategz[0]} | $FILTER_CMD > Unmapped.out.mate1.filteredbyBT
-	gunzip -c ${mategz[1]} | $FILTER_CMD > Unmapped.out.mate2.filteredbyBT
-	gzip -c Unmapped.out.mate1.filteredbyBT > Unmapped.out.mate1.filteredbyBT.gz.staging
-	gzip -c Unmapped.out.mate2.filteredbyBT > Unmapped.out.mate2.filteredbyBT.gz.staging
-	mv Unmapped.out.mate1.filteredbyBT.gz.staging Unmapped.out.mate1.filteredbyBT.gz
-	mv Unmapped.out.mate2.filteredbyBT.gz.staging Unmapped.out.mate2.filteredbyBT.gz
+	gunzip -c ${mategz[0]} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
+	gunzip -c ${mategz[1]} | $FILTER_CMD > Unmapped.out.mate2.${SUFFIX}
+	gzip -c Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
+	gzip -c Unmapped.out.mate2.${SUFFIX} > Unmapped.out.mate2.${SUFFIX}.gz.staging
+	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
+	mv Unmapped.out.mate2.${SUFFIX}.gz.staging Unmapped.out.mate2.${SUFFIX}.gz
 	"""
 	else if (meta.single_end)
 	"""
-	${PREFILTER}
-	gunzip -c ${mategz} | $FILTER_CMD > Unmapped.out.mate1.filteredbyBT
-	gzip -c Unmapped.out.mate1.filteredbyBT > Unmapped.out.mate1.filteredbyBT.gz.staging
-	mv Unmapped.out.mate1.filteredbyBT.gz.staging Unmapped.out.mate1.filteredbyBT.gz
+	gunzip -c ${mategz} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
+	gzip -c Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
+	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
 	"""
 }
 
 
 def ensure_bowtie2_indexes(ref_indexes,
 						   ref_genome, ercc) {
-	if (ref_indexes) {
-		indexes = file(ref_indexes)
+	if (ref_indexes
+		&& (indexes = file(ref_indexes))
+		&& indexes.exists()) {
 	} else {
 		indexes = bowtie2_generate_indexes(file(ref_genome),
 										   file(ercc))
