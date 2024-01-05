@@ -1,0 +1,62 @@
+diff -crB PriceSource140408/Makefile PriceSource140408_modified/Makefile
+*** PriceSource140408/Makefile	2014-04-08 11:14:59.000000000 -0700
+--- PriceSource140408_modified/Makefile	2023-11-21 14:51:20.046614524 -0800
+***************
+*** 1,6 ****
+  #specialParams = -fopenmp -g
+! specialParams = -fopenmp -O
+! #specialParams = -fopenmp -O3 -march=native
+  #specialParams = -O
+  #specialParams = -fopenmp 
+  
+--- 1,10 ----
+  #specialParams = -fopenmp -g
+! #specialParams = -fopenmp -O
+! ifdef $(HOMOGENEOUS_ENV)
+! 	specialParams = -fopenmp -O3 -march=native
+! else
+! 	specialParams = -fopenmp -O3
+! endif
+  #specialParams = -O
+  #specialParams = -fopenmp 
+  
+diff -crB PriceSource140408/SeqFilterListenerStd.cpp PriceSource140408_modified/SeqFilterListenerStd.cpp
+*** PriceSource140408/SeqFilterListenerStd.cpp	2014-04-08 11:14:59.000000000 -0700
+--- PriceSource140408_modified/SeqFilterListenerStd.cpp	2024-01-05 12:17:50.800915728 -0800
+***************
+*** 37,44 ****
+  
+  void SeqFilterListenerStd::startingFilter(bool isPaired){ 
+    _isPaired = isPaired;
+!   if (_isPaired){ cout << "Sequence pairs processed/removed:\t0/0"; }
+!   else { cout << "Sequences processed/removed:\t0/0"; }
+    cout.flush();
+    _priorPrintSize = 3;
+    _numProcessed = 0;
+--- 37,44 ----
+  
+  void SeqFilterListenerStd::startingFilter(bool isPaired){ 
+    _isPaired = isPaired;
+!   if (_isPaired){ cout << "Sequence pairs processed/removed:\t"; }
+!   else { cout << "Sequences processed/removed:\t"; }
+    cout.flush();
+    _priorPrintSize = 3;
+    _numProcessed = 0;
+***************
+*** 47,58 ****
+--- 47,61 ----
+  void SeqFilterListenerStd::updateProgress(long numProcessed, long numRemoved){
+    _numProcessed += numProcessed;
+    _numRemoved += numRemoved;
++   /*
+    for (int n = 0; n < _priorPrintSize; ++n){ cout << "\b"; }
+    cout << _numProcessed << '/' << _numRemoved;
+    cout.flush();
+    _priorPrintSize = getNumChars(_numProcessed) + 1 + getNumChars(_numRemoved);
++   */
+  }
+  void SeqFilterListenerStd::finishingFilter(){
++   cout << _numProcessed << '/' << _numRemoved;
+    cout << endl;
+    if (_isPaired){ cout << "Num. sequence pairs kept (% of input):\t"; }
+    else { cout << "Num. sequences kept (% of input):\t"; }
