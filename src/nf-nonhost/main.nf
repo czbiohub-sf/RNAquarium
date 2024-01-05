@@ -343,7 +343,7 @@ workflow {
 			  .join(gsnap_stats)
 
 	stats_csv(all_stats)
-		.collectFile(name: "stats-.csv", keepHeader: true, skip: 1)
+		.collectFile(name: "stats-${params.timestamp}.csv", keepHeader: true, skip: 1, storeDir: "$PWD")
 		.view()
 }
 
@@ -357,19 +357,19 @@ process stats_csv {
 	stdout
 
 	script:
-	def HISAT_UNPAIRED = '''hisat_before=$(sed -n '/reads; of these:/{;p;}' hisat2_stats.txt | cut -f1 -d' ')
-	hisat_unaligned=$(sed -n '/aligned 0 times/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
-	hisat_aligned_unique=$(sed -n '/aligned exactly 1 time/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
-	hisat_multialign=$(sed -n '/aligned >1 times/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
+	def HISAT_UNPAIRED = '''hisat_before=\$(sed -n '/reads; of these:/{;p;}' hisat2_stats.txt | cut -f1 -d' ')
+	hisat_unaligned=\$(sed -n '/aligned 0 times/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
+	hisat_aligned_unique=\$(sed -n '/aligned exactly 1 time/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
+	hisat_multialign=\$(sed -n '/aligned >1 times/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
 	hisat_discordant=''
-	printf "%s,%s,%s,%s,%s," $hisat_before $hisat_unaligned $hisat_aligned_unique $hisat_multialign $hisat_discordant
+	printf "%s,%s,%s,%s,%s," "\$hisat_before" "\$hisat_unaligned" "\$hisat_aligned_unique" "\$hisat_multialign" "\$hisat_discordant"
 	'''
-	def HISAT_PAIRED = '''hisat_before=$(sed -n '/reads; of these:/{;p;}' hisat2_stats.txt | cut -f1 -d' ')
-	hisat_unaligned=$(sed -n '/aligned concordantly 0 times/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
-	hisat_aligned_unique=$(sed -n '/aligned concordantly exactly 1 time/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
-	hisat_multialign=$(sed -n '/aligned concordantly >1 times/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
-	hisat_discordant=$(sed -n '/aligned discordantly 1 time/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
-	printf "%s,%s,%s,%s,%s," $hisat_before $hisat_unaligned $hisat_aligned_unique $hisat_multialign $hisat_discordant
+	def HISAT_PAIRED = '''hisat_before=\$(sed -n '/reads; of these:/{;p;}' hisat2_stats.txt | cut -f1 -d' ')
+	hisat_unaligned=\$(sed -n '/pairs aligned concordantly 0 times/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
+	hisat_aligned_unique=\$(sed -n '/aligned concordantly exactly 1 time/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
+	hisat_multialign=\$(sed -n '/aligned concordantly >1 times/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
+	hisat_discordant=\$(sed -n '/aligned discordantly 1 time/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
+	printf "%s,%s,%s,%s,%s," "\$hisat_before" "\$hisat_unaligned" "\$hisat_aligned_unique" "\$hisat_multialign" "\$hisat_discordant"
 	'''
 	def PARSE_HISAT = params.skipHisat ? ",,,,," : (meta.single_end ? HISAT_UNPAIRED : HISAT_PAIRED)
 	"""
@@ -381,9 +381,9 @@ process stats_csv {
 	printf "price_reads_before,price_reads_after,"
 	printf "hisat2_reads_before,hisat2_unaligned,hisat2_aligned_unique,hisat2_multialign,hisat2_discordant,"
 	printf "star_reads_before,star_avg_len,star_aligned_unique,star_multialign,star_unaligned,star_too_short,"
-	printf "bowtie2_reads_before,bowtie2_aligned_unique,bowtie2_multialign,bowtie2_unaligned,bowtie2_mixed,"
+	printf "bowtie2_reads_before,bowtie2_aligned,bowtie2_multialign,bowtie2_aligned_unique,bowtie2_unaligned,bowtie2_mixed,"
 	printf "dedup_reads_before,dedup_reads_after,"
-	printf "gsnap_reads_before,gsnap_aligned_unique,gsnap_multialign,gsnap_unaligned,gsnap_mixed\n"
+	printf "gsnap_reads_before,gsnap_aligned,gsnap_multialign,gsnap_aligned_unique,gsnap_unaligned,gsnap_mixed\n"
 
 	printf "${idx},${meta.single_end},${meta.reads},${meta.readlen},"
 
@@ -395,11 +395,11 @@ process stats_csv {
 	printf "%s,%s,%s,%s," \$fastp_before \$fastp_after \$fastp_short \$fastp_trimmed
 
 	# PRICE
-	# somehow, these vars don't get read correctly
-	price_total=\$(echo "${price_stats.split("\n")[3].split("/")[1]}" | grep -o "[0-9]\\+")
-	price_removed=\$(echo "${price_stats.split("\n")[3].split("/")[2]}" | grep -o "[0-9]\\+")
+	# price outputs \b to non-interactive output
+	price_total=\$(echo "${price_stats.split("\n")[3].split("\b")[-1].split("/")[0]}" | grep -o "[0-9]\\+")
+	price_removed=\$(echo "${price_stats.split("\n")[3].split("\b")[-1].split("/")[1]}" | grep -o "[0-9]\\+")
 	price_after=\$(bc <<< "\$price_total - \$price_removed")
-	printf "%d,%d," \$price_total \$price_after
+	printf "%d,%d," "\$price_total" "\$price_after"
 
 	# HISAT2
 	${PARSE_HISAT}
@@ -442,11 +442,12 @@ process stats_csv {
 		fi
 	done < bowtie2_stats.txt
 	bowtie2_unique=\$(( \$bowtie2_aligned - \$bowtie2_multi ))
-	printf "%s,%s,%s,%s,%s,%s," \$bowtie2_total \$bowtie2_multi \$bowtie2_aligned \$bowtie2_unaligned \$bowtie2_mixed \$bowtie2_unique
+	printf "%s,%s,%s,%s,%s,%s," \$bowtie2_total \$bowtie2_aligned \$bowtie2_multi \$bowtie2_unique \$bowtie2_unaligned \$bowtie2_mixed
 
 	# DEDUP
 	dedup_before=\$(echo "$dedup_stats" | grep "total reads:"  | grep -o "[0-9]\\+")
 	dedup_after=\$(echo "$dedup_stats" | grep "unique reads:"  | grep -o "[0-9]\\+")
+	printf "%s,%s," "\$dedup_before" "\$dedup_after"
 
 	# GSNAP
 	gsnap_total=0
@@ -477,6 +478,6 @@ process stats_csv {
 		fi
 	done < gsnap_stats.txt
 	gsnap_unique=\$(( \$gsnap_aligned - \$gsnap_multi ))
-	printf "%s,%s,%s,%s,%s,%s\n" \$gsnap_total \$gsnap_multi \$gsnap_aligned \$gsnap_unaligned \$gsnap_mixed \$gsnap_unique	
+	printf "%s,%s,%s,%s,%s,%s\n" \$gsnap_total \$gsnap_aligned \$gsnap_multi \$gsnap_unique \$gsnap_unaligned \$gsnap_mixed
 	"""
 }
