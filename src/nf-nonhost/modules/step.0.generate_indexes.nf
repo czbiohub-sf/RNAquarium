@@ -20,9 +20,9 @@ params.starSjdbOverhang = 100
 
 params.hisatUseTranscript = false
 
-params.starIndexGenOptions = ""
-params.hisatIndexGenOptions = ""
-params.bowtieIndexGenOptions = ""
+// params.starIndexGenOptions = ""
+// params.hisatIndexGenOptions = ""
+// params.bowtieIndexGenOptions = ""
 
 
 process star_generate_indexes {
@@ -67,11 +67,10 @@ process hisat2_generate_indexes {
 	path ERCC_gtf
 
 	output:
-	path("hisat2_*_genome")
+	tuple val("${ref_genome_fa.baseName}"), path("${ref_genome_fa.baseName}*.{ht2,ht2l}")
 
 	// untested
 	script:
-	def genome_name = ref_genome_fa.getSimpleName()
 	if (params.hisatUseTranscript && ref_genome_gtf.exists())
 	"""
 	# can potentially be done in parallel
@@ -81,19 +80,17 @@ process hisat2_generate_indexes {
 	#hisat2_extract_splice_sites.py indexes_ERCC.gtf > genome.ss
 	hisat2_extract_exons.py indexes_ERCC.gtf > genome.exon
 
-	mkdir -p ${genome_name}_genome
 	hisat2-build -q -p $task.cpus $params.hisatIndexGenOptions \
 		--exon genome.exon \
-		dna_sm.primary_assembly_ERCC.fa hisat2_${genome_name}_genome/${genome_name}_genome
+		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.baseName}
 	"""
 	else
 	"""
 	echo '[hisat2_generate_indexes] building index without GTF exon/splice graph'
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
 
-	mkdir -p ${genome_name}_genome
 	hisat2-build -q -p $task.cpus $params.hisatIndexGenOptions \
-		dna_sm.primary_assembly_ERCC.fa hisat2_${genome_name}_genome/${genome_name}_genome
+		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.baseName}
 	"""
 }
 
@@ -106,14 +103,12 @@ process bowtie2_generate_indexes {
 	path ERCC_fa
 
 	output:
-	path("bowtie2_*_index")
+	tuple path("${ref_genome_fa.baseName}"), path("${ref_genome_fa.baseName}*.{bt2,bt2l}")
 
 	script:
-	def genome_name = ref_genome_fa.getSimpleName()
 	"""
-	mkdir bowtie2_index
 	bowtie2-build -f --threads $task.cpus $ref_genome_fa,$ERCC_fa \
-		bowtie2_${genome_name}_index/${genome_name}
+		${ref_genome_fa.baseName}
 	"""
 }
 
@@ -131,7 +126,7 @@ process gsnap_generate_indexes {
 	script:
 	def genome_name = ref_genome_fa.getSimpleName()
 	"""
-	gmap_build -d gmap_${genome_name}_index -D gmap_${genome_name}_index \
+	gmap_build -d gmap_${genome_name}_index -D . \
 		$ref_genome_fa $ERCC_fa
 	"""
 }

@@ -7,9 +7,6 @@ params.parallelDownloads = 10
 params.publishDir = "$PWD"
 params.publishIntermediate = true
 
-params.sraPrefetchOptions = ""
-params.fastqDumpOptions = ""
-
 params.metaOut = 'step_1_sheet.csv'
 include {
 	SAVE_METASHEET;
@@ -34,7 +31,7 @@ process prefetch {
 	"""
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	prefetch --output-directory staging --max-size 1t --force ALL \
-		$params.sraPrefetchOptions $sra_id
+		$sra_id
 	cd staging
 	vdb-validate -I no $sra_id 2> ../validate.txt
 	vdb-dump --info $sra_id > ../info.txt
@@ -71,7 +68,7 @@ process fastq_dump {
 	mem = task.memory.toString() - ~/ /
 	if (task.attempt == 1) """
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-	fasterq-dump --split-3 -e ${task.cpus} $params.fastqDumpOptions \
+	fasterq-dump --split-3 -e ${task.cpus} \
 		--outdir fastq/${meta.id}.staging ${meta.id} 2>stats.txt
 	
 	# TODO: this doesn't work..

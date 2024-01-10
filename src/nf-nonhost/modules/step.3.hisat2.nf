@@ -12,14 +12,10 @@ params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
 params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
 
-params.hisatOptions = ""
-params.hisatIndexGenOptions = ""
-
 include {
 	hisat2_generate_indexes;
 } from './step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
-	hisatIndexGenOptions: params.hisatIndexGenOptions
 )
 
 params.metaIn = 'step_2_sheet.csv'
@@ -35,7 +31,7 @@ process hisat2 {
 
 	input:
 	tuple val(meta), path(fqgz)
-	path indexes_dir
+	tuple val(idx_basename), path("hisat2_index/*")
 
 	output:
 	tuple val(meta), path("?E/Unmapped.out.mate?.gz"), emit: mates
@@ -43,7 +39,7 @@ process hisat2 {
 
 	script:
 	def HISAT2_CMD = """hisat2 -q -p $task.cpus -k 1 -S /dev/null \
-		-x $indexes_dir/${indexes_dir.getName()} $params.hisatOptions"""
+		-x hisat2_index/${idx_basename} """
 	if (!meta.single_end) """
 	mkdir -p PE
 	${HISAT2_CMD} \
@@ -66,6 +62,7 @@ def ensure_hisat2_indexes(ref_indexes,
 	if (ref_indexes
 		&& (indexes = file(ref_indexes))
 		&& indexes.exists()) {
+		return [indexes.listFiles()[0].getSimpleName(), file(indexes.resolve("*.{ht2,ht2l}")) ]
 	} else {
 		indexes = hisat2_generate_indexes(file(ref_genome),
 										  file(ref_genome_gtf),

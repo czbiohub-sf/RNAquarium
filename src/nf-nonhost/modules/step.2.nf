@@ -5,9 +5,6 @@ nextflow.enable.dsl=2
 params.publishDir = "$PWD"
 params.publishIntermediate = true
 
-params.fastpOptions = ""
-params.priceOptions = ""
-
 params.metaIn = 'step_1_sheet.csv'
 params.metaOut = 'step_2_sheet.csv'
 include {
@@ -29,7 +26,7 @@ process fastp {
 	def extension = ".trimmed.fastq"
 	def FASTP_CMD = """fastp --disable_quality_filtering --length_required 2 \
 		--compression 6 --thread ${task.cpus} \
-		--json fastp.json --html fastp.html $params.fastpOptions"""
+		--json fastp.json --html fastp.html """
 	if (!meta.single_end) """
 	gzip -dc ${fqs[0]} > fq1.fastq
 	gzip -dc ${fqs[1]} > fq2.fastq
@@ -67,7 +64,7 @@ process priceseqfilter {
 	script:
 	def extension = ".PRICEfiltered.fastq"
 	def price_cmd = """PriceSeqFilter -a ${task.cpus} -rnf 90 -rqf 85 0.98 \
-		-log c $params.priceOptions"""
+		-log c """
 	if (!meta.single_end)
 	"""
 	${price_cmd} \

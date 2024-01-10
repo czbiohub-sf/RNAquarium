@@ -16,14 +16,11 @@ params.erccGtf = "ERCC92.gtf"
 params.starUseSharedMem = false
 params.starThreadsSmall = 4
 params.starThreadsLarge = 16
-params.starOptions = ""
-params.starIndexGenOptions = ""
 
 include {
 	star_generate_indexes;
 } from './step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
-	starIndexGenOptions: params.starIndexGenOptions
 )
 
 params.metaIn = 'step_3_sheet.csv'
@@ -54,8 +51,7 @@ process star {
 		--clip3pNbases 0 --limitOutSJcollapsed 200000000 \
 		--genomeLoad $loadType \
 		--outReadsUnmapped Fastx \
-		--runThreadN ${task.cpus} \
-		${params.starOptions}"""
+		--runThreadN ${task.cpus} """
 	if (!meta.single_end)
 	"""
 	${STAR_CMD} \

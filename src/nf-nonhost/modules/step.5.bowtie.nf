@@ -13,14 +13,11 @@ params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
 
 params.retainMixed = true
-params.bowtieOptions = ""
-params.bowtieIndexGenOptions = ""
 
 include {
 	bowtie2_generate_indexes;
 } from './step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
-	bowtieIndexGenOptions: params.bowtieIndexGenOptions
 )
 
 params.metaIn = 'step_4_sheet.csv'
@@ -35,17 +32,17 @@ include {
 
 	input:
 	tuple val(meta), path(mategz)
-	path index_dir
+	tuple val(idx_basename), path("bowtie2_index/*")
 
 	output:
 	tuple val(meta), path("bowtie2.sam"), emit: sam
 
 	script:
 	// can we safely enable --no-discordant here?
-	def index_base = file(index_dir).listFiles()[0].getBaseName(2)
+	//def index_base = file(index_dir).listFiles()[0].getSimpleName()
 	def BOWTIE2_CMD = """bowtie2 --quiet --very-sensitive-local -p $task.cpus \
 		--rg-id na --rg LB:na --rg SM:na --rg PL:na --rg PU:na \
-		-x $index_dir/$index_base $params.bowtieOptions"""
+		-x bowtie2_index/${idx_basename} """
 	if (!meta.single_end)
 	"""
 	${BOWTIE2_CMD} -1 ${mategz[0]} -2 ${mategz[1]} -S bowtie2.sam.staging
@@ -115,6 +112,7 @@ def ensure_bowtie2_indexes(ref_indexes,
 	if (ref_indexes
 		&& (indexes = file(ref_indexes))
 		&& indexes.exists()) {
+		return [indexes.listFiles()[0].getSimpleName(), file(indexes.resolve("*.{bt2,bt2l}"))]
 	} else {
 		indexes = bowtie2_generate_indexes(file(ref_genome),
 										   file(ercc))

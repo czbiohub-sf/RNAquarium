@@ -51,29 +51,25 @@ params.dedupPercentLen = 100
 params.dedupMinLen = 20
 // consider removing these options, which are potentially dangerous for
 // public-exposed pipelines and have questionable utility even for y!!
-params.starIndexGenOptions = ""
-params.hisatIndexGenOptions = ""
-params.bowtieIndexGenOptions = ""
-params.gsnapIndexGenOptions = ""
-params.sraPrefetchOptions = ""
-params.fastqDumpOptions = ""
-params.fastpOptions = ""
-params.priceOptions = ""
-params.starCountOptions = "" // host read counts pipeline
-params.samtoolsSortOptions = ""
-params.htseqCountOptions = ""
-params.hisatOptions = "" // nonhost pipeline
-params.starOptions = ""
-params.bowtieOptions = ""
-params.gsnapOptions = ""
+// params.starIndexGenOptions = ""
+// params.hisatIndexGenOptions = ""
+// params.bowtieIndexGenOptions = ""
+// params.gsnapIndexGenOptions = ""
+// params.sraPrefetchOptions = ""
+// params.fastqDumpOptions = ""
+// params.fastpOptions = ""
+// params.priceOptions = ""
+// params.starCountOptions = "" // host read counts pipeline
+// params.samtoolsSortOptions = ""
+// params.htseqCountOptions = ""
+// params.hisatOptions = "" // nonhost pipeline
+// params.starOptions = ""
+// params.bowtieOptions = ""
+// params.gsnapOptions = ""
 
 include { validateParameters; paramsHelp; paramsSummaryLog } from 'plugin/nf-validation'
 include { } from './modules/step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
-	starIndexGenOptions: params.starIndexGenOptions,
-	hisatIndexGenOptions: params.hisatIndexGenOptions,
-	bowtieIndexGenOptions: params.bowtieIndexGenOptions,
-	gsnapIndexGenOptions: params.gsnapIndexGenOptions,
 	hisatUseTranscript: params.hisatUseTranscript
 )
 include {
@@ -85,8 +81,6 @@ include {
 	parallelDownloads: params.parallelDownloads,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishFastqs,
-	sraPrefetchOptions: params.sraPrefetchOptions,
-	fastqDumpOptions: params.fastqDumpOptions
 )
 include {
 	fastp;
@@ -94,8 +88,6 @@ include {
 } from './modules/step.2.nf' params(
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishPricefiltered,
-	fastpOptions: params.fastpOptions,
-	priceOptions: params.priceOptions
 )
 include {
 	star_counts;
@@ -105,9 +97,6 @@ include {
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishReadcounts,
-	starCountOptions: params.starCountOptions,
-	samtoolsSortOptions: params.samtoolsSortOptions,
-	htseqCountOptions: params.htseqCountOptions
 )
 include {
 	hisat2;
@@ -116,7 +105,6 @@ include {
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishHisat,
-	hisatOptions: params.hisatOptions
 )
 include {
 	star;
@@ -128,7 +116,6 @@ include {
 	starThreadsLarge: params.starThreadsLarge,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishStar,
-	starOptions: params.starOptions
 )
 include {
 	bowtie2;
@@ -140,7 +127,6 @@ include {
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishBowtie,
-	bowtieOptions: params.bowtieOptions
 )
 include {
 	dedup;

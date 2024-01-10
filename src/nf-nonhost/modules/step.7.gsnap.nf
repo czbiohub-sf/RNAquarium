@@ -19,7 +19,6 @@ include {
 } from './step.0.generate_indexes.nf' params(
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
-	bowtieIndexGenOptions: params.bowtieIndexGenOptions
 )
 
 process gsnap {
@@ -42,7 +41,7 @@ process gsnap {
 		--npaths=1 `# maximum paths to print` \
 		--ordered -t ${task.cpus} \
 		--max-mismatches $params.maxMismatch \
-		-D $index_dir -d $index_name \
+		-D . -d $index_name \
 		-o gsnap_out.sam.staging """
 	if (!meta.single_end)
 	"""
