@@ -21,7 +21,7 @@ process prefetch {
 	tuple val(meta), val(sra_id)
 
 	output:
-	tuple val(meta), path('[S,E,D]RR*[0-9]'), env(reads), env(sra_size), emit: sra
+	tuple val(meta), path('[S,E,D]RR*[0-9]/*.sra'), env(reads), env(sra_size), emit: sra
 	tuple val(meta), path("info.txt"), emit: stats
 
 	// fastq-dump wants sras in the current directory. this is a problem for
@@ -41,12 +41,6 @@ process prefetch {
 	trap -- '' SIGTERM
 	mv staging/$sra_id $sra_id
 	"""
-
-	stub:
-	"""
-	mkdir -p ${sra_id}
-	touch ${sra_id}/${sra_id}.sra
-	"""
 }
 
 process fastq_dump {
@@ -56,7 +50,7 @@ process fastq_dump {
 	publishDir "$params.publishDir", enabled: params.publishIntermediate
 
 	input:
-	tuple val(meta), path(sra_file)
+	tuple val(meta), path("${meta.id}/*.sra")
 
 	output:
 	tuple val(meta), path("fastq/${meta.id}/*.fastq"), emit: mates
@@ -71,9 +65,6 @@ process fastq_dump {
 	fasterq-dump --split-3 -e ${task.cpus} \
 		--outdir fastq/${meta.id}.staging ${meta.id} 2>stats.txt
 	
-	# TODO: this doesn't work..
-	rm -rf ${sra_file}
-
 	trap -- '' SIGTERM
 	mv fastq/${meta.id}.staging fastq/${meta.id}
 	"""
@@ -85,12 +76,6 @@ process fastq_dump {
 
 	trap -- '' SIGTERM
 	mv fastq/${meta.id}.staging fastq/${meta.id}
-	"""
-
-	stub:
-	"""
-	if [ -f ${meta.id}/${meta.id}.sra ]
-	then touch fastq/${meta.id}.fastq; fi
 	"""
 }
 

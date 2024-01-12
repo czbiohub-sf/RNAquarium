@@ -103,7 +103,7 @@ process bowtie2_generate_indexes {
 	path ERCC_fa
 
 	output:
-	tuple path("${ref_genome_fa.baseName}"), path("${ref_genome_fa.baseName}*.{bt2,bt2l}")
+	tuple val("${ref_genome_fa.baseName}"), path("${ref_genome_fa.baseName}*.{bt2,bt2l}")
 
 	script:
 	"""

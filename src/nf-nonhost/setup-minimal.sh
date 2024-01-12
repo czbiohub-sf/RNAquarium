@@ -21,3 +21,10 @@ wget https://derisilab.ucsf.edu/software/price/PriceSource140408.tar.gz -O Price
 
 wget https://github.com/chanzuckerberg/czid-dedup/releases/download/v0.1.2/czid-dedup-Linux -O ${DESTDIR}${bindir}/czid-dedup && \
 	chmod a+x ${DESTDIR}${bindir}/czid-dedup
+
+## replace "sse42" with an appropriate fallback, if necessary
+wget http://research-pub.gene.com/gmap/src/gmap-gsnap-2023-12-01.tar.gz -O gmap-gsnap-2023-12-01.tar.gz && \
+	tar -xzvf gmap-gsnap-2023-12-01.tar.gz && cd gmap-2023-12-01 && ./configure && make && \
+	./configure --with-simd-level=sse42 --prefix=${DESTDIR} && make && make install && \
+	find util -maxdepth 1 -executable -type f -exec mv {} ${DESTDIR}${bindir} \; && cd .. && \
+	rm -rf gmap-2023-12-01 && rm gmap-gsnap-2023-12-01.tar.gz
