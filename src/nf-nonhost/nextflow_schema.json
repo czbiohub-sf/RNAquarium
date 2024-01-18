@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "https://raw.githubusercontent.com/czbiohub-sf/Zebrafish-RNAquarium/master/nextflow_schema.json",
-    "title": "RNAquarium pipeline parameters",
-    "description": "",
+    "title": "czbiohub-sf/Zebrafish-RNAquarium pipeline parameters",
+    "description": "reprocessing of public rna-seq datasets for non-host reads",
     "type": "object",
     "definitions": {
         "reference_genome_options": {
@@ -37,7 +37,7 @@
                     "format": "path",
                     "description": "Pre-generated bowtie2 indexes for reference genome"
                 },
-                "gmapRefIndexes": {
+                "gsnapRefIndexes": {
                     "type": "string",
                     "format": "path",
                     "description": "Pre-generated gmap/gsnap indexes for reference genome"
@@ -153,34 +153,42 @@
                 },
                 "publishFastqs": {
                     "type": "boolean",
-                    "default": true
+                    "default": true,
+                    "hidden": true
                 },
                 "publishPricefiltered": {
                     "type": "boolean",
+                    "hidden": true,
                     "default": true
                 },
                 "publishReadcounts": {
                     "type": "boolean",
-                    "default": true
+                    "default": true,
+                    "hidden": true
                 },
                 "publishHisat": {
                     "type": "boolean",
-                    "default": true
+                    "default": true,
+                    "hidden": true
                 },
                 "publishStar": {
                     "type": "boolean",
+                    "hidden": true,
                     "default": true
                 },
                 "publishBowtie": {
                     "type": "boolean",
+                    "hidden": true,
                     "default": true
                 },
                 "publishDedup": {
                     "type": "boolean",
+                    "hidden": true,
                     "default": true
                 },
                 "publishGsnap": {
                     "type": "boolean",
+                    "hidden": true,
                     "default": true
                 }
             }
@@ -229,7 +237,7 @@
             "properties": {
                 "starUseSharedMem": {
                     "type": "boolean",
-                    "description": "If false, STAR will not load genomes into shared memory.  you probably do not want to use this, the resource allocation scheme cannot take advantage of shared memory."
+                    "description": "If true, STAR will load and use genomes in shared memory. You probably do not want to use this, the resource allocation scheme cannot take advantage of shared memory."
                 },
                 "starThreadsSmall": {
                     "type": "number",
@@ -240,45 +248,6 @@
                     "type": "number",
                     "default": 16,
                     "description": "threads to allocate to STAR jobs for large (>=4GB) inputs"
-                },
-                "starIndexGenOptions": {
-                    "type": "string"
-                },
-                "hisatIndexGenOptions": {
-                    "type": "string"
-                },
-                "sraPrefetchOptions": {
-                    "type": "string"
-                },
-                "fastqDumpOptions": {
-                    "type": "string"
-                },
-                "fastpOptions": {
-                    "type": "string"
-                },
-                "priceOptions": {
-                    "type": "string"
-                },
-                "starCountOptions": {
-                    "type": "string"
-                },
-                "samtoolsSortOptions": {
-                    "type": "string"
-                },
-                "htseqCountOptions": {
-                    "type": "string"
-                },
-                "hisatOptions": {
-                    "type": "string"
-                },
-                "starOptions": {
-                    "type": "string"
-                },
-                "bowtieOptions": {
-                    "type": "string"
-                },
-                "gsnapOptions": {
-                    "type": "string"
                 }
             },
             "fa_icon": "fas fa-cogs"

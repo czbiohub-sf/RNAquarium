@@ -23,7 +23,7 @@ params.starRefIndexesErcc = null // "Danio_rerio.GRCz11.108.ERCC"
 params.starRefIndexes = null // "Danio_rerio.GRCz11.108"
 params.hisatRefIndexes = null
 params.bowtieRefIndexes = null
-params.gmapRefIndexes = null
+params.gsnapRefIndexes = null
 // https://ftp.ensembl.org/pub/release-108/fasta/danio_rerio/dna/
 params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
 // https://ftp.ensembl.org/pub/release-108/gtf/danio_rerio/
@@ -204,7 +204,7 @@ workflow {
 											 params.refGenome,
 											 params.erccFa)
 	// step 0: generating gsnap indexes
-	gsnap_indexes = ensure_gsnap_indexes(params.gmapRefIndexes,
+	gsnap_indexes = ensure_gsnap_indexes(params.gsnapRefIndexes,
 										 params.refGenome,
 										 params.erccFa)
 

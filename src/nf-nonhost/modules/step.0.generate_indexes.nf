@@ -67,7 +67,7 @@ process hisat2_generate_indexes {
 	path ERCC_gtf
 
 	output:
-	tuple val("${ref_genome_fa.baseName}"), path("${ref_genome_fa.baseName}*.{ht2,ht2l}")
+	tuple val("${ref_genome_fa.simpleName}"), path("${ref_genome_fa.simpleName}*.{ht2,ht2l}")
 
 	// untested
 	script:
@@ -80,17 +80,17 @@ process hisat2_generate_indexes {
 	#hisat2_extract_splice_sites.py indexes_ERCC.gtf > genome.ss
 	hisat2_extract_exons.py indexes_ERCC.gtf > genome.exon
 
-	hisat2-build -q -p $task.cpus $params.hisatIndexGenOptions \
+	hisat2-build -q -p $task.cpus \
 		--exon genome.exon \
-		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.baseName}
+		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.simpleName}
 	"""
 	else
 	"""
 	echo '[hisat2_generate_indexes] building index without GTF exon/splice graph'
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
 
-	hisat2-build -q -p $task.cpus $params.hisatIndexGenOptions \
-		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.baseName}
+	hisat2-build -q -p $task.cpus \
+		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.simpleName}
 	"""
 }
 
@@ -103,12 +103,12 @@ process bowtie2_generate_indexes {
 	path ERCC_fa
 
 	output:
-	tuple val("${ref_genome_fa.baseName}"), path("${ref_genome_fa.baseName}*.{bt2,bt2l}")
+	tuple val("${ref_genome_fa.simpleName}"), path("${ref_genome_fa.simpleName}*.{bt2,bt2l}")
 
 	script:
 	"""
 	bowtie2-build -f --threads $task.cpus $ref_genome_fa,$ERCC_fa \
-		${ref_genome_fa.baseName}
+		${ref_genome_fa.simpleName}
 	"""
 }
 
@@ -121,12 +121,12 @@ process gsnap_generate_indexes {
 	path ERCC_fa
 
 	output:
-	path("gmap_*_index")
+	path("gmap_*_indexes")
 	
 	script:
 	def genome_name = ref_genome_fa.getSimpleName()
 	"""
-	gmap_build -d gmap_${genome_name}_index -D . \
+	gmap_build -d gmap_${genome_name}_indexes -D . \
 		$ref_genome_fa $ERCC_fa
 	"""
 }
