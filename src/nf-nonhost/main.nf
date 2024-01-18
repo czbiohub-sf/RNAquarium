@@ -68,7 +68,7 @@ params.dedupMinLen = 20
 // params.gsnapOptions = ""
 
 include { validateParameters; paramsHelp; paramsSummaryLog } from 'plugin/nf-validation'
-include { } from './modules/step.0.generate_indexes.nf' params(
+include { } from './modules/local/step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
 	hisatUseTranscript: params.hisatUseTranscript
 )
@@ -77,7 +77,7 @@ include {
 	fastq_dump;
 	check_direct_fastqs;
 	filter_barcodes;
-} from './modules/step.1.nf' params(
+} from './modules/local/step.1.nf' params(
 	parallelDownloads: params.parallelDownloads,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishFastqs,
@@ -85,7 +85,7 @@ include {
 include {
 	fastp;
 	priceseqfilter;
-} from './modules/step.2.nf' params(
+} from './modules/local/step.2.nf' params(
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishPricefiltered,
 )
@@ -93,7 +93,7 @@ include {
 	star_counts;
 	sort_bam;
 	htseq_count;
-} from './modules/step.readcounts.nf' params(
+} from './modules/local/step.readcounts.nf' params(
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishReadcounts,
@@ -101,7 +101,7 @@ include {
 include {
 	hisat2;
 	ensure_hisat2_indexes;
-} from './modules/step.3.hisat2.nf' params(
+} from './modules/local/step.3.hisat2.nf' params(
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishHisat,
@@ -109,7 +109,7 @@ include {
 include {
 	star;
 	ensure_star_indexes;
-} from './modules/step.4.star.nf' params(
+} from './modules/local/step.4.star.nf' params(
 	genomeSize: params.genomeSize,
 	starUseSharedMem: params.starUseSharedMem,
 	starThreadsSmall: params.starThreadsSmall,
@@ -122,7 +122,7 @@ include {
 	process_bowtie2_sam;
 	bowtie2_filter_by_names;
 	ensure_bowtie2_indexes;
-} from './modules/step.5.bowtie.nf' params(
+} from './modules/local/step.5.bowtie.nf' params(
 	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
@@ -130,7 +130,7 @@ include {
 )
 include {
 	dedup;
-} from './modules/step.6.dedup.nf' params(
+} from './modules/local/step.6.dedup.nf' params(
 	percentLen: params.dedupPercentLen,
 	minLen: params.dedupMinLen,
 	pubishDir: params.publishDir,
@@ -141,7 +141,7 @@ include {
 	process_gsnap_sam;
 	gsnap_filter_by_names;
 	ensure_gsnap_indexes;
-} from './modules/step.7.gsnap.nf' params(
+} from './modules/local/step.7.gsnap.nf' params(
 	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
