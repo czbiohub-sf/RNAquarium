@@ -12,4 +12,5 @@ gsnap-ref-indexes:    gmap_Danio_rerio_index
 hisat-use-transcript: true
 publish-intermediate: true
 star-use-shared-mem: false
+skip-host-counts: true
 max-cpus: 4
