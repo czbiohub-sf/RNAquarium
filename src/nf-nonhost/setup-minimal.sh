@@ -1,4 +1,10 @@
-#!/bin/sh
+#!/bin/bash
+#SBATCH --job-name=rnaquarium-deps
+#SBATCH --time=00:40:00
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=8G
+#SBATCH -e slurm.out/slurm-%A_%a.err
+#SBATCH -o slurm.out/slurm-%A_%a.out
 
 DESTDIR="$PWD/"
 bindir="bin"

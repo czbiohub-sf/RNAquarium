@@ -15,7 +15,7 @@ params.fastqPath = null // "$PWD/fastq"
 params.parallelDownloads = 100
 params.skipHostCounts = false
 params.skipHisat = false
-params.hisatUseTranscript = false
+params.hisatUseTranscript = true
 params.help = false
 
 params.genomeSize = null // must be filled
@@ -329,8 +329,7 @@ workflow {
 			  .join(gsnap_stats)
 
 	stats_csv(all_stats)
-		.collectFile(name: "stats-${params.timestamp}.csv", keepHeader: true, skip: 1, storeDir: "$PWD")
-		.view()
+		.collectFile(name: "stats-${params.timestamp}.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/stats/")
 }
 
 process stats_csv {
@@ -382,8 +381,8 @@ process stats_csv {
 
 	# PRICE
 	# price outputs \b to non-interactive output
-	price_total=\$(echo "${price_stats.split("\n")[3].split("\b")[-1].split("/")[0]}" | grep -o "[0-9]\\+")
-	price_removed=\$(echo "${price_stats.split("\n")[3].split("\b")[-1].split("/")[1]}" | grep -o "[0-9]\\+")
+	price_total=\$(echo "${price_stats.split("\n")[3].split("/")[1]}" | grep -o "[0-9]\\+")
+	price_removed=\$(echo "${price_stats.split("\n")[3].split("/")[2]}" | grep -o "[0-9]\\+")
 	price_after=\$(bc <<< "\$price_total - \$price_removed")
 	printf "%d,%d," "\$price_total" "\$price_after"
 

@@ -4,7 +4,7 @@ ref-genome-gtf: data/Danio_rerio.GRCz11.108.gtf
 ercc-fa:  data/ERCC92.fa
 ercc-gtf: data/ERCC92.gtf
 genome-size: 1396431182
-#hisat-ref-indexes:     Danio_rerio_genome
+hisat-ref-indexes:     hisat2_Danio_rerio.GRCz11.dna_sm.primary_assembly_indexes
 star-ref-indexes-ercc: star_Danio_rerio_indexes.ERCC
 star-ref-indexes:      star_Danio_rerio_indexes
 bowtie-ref-indexes:    bowtie2_index
