@@ -7,12 +7,12 @@ from sys import argv
 
 
 # plot_combined_trace.py combined_trace.txt
-
-full = pd.read_csv(argv[0], header=0, delimiter="\t")
+matplotlib.use('svg')
+full = pd.read_csv(argv[1], header=0, delimiter="\t")
 processes = ['prefetch', 'fastq_dump', 'filter_barcodes', 'fastp', 'priceseqfilter',
              'hisat2', 'star_counts', 'sort_bam', 'htseq_count', 'star', 'bowtie2',
              'process_bowtie2_sam', 'bowtie2_filter_by_names', 'dedup', 'gsnap',
-             'process_gsnap_sam', 'stats_csv', 'gsnap_filter_by_names']
+             'process_gsnap_sam', 'gsnap_filter_by_names']
 levels, categories = pd.factorize(full['NodeType'])
 nodetype_handles = [matplotlib.patches.Patch(color=plt.cm.tab10(i), label=c)
              for i, c in enumerate(categories)]
@@ -30,6 +30,8 @@ for proc in processes:
             X = np.array(x)[:,np.newaxis]
             y = data[data[y_var].notna()][y_var]
             levels, categories = pd.factorize(data[data[y_var].notna()]['NodeType'])
+            if len(levels) == 0:
+            	continue
             colors = [plt.cm.tab10(i) for i in levels]
 
             estimator = RANSACRegressor(random_state=121)
@@ -73,7 +75,7 @@ for proc in processes:
                                   xytext=(new_x, new_y),
                                   horizontalalignment='center',
                                   verticalalignment='top')
-            
+
             ax[col, row].set_xlabel(x_var)
             ax[col, row].set_ylabel(y_var)
             ax[col, row].grid(True)

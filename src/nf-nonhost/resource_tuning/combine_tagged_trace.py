@@ -9,8 +9,6 @@ from sys import argv
 
 
 #combine_tagged_trace.py "trace*" zf_54k_read_summary.tsv benchmark_slurm_accounting.txt
-matplotlib.use('svg')
-
 trace_files = glob.glob(argv[1])
 trace_files.sort()
 
@@ -23,7 +21,7 @@ combined = pd.concat(trace_list, axis=0)
 jids = combined.native_id.to_string(index=False).split('\n')
 get_slurm_acct_script = f"sacct -j {'.batch,'.join(jids)}.batch -o    JobIDRaw,NodeList,State,AveCPU,AveCPUFreq,AveDiskRead,AveDiskWrite,AveRSS,AveVMSize,CPUTimeRAW,ElapsedRaw,MaxDiskRead,MaxDiskWrite,MaxPages,MaxRSS,MaxVMSize,MinCPU,NCPUS,ReqCPUS,ReqMem,TotalCPU --parsable2 > benchmark_slurm_accounting.txt\n"
 
-if len(argv) < 2:
+if len(argv) < 4:
     call(get_slurm_acct_script, shell=True)
     slurm_info = "benchmark_slurm_accounting.txt"
 else:
@@ -51,7 +49,7 @@ full = combined.merge(readstats, on='accession', right_index=False, sort=False)
 
 jobid_p = re.compile('(\\d+)')
 nodegroup_p = re.compile('(\\w+-\\w+)-')
-slurm_acct = pd.read_csv(argv[3], header=0, sep="|")
+slurm_acct = pd.read_csv(slurm_info, header=0, sep="|")
 slurm_acct['native_id'] = slurm_acct['JobIDRaw'].str.extract(jobid_p)
 slurm_acct['native_id'] = pd.to_numeric(slurm_acct['native_id'])
 slurm_acct['NodeType'] = slurm_acct['NodeList'].str.extract(nodegroup_p)

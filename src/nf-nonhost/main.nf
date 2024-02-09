@@ -304,7 +304,8 @@ workflow {
 	gsnap_filter_by_names(process_gsnap_sam.out.names.join(dedup.out.mates))
 
 	// rekey in preparation for join
-	// questionable to use prefetch / fastq_dump stats bc not present for direct fastq
+	// questionable to use prefetch / fastq_dump stats b/c not present for direct fastq
+	// but we DO 
 	//sra_stats = sra.out.stats.map { meta, sra -> [ meta.id, sra ] }
 	//fastq_stats = fastqs.out.stats.map { meta, fastq -> [ meta.id, sra ] }
 	meta_stats    = fastqs_2.map          { meta, fastq -> [ meta.id, meta ] }
@@ -331,6 +332,28 @@ workflow {
 	stats_csv(all_stats)
 		.collectFile(name: "stats-${params.timestamp}.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/stats/")
 }
+
+include {
+	spades;
+} from './modules/local/step.assembly.nf' params(
+	genomeSize: params.genomeSize,
+	publishDir: params.publishDir,
+	publishIntermediate: params.publishIntermediate && params.publishSpades,
+)
+workflow assemble {
+	take: bioproject_mates
+
+	bioproj_with_meta = bioproject_mates
+		.map { meta, mates ->
+			def new_meta = meta.clone()
+			new_meta.single_end = mates.size() != 2
+			[ new_meta, fastq ]
+		}
+
+	main:
+	spades(bioproj_with_meta)
+}
+
 
 process stats_csv {
 	cache = false

@@ -97,7 +97,7 @@ process install_gsnap {
 	tag "$simd_level"
 	input: val(simd_level)
 	output: file("bin/*")
-	publishDir params.prefix, mode: 'move'
+	publishDir params.prefix, mode: 'move', saveAs: { it.replaceFirst(/bin\/bin/, "bin") }
 
 	script:
 	def SIMD=simd_level ? "--with-simd-level=$simd_level" : ""
@@ -108,7 +108,9 @@ wget $URL -O gmap-gsnap-2023-12-01.tar.gz
 tar -xzf gmap-gsnap-2023-12-01.tar.gz
 cd gmap-2023-12-01
 ./configure $SIMD --prefix=${PWD} && make -j${task.cpus}
-find util -maxdepth 1 -executable -type f -exec mv {} ../bin/ \\; && cd ..
+find src -maxdepth 1 -executable -type f -exec mv {} ../bin/ \\;
+find util -maxdepth 1 -executable -type f -exec mv {} ../bin/ \\;
+cd ..
 rm -rf gmap-2023-12-01 && rm gmap-gsnap-2023-12-01.tar.gz
 	"""
 }
