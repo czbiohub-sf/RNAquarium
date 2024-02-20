@@ -78,7 +78,6 @@ process fastq_dump {
 	echo fasterq-dump encountered error, reverting to using fastq-dump
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	fastq-dump --split-3 --disable-multithreading --outdir fastq/${meta.id}.staging ${meta.id}
-	rm -rf ${sra_file}
 
 	trap -- '' SIGTERM
 	mv fastq/${meta.id}.staging fastq/${meta.id}
