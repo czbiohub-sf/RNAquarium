@@ -29,6 +29,8 @@ process prefetch {
 	// cached from a previous run and the absolute dir invisible,
 	script:
 	"""
+	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
+	
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	prefetch --output-directory staging --max-size 1t --force ALL \
 		$sra_id
@@ -61,6 +63,8 @@ process fastq_dump {
 	script:
 	mem = task.memory.toString() - ~/ /
 	if (task.attempt == 1) """
+	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
+
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	fasterq-dump --split-3 -e ${task.cpus} \
 		--outdir fastq/${meta.id}.staging ${meta.id} 2>stats.txt
@@ -69,6 +73,8 @@ process fastq_dump {
 	mv fastq/${meta.id}.staging fastq/${meta.id}
 	"""
 	else """
+	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
+
 	echo fasterq-dump encountered error, reverting to using fastq-dump
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	fastq-dump --split-3 --disable-multithreading --outdir fastq/${meta.id}.staging ${meta.id}
@@ -104,6 +110,8 @@ process filter_barcodes {
 	tuple val(meta), path('*.fastq.gz'), env(median), env(count), env(size)
 
 	script: """
+	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
+
 	# one set of reads, or two?
 	if [ \$(echo "$fastqs" | wc -w) -ne 2 ]
 	then # single

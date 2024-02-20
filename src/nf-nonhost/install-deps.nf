@@ -9,7 +9,7 @@ workflow {
 	install_fastq_namefilter()
 	install_priceseqfilter(Channel.fromPath( 'pricesource.patch' ))
 	install_czid_dedup()
-	install_gsnap(Channel.fromList( ["", "sse42"]) )
+	install_gsnap(Channel.fromList( ["", "sse42", "avx2"]) )
 }
 
 process install_fastq_lengths {
@@ -96,21 +96,21 @@ process install_gsnap {
 	time '20min'
 	tag "$simd_level"
 	input: val(simd_level)
-	output: file("bin/*")
-	publishDir params.prefix, mode: 'move', saveAs: { it.replaceFirst(/bin\/bin/, "bin") }
+	output: file("pubbin/*")
+	publishDir params.prefix, mode: 'move', saveAs: { it.replace(/pubbin/, "") }
 
 	script:
 	def SIMD=simd_level ? "--with-simd-level=$simd_level" : ""
-	def URL="http://research-pub.gene.com/gmap/src/gmap-gsnap-2023-12-01.tar.gz"
+	def URL="http://research-pub.gene.com/gmap/src/gmap-gsnap-2024-02-20.tar.gz"
 	"""
 mkdir -p bin
-wget $URL -O gmap-gsnap-2023-12-01.tar.gz
-tar -xzf gmap-gsnap-2023-12-01.tar.gz
-cd gmap-2023-12-01
+wget $URL -O gmap-gsnap-2024-02-20.tar.gz
+tar -xzf gmap-gsnap-2024-02-20.tar.gz
+cd gmap-2024-02-20
 ./configure $SIMD --prefix=${PWD} && make -j${task.cpus}
-find src -maxdepth 1 -executable -type f -exec mv {} ../bin/ \\;
-find util -maxdepth 1 -executable -type f -exec mv {} ../bin/ \\;
+find src -maxdepth 1 -executable -type f -exec mv {} ../pubbin/ \\;
+find util -maxdepth 1 -executable -type f -exec mv {} ../pubbin/ \\;
 cd ..
-rm -rf gmap-2023-12-01 && rm gmap-gsnap-2023-12-01.tar.gz
+rm -rf gmap-2024-02-20 && rm gmap-gsnap-2024-02-20.tar.gz
 	"""
 }

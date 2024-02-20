@@ -28,6 +28,8 @@ process fastp {
 		--compression 6 --thread ${task.cpus} \
 		--json fastp.json --html fastp.html """
 	if (!meta.single_end) """
+	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
+
 	gzip -dc ${fqs[0]} > fq1.fastq
 	gzip -dc ${fqs[1]} > fq2.fastq
 	${FASTP_CMD} \
@@ -38,6 +40,8 @@ process fastp {
 	mv ${meta.id}_2${extension}.staging ${meta.id}_2${extension}
 	"""
 	else if (meta.single_end) """
+	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
+
 	gzip -dc ${fqs} > fq1.fastq
 	${FASTP_CMD} \
 		--in1 fq1.fastq --out1 ${meta.id}${extension}.staging 2>stats.txt
@@ -67,6 +71,8 @@ process priceseqfilter {
 		-log c """
 	if (!meta.single_end)
 	"""
+	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
+	
 	${price_cmd} \
 		-fp ${fqs} \
 		-op ${meta.id}_1${extension} ${meta.id}_2${extension}
@@ -78,6 +84,8 @@ process priceseqfilter {
 	"""
 	else if (meta.single_end)
 	"""
+	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
+	
 	${price_cmd} \
 		-f ${fqs} -o ${meta.id}${extension}
 	gzip -c ${meta.id}${extension} > ${meta.id}${extension}.gz.staging

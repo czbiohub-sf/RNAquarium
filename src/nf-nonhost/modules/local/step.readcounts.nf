@@ -38,6 +38,8 @@ process star_counts {
 		$params.starCountOptions"""
 	if (!meta.single_end)
 	"""
+	trap 'echo "Interrupt by external (OOM?), exiting."; exit 130' SIGINT
+	
 	${STAR_READCOUNTS_CMD} \
 		--genomeDir ${indexes_dir2} \
 		--readFilesCommand gunzip -c \
@@ -46,6 +48,8 @@ process star_counts {
 	"""
 	else if (meta.single_end)
 	"""
+	trap 'echo "Interrupt by external (OOM?), exiting."; exit 130' SIGINT
+	
 	${STAR_READCOUNTS_CMD} \
 		--genomeDir ${indexes_dir2} \
 		--readFilesCommand gunzip -c \
@@ -67,6 +71,8 @@ process sort_bam {
 	script:
 	def mem = "${task.memory.toGiga()}G"
 	"""
+	trap 'echo "Interrupt by external (OOM?), exiting."; exit 130' SIGINT
+	
 	samtools sort -m $mem -n -@ $task.cpus $params.samtoolsSortOptions \
 		-o Aligned.out.namesorted.bam $bam
 	"""
