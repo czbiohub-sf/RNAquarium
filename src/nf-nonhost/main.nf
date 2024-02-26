@@ -6,7 +6,7 @@ def container_usage() {
 	return """Containerization options:
 -profile docker           use docker containers to run commands when possible
 -profile singularity      use singularity containers to run commands when possible
-                            (avoid most pre-installation procedure)
+							(avoid most pre-installation procedure)
 """
 }
 
@@ -305,7 +305,7 @@ workflow {
 
 	// rekey in preparation for join
 	// questionable to use prefetch / fastq_dump stats b/c not present for direct fastq
-	// but we DO 
+	// but we DO
 	//sra_stats = sra.out.stats.map { meta, sra -> [ meta.id, sra ] }
 	//fastq_stats = fastqs.out.stats.map { meta, fastq -> [ meta.id, sra ] }
 	meta_stats    = fastqs_2.map          { meta, fastq -> [ meta.id, meta ] }
@@ -398,7 +398,7 @@ process stats_csv {
 	# FASTP
 	fastp_before=\$(sed -n '/Read1 before filtering:/{;n;p;}' fastp_stats.txt | cut -f3 -d' ')
 	fastp_after=\$(sed -n '/Read1 after filtering:/{;n;p;}' fastp_stats.txt | cut -f3 -d' ')
-	fastp_short=\$(sed -n '/reads failed due to too short:/{;p;}' fastp_stats.txt | cut -f7 -d' ') 
+	fastp_short=\$(sed -n '/reads failed due to too short:/{;p;}' fastp_stats.txt | cut -f7 -d' ')
 	fastp_trimmed=\$(sed -n '/reads with adapter trimmed:/{;p;}' fastp_stats.txt | cut -f5 -d' ')
 	printf "%s,%s,%s,%s," \$fastp_before \$fastp_after \$fastp_short \$fastp_trimmed
 
