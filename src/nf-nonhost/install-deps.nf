@@ -101,16 +101,16 @@ process install_gsnap {
 
 	script:
 	def SIMD=simd_level ? "--with-simd-level=$simd_level" : ""
-	def URL="http://research-pub.gene.com/gmap/src/gmap-gsnap-2024-02-20.tar.gz"
+	def URL="http://research-pub.gene.com/gmap/src/gmap-gsnap-2024-02-22.tar.gz"
 	"""
-mkdir -p bin
-wget $URL -O gmap-gsnap-2024-02-20.tar.gz
-tar -xzf gmap-gsnap-2024-02-20.tar.gz
-cd gmap-2024-02-20
+mkdir -p pubbin
+wget $URL -O gmap-gsnap-2024-02-22.tar.gz
+tar -xzf gmap-gsnap-2024-02-22.tar.gz
+cd gmap-2024-02-22
 ./configure $SIMD --prefix=${PWD} && make -j${task.cpus}
 find src -maxdepth 1 -executable -type f -exec mv {} ../pubbin/ \\;
 find util -maxdepth 1 -executable -type f -exec mv {} ../pubbin/ \\;
 cd ..
-rm -rf gmap-2024-02-20 && rm gmap-gsnap-2024-02-20.tar.gz
+rm -rf gmap-2024-02-22 && rm gmap-gsnap-2024-02-22.tar.gz
 	"""
 }
