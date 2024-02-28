@@ -20,10 +20,6 @@ params.starSjdbOverhang = 100
 
 params.hisatUseTranscript = false
 
-// params.starIndexGenOptions = ""
-// params.hisatIndexGenOptions = ""
-// params.bowtieIndexGenOptions = ""
-
 
 process star_generate_indexes {
 	label 'star'
@@ -42,8 +38,8 @@ process star_generate_indexes {
 	script:
 	def genome_name = ref_genome_fa.getSimpleName()
 	def STAR_INDEXGEN_CMD = """STAR --runMode genomeGenerate --runThreadN ${task.cpus} \
-		--sjdbOverhang ${params.starSjdbOverhang} --limitGenomeGenerateRAM ${task.memory.toBytes()} \
-	$params.starIndexGenOptions """
+		--sjdbOverhang ${params.starSjdbOverhang} --limitGenomeGenerateRAM ${task.memory.toBytes()} 
+	    """
 	"""
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
 	cat $ref_genome_gtf $ERCC_gtf > indexes_ERCC.gtf
