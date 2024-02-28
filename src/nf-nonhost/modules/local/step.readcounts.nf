@@ -7,10 +7,6 @@ params.publishDir = "$PWD"
 params.publishIntermediate = true
 params.refIndexes = null //"Danio_rerio.GRCz11.108"
 
-params.starCountOptions = ""
-params.samtoolsSortOptions = ""
-params.htseqCountOptions = ""
-
 params.metaIn = 'step_2_sheet.csv'
 include {
 	LOAD_METASHEET;
@@ -34,8 +30,7 @@ process star_counts {
 		--alignMatesGapMax 1000000 \
 		--outSAMtype BAM Unsorted --outSAMattributes NH HI NM MD \
 		--genomeLoad NoSharedMemory --outReadsUnmapped None \
-		--runThreadN ${task.cpus} \
-		$params.starCountOptions"""
+		--runThreadN ${task.cpus} """
 	if (!meta.single_end)
 	"""
 	trap 'echo "Interrupt by external (OOM?), exiting."; exit 130' SIGINT
@@ -69,11 +64,11 @@ process sort_bam {
 	tuple val(meta), path("Aligned.out.namesorted.bam"), emit: bam
 
 	script:
-	def mem = "${task.memory.toGiga()}G"
+	def mem = "${task.memory.toMega()/task.cpus}M"
 	"""
 	trap 'echo "Interrupt by external (OOM?), exiting."; exit 130' SIGINT
 	
-	samtools sort -m $mem -n -@ $task.cpus $params.samtoolsSortOptions \
+	samtools sort -m $mem -n -@ $task.cpus \
 		-o Aligned.out.namesorted.bam $bam
 	"""
 }
@@ -91,7 +86,7 @@ process htseq_count {
 	script:
 	"""
 	htseq-count -r name -s no -f bam -m intersection-nonempty \
-		$params.htseqCountOptions $sorted_bam $gtf_noERCC > htseq-count.txt
+		$sorted_bam $gtf_noERCC > htseq-count.txt
 	rm $sorted_bam
 	"""
 }
