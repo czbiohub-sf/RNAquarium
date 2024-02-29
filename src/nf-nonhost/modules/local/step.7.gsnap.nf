@@ -47,13 +47,26 @@ process gsnap {
 	"""
 	gunzip -kcd ${mategz[0]} > mate1.fastq
 	gunzip -kcd ${mategz[1]} > mate2.fastq
+	set +e  # suppress terminate-on-error
 	${GSNAP_CMD} mate1.fastq mate2.fastq
+	set -e  # resume terminate on error, check error and clear outfile.
+	if [[ \$? > 0 ]] ; then :> gsnap_out.sam.staging ; fi
+
+	# we need pipeline to check for a blank output to skip processing still.
 	mv gsnap_out.sam.staging gsnap_out.sam
 	"""
 	else if (meta.single_end)
 	"""
 	gunzip -kcd ${mategz} > mate1.fastq
+	restore_err_trap="`trap -p ERR`"
+	set +e  # suppress terminate-on-error
+	trap '' ERR
 	${GSNAP_CMD} mate1.fastq
+	set -e  # resume terminate-on-error, check error and clear outfile.
+	eval "\$restore_err_trap"
+	
+	if [[ \$? > 0 ]] ; then :> gsnap_out.sam.staging ; fi
+
 	mv gsnap_out.sam.staging gsnap_out.sam
 	"""
 }
@@ -95,18 +108,39 @@ process gsnap_filter_by_names {
 	"""
 	gunzip -c ${mategz[0]} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
 	gunzip -c ${mategz[1]} | $FILTER_CMD > Unmapped.out.mate2.${SUFFIX}
-	gzip -c Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
-	gzip -c Unmapped.out.mate2.${SUFFIX} > Unmapped.out.mate2.${SUFFIX}.gz.staging
+	gzip -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
+	gzip -nc Unmapped.out.mate2.${SUFFIX} > Unmapped.out.mate2.${SUFFIX}.gz.staging
 	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
 	mv Unmapped.out.mate2.${SUFFIX}.gz.staging Unmapped.out.mate2.${SUFFIX}.gz
 	"""
 	else if (meta.single_end)
 	"""
 	gunzip -c ${mategz} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
-	gzip -c Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
+	gzip -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
 	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
 	"""
 }
+
+process gsnap_skip {
+	input:
+	tuple val(meta), path(dummy_sam), path(mategz)
+
+	def SUFFIX = "filteredbyBT.dedup.gsnapFailed.fastq"
+	output:
+	tuple val(meta), path("Unmapped.out.mate?.${SUFFIX}.gz"), emit: mates
+
+	script:
+	if (!meta.single_end)
+	"""
+	mv ${mategz[0]} Unmapped.out.mate1.${SUFFIX}.gz
+	mv ${mategz[1]} Unmapped.out.mate2.${SUFFIX}.gz
+	"""
+	else if (meta.single_end)
+	"""
+	mv ${mategz} Unmapped.out.mate1.${SUFFIX}.gz
+	"""
+}
+	
 
 def ensure_gsnap_indexes(ref_indexes,
 						 ref_genome, ercc) {

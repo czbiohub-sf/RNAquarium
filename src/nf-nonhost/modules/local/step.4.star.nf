@@ -60,8 +60,8 @@ process star {
 		--outFileNamePrefix PE/ \
 		--readFilesIn ${fqgz[0]} ${fqgz[1]}
 
-	gzip PE/Unmapped.out.mate1
-	gzip PE/Unmapped.out.mate2
+	gzip -n PE/Unmapped.out.mate1
+	gzip -n PE/Unmapped.out.mate2
 	gzip -t PE/Unmapped.out.mate*.gz
 	mv PE/Log.final.out Log.final.out
 	"""
@@ -73,7 +73,7 @@ process star {
 		--outFileNamePrefix SE/ \
 		--readFilesIn ${fqgz}
 
-	gzip SE/Unmapped.out.mate1
+	gzip -n SE/Unmapped.out.mate1
 	gzip -t SE/Unmapped.out.mate1.gz
 	mv SE/Log.final.out Log.final.out
 	"""

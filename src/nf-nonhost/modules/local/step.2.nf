@@ -76,8 +76,8 @@ process priceseqfilter {
 	${price_cmd} \
 		-fp ${fqs} \
 		-op ${meta.id}_1${extension} ${meta.id}_2${extension}
-	gzip -c ${meta.id}_1${extension} > ${meta.id}_1${extension}.gz.staging 
-	gzip -c ${meta.id}_2${extension} > ${meta.id}_2${extension}.gz.staging 
+	gzip -nc ${meta.id}_1${extension} > ${meta.id}_1${extension}.gz.staging 
+	gzip -nc ${meta.id}_2${extension} > ${meta.id}_2${extension}.gz.staging 
 	mv ${meta.id}_1${extension}.gz.staging ${meta.id}_1${extension}.gz
 	mv ${meta.id}_2${extension}.gz.staging ${meta.id}_2${extension}.gz
 	gzip -t *${extension}.gz
@@ -88,7 +88,7 @@ process priceseqfilter {
 	
 	${price_cmd} \
 		-f ${fqs} -o ${meta.id}${extension}
-	gzip -c ${meta.id}${extension} > ${meta.id}${extension}.gz.staging
+	gzip -nc ${meta.id}${extension} > ${meta.id}${extension}.gz.staging
 	mv ${meta.id}${extension}.gz.staging ${meta.id}${extension}.gz
 	gzip -t *${extension}.gz
 	"""

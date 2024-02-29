@@ -36,9 +36,11 @@ process hisat2 {
 	output:
 	tuple val(meta), path("?E/Unmapped.out.mate?.gz"), emit: mates
 	tuple val(meta), path("stats.txt"), emit: stats
-
+	tuple val(meta), path("metrics.txt"), emit: hisat2_debug
+	tuple val(meta), path("summary.txt"), emit: hisat2_summary
+	
 	script:
-	def HISAT2_CMD = """hisat2 -q -p $task.cpus -k 1 -S /dev/null \
+	def HISAT2_CMD = """hisat2 --met-file metrics.txt --summary-file summary.txt -p $task.cpus -k 1 -S /dev/null \
 		-x hisat2_index/${idx_basename} """
 	if (!meta.single_end) """
 	mkdir -p PE

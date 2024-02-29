@@ -59,8 +59,8 @@ process dedup {
 		-c cluster.csv -l \$length_for_dedup
 
 	rm cluster.csv
-	gzip -c $OUT_MATE1_NAME > ${OUT_MATE1_NAME}.gz.staging
-	gzip -c $OUT_MATE2_NAME > ${OUT_MATE2_NAME}.gz.staging
+	gzip -nc $OUT_MATE1_NAME > ${OUT_MATE1_NAME}.gz.staging
+	gzip -nc $OUT_MATE2_NAME > ${OUT_MATE2_NAME}.gz.staging
 	mv ${OUT_MATE1_NAME}.gz.staging ${OUT_MATE1_NAME}.gz
 	mv ${OUT_MATE2_NAME}.gz.staging ${OUT_MATE2_NAME}.gz
 	"""
@@ -74,7 +74,7 @@ process dedup {
 		-c cluster.csv -l \$length_for_dedup
 
 	rm cluster.csv
-	gzip -c $OUT_MATE1_NAME > ${OUT_MATE1_NAME}.gz.staging
+	gzip -nc $OUT_MATE1_NAME > ${OUT_MATE1_NAME}.gz.staging
 	mv ${OUT_MATE1_NAME}.gz.staging ${OUT_MATE1_NAME}.gz
 	"""
 }
