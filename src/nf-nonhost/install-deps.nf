@@ -97,7 +97,7 @@ process install_gsnap {
 	tag "$simd_level"
 	input: val(simd_level)
 	output: file("pubbin/*")
-	publishDir params.prefix, mode: 'move', saveAs: { it.replace(/pubbin/, "") }
+	publishDir params.prefix, mode: 'move', saveAs: { it.replace(/pubbin\//, "") }
 
 	script:
 	def SIMD=simd_level ? "--with-simd-level=$simd_level" : ""
