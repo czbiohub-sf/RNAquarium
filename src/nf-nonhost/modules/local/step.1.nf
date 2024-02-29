@@ -23,6 +23,7 @@ process prefetch {
 	output:
 	tuple val(meta), path('[S,E,D]RR*[0-9]/*.sra'), env(reads), env(sra_size), emit: sra
 	tuple val(meta), path("info.txt"), emit: stats
+	tuple val(meta), path("validate.txt"), emit: vdb_validate
 
 	// fastq-dump wants sras in the current directory. this is a problem for
 	// nf's usually directory-agnostic behavior - it could be that the input is
@@ -103,6 +104,7 @@ process filter_barcodes {
 	label 'median'
 
 	input:
+	// we assume that $fastqs are named {meta.id}_1.fastq, {meta.id}_2.fastq, {meta.id}.fastq only.
 	tuple val(meta), path(fastqs)
 
 	output:
@@ -112,26 +114,26 @@ process filter_barcodes {
 	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
 
 	# one set of reads, or two?
-	if [ \$(echo "$fastqs" | wc -w) -ne 2 ]
+	if [[ ! ( -e ${meta.id}_1.fastq && -e ${meta.id}_2.fastq ) ]]
 	then # single
-	IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary $fastqs)"
+	IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary ${meta.id}.fastq)"
 		echo $meta.id SE
-		gzip -k6c $fastqs > ${meta.id}.fastq.gz.staging
+		gzip -k6c ${meta.id}.fastq > ${meta.id}.fastq.gz.staging
 		mv ${meta.id}.fastq.gz.staging ${meta.id}.fastq.gz
 	else # possibly paired, but may be scRNAseq barcodes
-	IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary ${fastqs[0]})"
-	IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary ${fastqs[1]})"
+	IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary ${meta.id}_1.fastq)"
+	IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary ${meta.id}_2.fastq)"
 		if [ \$median1 -lt 32 ] && [ \$median -gt 80 ]
 		then
 			echo $meta.id scRNAseq
-			rm ${fastqs[0]} # discard read 1 (cell barcode)
-			mv ${fastqs[1]} ${meta.id}.fastq
+			rm ${meta.id}_1.fastq # discard read 1 (cell barcode)
+			mv ${meta.id}_2.fastq ${meta.id}.fastq
 			gzip -k6c ${meta.id}.fastq > ${meta.id}.fastq.gz.staging
 			mv ${meta.id}.fastq.gz.staging ${meta.id}.fastq.gz
 		else
 			echo $meta.id PE
-			gzip -k6c ${fastqs[0]} > ${meta.id}_1.fastq.gz.staging
-			gzip -k6c ${fastqs[1]} > ${meta.id}_2.fastq.gz.staging
+			gzip -k6c ${meta.id}_1.fastq > ${meta.id}_1.fastq.gz.staging
+			gzip -k6c ${meta.id}_2.fastq > ${meta.id}_2.fastq.gz.staging
 			mv ${meta.id}_1.fastq.gz.staging ${meta.id}_1.fastq.gz
 			mv ${meta.id}_2.fastq.gz.staging ${meta.id}_2.fastq.gz
 		fi
