@@ -6,6 +6,7 @@ params.publishDir = "$PWD"
 params.publishIntermediate = true
 params.genomeSize = null
 params.maxMismatch = 0.3
+params.cleanupScript = ""
 
 params.metaIn = 'step_6_sheet.csv'
 params.metaOut = 'step_7_sheet.csv'
@@ -25,7 +26,7 @@ process gsnap {
 	label 'gmap'
 
 	input:
-	tuple val(meta), path(mategz)
+	tuple val(meta), path(mategz, arity: '1..2')
 	path index_dir
 
 	output:
@@ -45,8 +46,8 @@ process gsnap {
 		-o gsnap_out.sam.staging """
 	if (!meta.single_end)
 	"""
-	gunzip -kcd ${mategz[0]} > mate1.fastq
-	gunzip -kcd ${mategz[1]} > mate2.fastq
+	${task.ext.gzipCmd} -kcd ${mategz[0]} > mate1.fastq
+	${task.ext.gzipCmd} -kcd ${mategz[1]} > mate2.fastq
 	set +e  # suppress terminate-on-error
 	${GSNAP_CMD} mate1.fastq mate2.fastq
 	set -e  # resume terminate on error, check error and clear outfile.
@@ -54,10 +55,13 @@ process gsnap {
 
 	# we need pipeline to check for a blank output to skip processing still.
 	mv gsnap_out.sam.staging gsnap_out.sam
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 	else if (meta.single_end)
 	"""
-	gunzip -kcd ${mategz} > mate1.fastq
+	${task.ext.gzipCmd} -kcd ${mategz} > mate1.fastq
 	restore_err_trap="`trap -p ERR`"
 	set +e  # suppress terminate-on-error
 	trap '' ERR
@@ -68,6 +72,9 @@ process gsnap {
 	if [[ \$? > 0 ]] ; then :> gsnap_out.sam.staging ; fi
 
 	mv gsnap_out.sam.staging gsnap_out.sam
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 }
 
@@ -89,6 +96,9 @@ process process_gsnap_sam {
 	"""
 	samtools view -@ ${task.cpus} $gsnap_sam | cut -f2 | sort | uniq -c > gsnap.stats.txt
 	samtools view -@ ${task.cpus} -e '$cond' $gsnap_sam | cut -f1  > gsnap.unmapped.names.txt
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 }
 
@@ -96,7 +106,7 @@ process gsnap_filter_by_names {
 	label "fastq_filter"
 
 	input:
-	tuple val(meta), path(names), path(mategz)
+	tuple val(meta), path(names), path(mategz, arity: '1..2')
 
 	def SUFFIX = "filteredbyBT.dedup.gsnapFiltered.fastq"
 	output:
@@ -106,29 +116,33 @@ process gsnap_filter_by_names {
 	def FILTER_CMD = "LC_ALL=C fastq-namefilter $names -"
 	if (!meta.single_end)
 	"""
-	gunzip -c ${mategz[0]} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
-	gunzip -c ${mategz[1]} | $FILTER_CMD > Unmapped.out.mate2.${SUFFIX}
-	gzip -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
-	gzip -nc Unmapped.out.mate2.${SUFFIX} > Unmapped.out.mate2.${SUFFIX}.gz.staging
+	${task.ext.gzipCmd} -cd ${mategz[0]} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
+	${task.ext.gzipCmd} -cd ${mategz[1]} | $FILTER_CMD > Unmapped.out.mate2.${SUFFIX}
+	${task.ext.gzipCmd} -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
+	${task.ext.gzipCmd} -nc Unmapped.out.mate2.${SUFFIX} > Unmapped.out.mate2.${SUFFIX}.gz.staging
 	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
 	mv Unmapped.out.mate2.${SUFFIX}.gz.staging Unmapped.out.mate2.${SUFFIX}.gz
 	"""
 	else if (meta.single_end)
 	"""
-	gunzip -c ${mategz} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
-	gzip -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
+	${task.ext.gzipCmd} -cd ${mategz} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
+	${task.ext.gzipCmd} -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
 	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 }
 
 process gsnap_skip {
 	input:
-	tuple val(meta), path(dummy_sam), path(mategz)
+	tuple val(meta), path(mategz, arity: '1..2')
 
 	def SUFFIX = "filteredbyBT.dedup.gsnapFailed.fastq"
 	output:
 	tuple val(meta), path("Unmapped.out.mate?.${SUFFIX}.gz"), emit: mates
 
+	// move input to output, validates arity
 	script:
 	if (!meta.single_end)
 	"""

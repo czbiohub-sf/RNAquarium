@@ -1,5 +1,8 @@
 nextflow.enable.dsl=2
 
+params.cleanupScript = ""
+
+
 // we may want to validate that mate fq/bam/etc. filepaths exist here
 // (as the error may be more legible than whatever a process throws
 workflow LOAD_METASHEET {
@@ -47,4 +50,16 @@ workflow SAVE_METASHEET {
 
 	emit:
 	metasheet_name
+}
+
+
+process cleanup_branched {
+	input:
+	tuple val(meta), path(branchin1), path(branchin2)
+
+	script:
+	"""
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
+	"""
 }

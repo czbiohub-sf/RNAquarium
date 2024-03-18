@@ -1,4 +1,4 @@
-accession-list: data/SRA_accession_list.test.2.txt
+accession-list: data/SRA_accessions_list.test.txt
 ref-genome:     data/Danio_rerio.GRCz11.dna_sm.primary_assembly.fa
 ref-genome-gtf: data/Danio_rerio.GRCz11.108.gtf
 ercc-fa:  data/ERCC92.fa

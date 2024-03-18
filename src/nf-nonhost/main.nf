@@ -50,7 +50,25 @@ params.retainMixed = true
 params.dedupPercentLen = 100
 params.dedupMinLen = 20
 
+// https://pirl.unc.edu/blog/tricking-nextflows-caching-system-to-drastically-reduce-storage-usage
+params.cleanupIntermediate = true
+cleanupScript = params.cleanupIntermediate ? """for file in \$cleanup; do
+if [ -e \$file ]; then
+	size=`stat --printf="%s" \$file`
+	atime=`stat --printf="%X" \$file`
+	mtime=`stat --printf="%Y" \$file`
+
+	# Make the file size 0 and set as a sparse file
+	> \$file
+	truncate -s \$size \$file
+	# Reset the timestamps on the file
+	touch -a -d @\$atime \$file
+	touch -m -d @\$mtime \$file
+fi
+done""" : ""
+
 include { validateParameters; paramsHelp; paramsSummaryLog } from 'plugin/nf-validation'
+include { cleanup_branched; } from './modules/local/utils.nf' params(cleanupScript: cleanupScript)
 include { } from './modules/local/step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
 	hisatUseTranscript: params.hisatUseTranscript
@@ -64,6 +82,8 @@ include {
 	parallelDownloads: params.parallelDownloads,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishFastqs,
+	cleanupScript: cleanupScript,
+	gzipCmd: params.gzipCmd,
 )
 include {
 	fastp;
@@ -71,6 +91,8 @@ include {
 } from './modules/local/step.2.nf' params(
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishPricefiltered,
+	cleanupScript: cleanupScript,
+	gzipCmd: params.gzipCmd,
 )
 include {
 	star_counts;
@@ -80,6 +102,8 @@ include {
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishReadcounts,
+	cleanupScript: cleanupScript,
+	gzipCmd: params.gzipCmd,
 )
 include {
 	hisat2;
@@ -88,6 +112,8 @@ include {
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishHisat,
+	cleanupScript: cleanupScript,
+	gzipCmd: params.gzipCmd,
 )
 include {
 	star;
@@ -99,6 +125,8 @@ include {
 	starThreadsLarge: params.starThreadsLarge,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishStar,
+	cleanupScript: cleanupScript,
+	gzipCmd: params.gzipCmd,
 )
 include {
 	bowtie2;
@@ -110,6 +138,8 @@ include {
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishBowtie,
+	cleanupScript: cleanupScript,
+	gzipCmd: params.gzipCmd,
 )
 include {
 	dedup;
@@ -118,6 +148,8 @@ include {
 	minLen: params.dedupMinLen,
 	pubishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishDedup,
+	cleanupScript: cleanupScript,
+	gzipCmd: params.gzipCmd,
 )
 include {
 	gsnap;
@@ -130,6 +162,8 @@ include {
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishGsnap,
+	cleanupScript: cleanupScript,
+	gzipCmd: params.gzipCmd,
 )
 include {
 	stats_csv;
@@ -137,6 +171,12 @@ include {
 	skipHisat: params.skipHisat,
 )
 
+def join_by_id(ch1, ch2) {
+	keyed_ch1_mates = ch1.map { meta, data -> [meta.id, meta, data] }
+	keyed_ch2_mates = ch2.map { meta, data -> [meta.id, meta, data] }
+	return keyed_ch1_mates.join(keyed_ch2_mates)
+		.map { id, meta1, ch1_data, meta2, ch2_data -> [meta1, ch1_data, ch2_data] }
+}
 
 workflow {
 	// parameter validation:
@@ -206,8 +246,9 @@ workflow {
 		try {
 			direct_fastqs = Channel.fromPath("$params.fastqPath/*", type: 'dir')
 				.map { path -> // need to think about this more, failure handling?
-					def new_meta = [ id: path.getSimpleName(),
-									sra_size: files("$path/*.fastq")[0].size() ]
+					def new_meta = [id: path.getSimpleName(),
+									sra_size: files("$path/*.fastq")[0].size()
+ 									]
 					[ new_meta, path ]
 				}
 			direct_fastq_ids = direct_fastqs
@@ -229,7 +270,7 @@ workflow {
 		direct_fastqs = Channel.empty()
 		accessions = accessions
 			.map { key ->
-				[ [id: key], key ]
+				[ [id: key, cleanup: "", cleanup_later: ""], key ]
 			}
 	}
 
@@ -238,12 +279,21 @@ workflow {
 		.map { meta, sra, reads, sra_size ->
 			def new_meta = [id: meta.id,
 							reads: reads.toLong(),
-							sra_size: sra_size.toLong() ]
+							sra_size: sra_size.toLong(),
+							cleanup: "",
+							cleanup_later: "${sra.toString()}"]
 			[ new_meta, sra ]
-	}
+		}
 
 	// and convert SRA to fastq
 	fastqs = fastq_dump(sra).mates
+		.map { meta, fastq -> {
+				def new_meta = meta.clone()
+				new_meta.cleanup = meta.cleanup_later
+				new_meta.cleanup_later = "${fastq.toString()}"
+				[ new_meta, fastq ]
+			}
+		}
 		.mix(check_direct_fastqs(direct_fastqs)) // , merging any existing fastqs
 
 	// heuristic filter scRNAseq barcode files and add metadata for resource optimization
@@ -254,85 +304,169 @@ workflow {
 			new_meta.readlen = median.toLong()
 			new_meta.fastq_size = fsize.toLong()
 			new_meta.single_end = fastq.size() != 2
+			new_meta.cleanup = meta.cleanup_later
+			new_meta.cleanup_later = "${fastq.toString()}"
 			[ new_meta, fastq ]
 		}
-		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
+		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out
 			ok: { meta, fastq -> 
-				meta.single_end ? fastq.size() > 132 : fastq[0].size() > 132
-				}
+				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
+					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
+				}(it)
 			dropouts: true
 		}
-	    .set { filter_barcodes_result }
+		.set { filter_barcodes_result }
 
 	// step 2: adapter trimming & filtering
 	fastp(filter_barcodes_result.ok)
 	fastp.out.mates
+		.map { meta, fastq, fastp_reads_after -> {
+				def new_meta = meta.clone()
+				new_meta.cleanup = meta.cleanup_later
+				new_meta.cleanup_later = "${fastq.toString()}"
+				new_meta.fastp_reads_after = fastp_reads_after.toLong()
+				[ new_meta, fastq ]
+			}
+		}
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
 			ok: { meta, fastq -> 
-				meta.single_end ? fastq.size() > 132 : fastq[0].size() > 132
-				}
+				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
+					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
+				}(it)
+			
 			dropouts: true
 		}
 		.set { fastp_result }
 
 	priceseqfilter(fastp_result.ok).mates
+		.map { meta, fastq ->
+			def new_meta = meta.clone()
+			new_meta.cleanup = meta.cleanup_later
+			new_meta.cleanup_later = "" // price is before branch so needs special cleanup
+			new_meta.price_cleanup = "${fastq.toString()}"
+			[ new_meta, fastq ]
+		}
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
 			ok: { meta, fastq -> 
-				meta.single_end ? fastq.size() > 132 : fastq[0].size() > 132
-			}
+				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
+					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
+			}(it)
 			dropouts: true
 		}
 		.set { priceseqfilter_result }
 
 	// host read counts path
 	if (!params.skipHostCounts) {
-		star_counts(priceseqfilter_result.ok, star_indexes2)
-		sort_bam(star_counts.out.bam)
-		count = htseq_count(sort_bam.out.bam, file(params.refGenomeGtf))
+		star_counts(priceseqfilter_result.ok, star_indexes2).bam
+			.map { meta, bam ->
+				def new_meta = meta.clone()
+				// cleanup didn't happen in this step
+				new_meta.cleanup = "${meta.cleanup} ${meta.cleanup_later}"
+				new_meta.cleanup_later = "${bam.toString()}"
+				[ new_meta, bam ]
+			}
+			.set { starcounts_result }
+		sort_bam(starcounts_result).bam
+			.map { meta, bam ->
+				def new_meta = meta.clone()
+				// cleanup didn't happen in this step
+				new_meta.cleanup = "${meta.cleanup} ${meta.cleanup_later}"
+				new_meta.cleanup_later = "${bam.toString()}"
+				[ new_meta, bam ]
+			}
+			.set { sortbam_result }
+
+		htseq_count(sortbam_result, file(params.refGenomeGtf))
+			.set { count_result }
 	}
 
 	// step 3: hisat2
 	if (!params.skipHisat) {
 		hisat2(priceseqfilter_result.ok, hisat2_indexes)
-		unmapped_reads_1 = hisat2.out.mates
+		hisat2.out.mates
+			.map { meta, mates ->
+				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
+				[ m, mates ]
+			}
+			.set { unmapped_reads_1 }
 	} else {
 		unmapped_reads_1 = filtered_fastqs
 	}
 
 	// step 4: STAR
-	star(unmapped_reads_1, star_indexes)
+	star(unmapped_reads_1, star_indexes).mates
+		.map { meta, mates ->
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
+			[ m, mates ]
+		}
+		.set { star_result }
 
+	// clean up the pre-branch checkpoint
+	if (!params.skipHostCounts) {
+		cleanup_branched(join_by_id(star_result, sortbam_result))
+	}
+	
 	// step 5: bowtie2
-	bowtie2(star.out.mates, bowtie2_indexes)
-	process_bowtie2_sam(bowtie2.out.sam)
-	bowtie2_filter_by_names(process_bowtie2_sam.out.names.join(star.out.mates))
-
-	// step 6: deduplication
-	bowtie2_filter_by_names.out.mates
-		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
-			ok: { meta, fastq -> 
-				meta.single_end ? fastq.size() > 132 : fastq[0].size() > 132
-			}
-			dropouts: true
+	bowtie2(star_result, bowtie2_indexes).sam
+		.map { meta, sam -> 
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
+			[ m, sam ]
 		}
 		.set { bowtie2_result }
+	// add generic key for join operation
+	process_bowtie2_sam(bowtie2_result).names
+		.map { meta, names ->
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${names.toString()}"
+			[ m, names ]
+		}
+		.set { process_bowtie2_result }
+	bowtie2_filter_input = join_by_id(process_bowtie2_result, star.out.mates)
+	
+	bowtie2_filter_by_names(bowtie2_filter_input)
+	
+	// step 6: deduplication
+	bowtie2_filter_by_names.out.mates
+		.map { meta, mates ->
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
+			[ m, mates ]
+		}
+		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
+			ok: { meta, fastq ->
+				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
+					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
+			}(it)
+			dropouts: true
+		}
+		.set { bowtie2_filtered_result }
 
-	dedup(bowtie2_result.ok.join(star.out.stats))
+	join_by_id(bowtie2_filtered_result.ok, star.out.stats)
+		.set { dedup_input }
+	dedup(dedup_input)
+	// don't add dedup to cleanup list
 
 	// step 7: gsnap
 	gsnap(dedup.out.mates, gsnap_indexes)
 	gsnap.out.sam
+		.map { meta, sam ->
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
+			[ m, sam ]
+		}
 		.branch {
-			ok: { meta, sam -> sam.size() > 0 }
+			ok: { meta, sam -> file(sam).size() > 0 }(it)
 			fails: true
 		}
-	    .set { gsnap_result }
+		.set { gsnap_result }
 	process_gsnap_sam(gsnap_result.ok)
-	gsnap_filter_by_names(process_gsnap_sam.out.names.join(dedup.out.mates))
+	gsnap_filter_input = join_by_id(process_gsnap_sam.out.names, dedup.out.mates)
+	gsnap_filter_by_names(gsnap_filter_input)
 
 	// if gsnap fails a run for any non-oom reason, keep the nonhost reads from before that.
-	gsnap_skip(gsnap_result.fails.join(dedup.out.mates))
-
+	dedup.out.mates
+		.join(gsnap.out.sam, by: [0], remainder: true)
+		.filter { meta, dedup_mates, gsnap -> !gsnap || file(gsnap).size() == 0 }
+		.map { meta, dedup_mates, gsnap_null -> [ meta, dedup_mates ] }
+		.set { gsnap_skips }
+	gsnap_skip(gsnap_skips)
 
 	// rekey in preparation for join
 	// questionable to use prefetch / fastq_dump stats b/c not present for direct fastq
@@ -340,7 +474,7 @@ workflow {
 	//sra_stats = sra.out.stats.map { meta, sra -> [ meta.id, sra ] }
 	//fastq_stats = fastqs.out.stats.map { meta, fastq -> [ meta.id, sra ] }
 	meta_stats    = filter_barcodes_result.ok.map { meta, fastq -> [ meta.id, meta ] }
-	fastp_stats   = fastp.out.stats.map           { meta, stats -> [ meta.id, stats ] }
+	fastp_stats   = fastp.out.stats_txt.map       { meta, stats -> [ meta.id, stats ] }
 	price_stats   = priceseqfilter.out.stats.map  { meta, stats -> [ meta.id, stats ] }
 	if (!params.skipHisat) {
 		hisat2_stats  = hisat2.out.stats.map  { meta, stats -> [ meta.id, stats ] }
@@ -350,18 +484,17 @@ workflow {
 	star_stats    = star.out.stats.map    { meta, stats -> [ meta.id, stats ] }
 	bowtie2_stats = process_bowtie2_sam.out.stats.map { meta, stats -> [ meta.id, stats ] }
 	dedup_stats   = dedup.out.stats.map   { meta, stats -> [ meta.id, stats ] }
-	gsnap_stats   = process_gsnap_sam.out.stats.map { meta, stats -> [ meta.id, stats ] }
+	gsnap_stats   = process_gsnap_sam.out.stats.map { meta, stats -> [ meta.id, stats, "yes" ] }
+		.concat (gsnap_skip.out.mates.map { meta, mates -> [ meta.id, null, "no" ] })
 
 	all_stats = meta_stats.join(fastp_stats)
-			  .join(price_stats)
-			  .join(hisat2_stats)
-			  .join(star_stats)
-			  .join(bowtie2_stats)
-			  .join(dedup_stats)
-			  .join(gsnap_stats)
+		.join(price_stats)
+		.join(hisat2_stats)
+		.join(star_stats)
+		.join(bowtie2_stats)
+		.join(dedup_stats)
+		.join(gsnap_stats)
 
 	stats_csv(all_stats)
 		.collectFile(name: "stats-${params.timestamp}.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/stats/")
 }
-
-

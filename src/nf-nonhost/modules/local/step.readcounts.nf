@@ -6,6 +6,7 @@ params.fastqPath = "fastq/*/"
 params.publishDir = "$PWD"
 params.publishIntermediate = true
 params.refIndexes = null //"Danio_rerio.GRCz11.108"
+params.cleanupScript = ""
 
 params.metaIn = 'step_2_sheet.csv'
 include {
@@ -37,7 +38,7 @@ process star_counts {
 	
 	${STAR_READCOUNTS_CMD} \
 		--genomeDir ${indexes_dir2} \
-		--readFilesCommand gunzip -c \
+		--readFilesCommand ${task.ext.gzipCmd} -dc \
 		--outFileNamePrefix counts/ \
 		--readFilesIn ${fqgz[0]} ${fqgz[1]}
 	"""
@@ -47,7 +48,7 @@ process star_counts {
 	
 	${STAR_READCOUNTS_CMD} \
 		--genomeDir ${indexes_dir2} \
-		--readFilesCommand gunzip -c \
+		--readFilesCommand ${task.ext.gzipCmd} -dc \
 		--outFileNamePrefix counts/ \
 		--readFilesIn ${fqgz}
 	"""
@@ -64,7 +65,7 @@ process sort_bam {
 	tuple val(meta), path("Aligned.out.namesorted.bam"), emit: bam
 
 	script:
-	def mem = "${task.memory.toMega()/task.cpus}M"
+	def mem = "${(task.memory.toMega() * 0.75).toLong().intdiv(task.cpus)}M"
 	"""
 	trap 'echo "Interrupt by external (OOM?), exiting."; exit 130' SIGINT
 	
@@ -88,6 +89,9 @@ process htseq_count {
 	htseq-count -r name -s no -f bam -m intersection-nonempty \
 		$sorted_bam $gtf_noERCC > htseq-count.txt
 	rm $sorted_bam
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 }
 

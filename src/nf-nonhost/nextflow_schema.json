@@ -143,6 +143,10 @@
                     "description": "maximum number of SRAs to fetch in parallel at once.",
                     "default": 100
                 },
+                "cleanupIntermediate": {
+                    "type": "boolean",
+                    "description": "recover disk space from nextflow cache."
+                },
                 "publishDir": {
                     "type": "string",
                     "format": "directory-path",

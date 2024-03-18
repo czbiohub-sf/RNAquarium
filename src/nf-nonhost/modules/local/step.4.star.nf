@@ -7,6 +7,7 @@ params.publishIntermediate = true
 params.genomeSize = null
 params.refIndexesErcc = null // "Danio_rerio.GRCz11.108.ERCC"
 params.refIndexes = null //"Danio_rerio.GRCz11.108"
+params.cleanupScript = ""
 
 params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
 params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
@@ -36,11 +37,11 @@ process star {
 	publishDir "$params.publishDir/STAR_out/$meta.id", enabled: params.publishIntermediate
 	
 	input:
-	tuple val(meta), path(fqgz)
+	tuple val(meta), path(fqgz, arity: '1..2')
 	path indexes_dir // "Danio_rerio.GRCz11.108.ERCC"
 
 	output:
-	tuple val(meta), path("?E/Unmapped.out.mate?.gz"), emit: mates
+	tuple val(meta), path("?E/Unmapped.out.mate?.gz", arity: '1..2'), emit: mates
 	tuple val(meta), path("Log.final.out"), emit: stats
 
 	script:
@@ -56,26 +57,32 @@ process star {
 	"""
 	${STAR_CMD} \
 		--genomeDir ${indexes_dir} \
-		--readFilesCommand gunzip -c \
+		--readFilesCommand ${task.ext.gzipCmd} -dc \
 		--outFileNamePrefix PE/ \
 		--readFilesIn ${fqgz[0]} ${fqgz[1]}
 
-	gzip -n PE/Unmapped.out.mate1
-	gzip -n PE/Unmapped.out.mate2
-	gzip -t PE/Unmapped.out.mate*.gz
+	${task.ext.gzipCmd} -n PE/Unmapped.out.mate1
+	${task.ext.gzipCmd} -n PE/Unmapped.out.mate2
+	${task.ext.gzipCmd} -t PE/Unmapped.out.mate*.gz
 	mv PE/Log.final.out Log.final.out
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 	else if (meta.single_end)
 	"""
 	${STAR_CMD} \
 		--genomeDir ${indexes_dir} \
-		--readFilesCommand gunzip -c \
+		--readFilesCommand ${task.ext.gzipCmd} -dc \
 		--outFileNamePrefix SE/ \
 		--readFilesIn ${fqgz}
 
-	gzip -n SE/Unmapped.out.mate1
-	gzip -t SE/Unmapped.out.mate1.gz
+	${task.ext.gzipCmd} -n SE/Unmapped.out.mate1
+	${task.ext.gzipCmd} -t SE/Unmapped.out.mate1.gz
 	mv SE/Log.final.out Log.final.out
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 }
 

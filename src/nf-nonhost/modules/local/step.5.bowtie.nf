@@ -6,6 +6,7 @@ params.publishDir = "$PWD"
 params.publishIntermediate = true
 params.genomeSize = null
 params.bowtieIndex = null
+params.cleanupScript = ""
 
 params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
 params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
@@ -27,11 +28,11 @@ include {
 	SAVE_METASHEET;
 } from './utils.nf'
 
- process bowtie2 {
+process bowtie2 {
 	label 'bowtie2'
 
 	input:
-	tuple val(meta), path(mategz)
+	tuple val(meta), path(mategz, arity: '1..2')
 	tuple val(idx_basename), path("bowtie2_index/*")
 
 	output:
@@ -47,11 +48,17 @@ include {
 	"""
 	${BOWTIE2_CMD} -1 ${mategz[0]} -2 ${mategz[1]} -S bowtie2.sam.staging
 	mv bowtie2.sam.staging bowtie2.sam
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 	else if (meta.single_end)
 	"""
 	${BOWTIE2_CMD} -U ${mategz} -S bowtie2.sam.staging
 	mv bowtie2.sam.staging bowtie2.sam
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 }
 
@@ -74,6 +81,9 @@ process process_bowtie2_sam {
 	"""
 	samtools view -@ ${task.cpus} bowtie2.sam | cut -f2 | sort | uniq -c > bowtie2.stats.txt
 	samtools view -@ ${task.cpus} -e '$cond' bowtie2.sam | cut -f1 > bowtie2.unmapped.names.txt
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 }
 
@@ -81,28 +91,34 @@ process bowtie2_filter_by_names {
 	label "fastq_filter"
 
 	input:
-	tuple val(meta), path(names), path(mategz)
+	tuple val(meta), path(names), path(mategz, arity: '1..2')
 
 	def SUFFIX = "filteredbyBT.fastq"
 	output:
-	tuple val(meta), path("Unmapped.out.mate?.${SUFFIX}.gz"), emit: mates
+	tuple val(meta), path("Unmapped.out.mate?.${SUFFIX}.gz", arity: '1..2'), emit: mates
 
 	script:
 	def FILTER_CMD = "LC_ALL=C fastq-namefilter $names -"
 	if (!meta.single_end)
 	"""
-	gunzip -c ${mategz[0]} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
-	gunzip -c ${mategz[1]} | $FILTER_CMD > Unmapped.out.mate2.${SUFFIX}
-	gzip -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
-	gzip -nc Unmapped.out.mate2.${SUFFIX} > Unmapped.out.mate2.${SUFFIX}.gz.staging
+	${task.ext.gzipCmd} -dc ${mategz[0]} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
+	${task.ext.gzipCmd} -dc ${mategz[1]} | $FILTER_CMD > Unmapped.out.mate2.${SUFFIX}
+	${task.ext.gzipCmd} -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
+	${task.ext.gzipCmd} -nc Unmapped.out.mate2.${SUFFIX} > Unmapped.out.mate2.${SUFFIX}.gz.staging
 	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
 	mv Unmapped.out.mate2.${SUFFIX}.gz.staging Unmapped.out.mate2.${SUFFIX}.gz
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 	else if (meta.single_end)
 	"""
-	gunzip -c ${mategz} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
-	gzip -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
+	${task.ext.gzipCmd} -dc ${mategz} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
+	${task.ext.gzipCmd} -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
 	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 }
 

@@ -1,1 +1,1 @@
-grep $1 reports/trace-*.txt | cut -f2 | xargs -I% sudo find work -path "work/%*" -print -delete
+grep $1 reports/trace-*.txt | cut -f2 | xargs -I% find work -path "work/%*" -print -delete
