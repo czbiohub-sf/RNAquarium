@@ -126,6 +126,31 @@
                     "format": "directory-path",
                     "description": "working directory for temporary files.  should have capacity for many very large files."
                 },
+                "backupScratchHack": {
+                    "type": "boolean",
+                    "description": "use --backup-tmp if job's scratch specified by --tmp does not have capacity"
+                },
+                "backupTmp": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "if --backup-scratch-hack, backup working directory for temporary files"
+                },
+                "nxfUnstageHack": {
+                    "type": "boolean",
+                    "description": "enable hack to catch filesystem failures during nextflow unstaging and fail correctly."
+                },
+                "smallQueue": {
+                    "type": "string",
+                    "description": "executor queue/partition for smaller, preemptible short-lived jobs"
+                },
+                "largeQueue": {
+                    "type": "string",
+                    "description": "executor queue/partition for larger jobs that suffer when preempted"
+                },
+                "largeThreshold": {
+                    "type": "number",
+                    "description": "threshold in bytes for switching to large queue."
+                },
                 "maxMemory": {
                     "type": "string",
                     "pattern": "^\\d+(\\.\\d+)? *[KMGT]?B$",

@@ -43,6 +43,11 @@ params.publishBowtie = true
 params.publishDedup = true
 params.publishGsnap = true
 
+params.tmp = null
+params.backupTmp = null
+params.backupScratchHack = false
+params.nxfUnstageHack = false
+
 params.starUseSharedMem = false
 params.starThreadsSmall = 4
 params.starThreadsLarge = 16
@@ -71,7 +76,11 @@ include { validateParameters; paramsHelp; paramsSummaryLog } from 'plugin/nf-val
 include { cleanup_branched; } from './modules/local/utils.nf' params(cleanupScript: cleanupScript)
 include { } from './modules/local/step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
-	hisatUseTranscript: params.hisatUseTranscript
+	hisatUseTranscript: params.hisatUseTranscript,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 include {
 	prefetch;
@@ -83,7 +92,10 @@ include {
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishFastqs,
 	cleanupScript: cleanupScript,
-	gzipCmd: params.gzipCmd,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 include {
 	fastp;
@@ -92,7 +104,10 @@ include {
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishPricefiltered,
 	cleanupScript: cleanupScript,
-	gzipCmd: params.gzipCmd,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 include {
 	star_counts;
@@ -103,7 +118,10 @@ include {
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishReadcounts,
 	cleanupScript: cleanupScript,
-	gzipCmd: params.gzipCmd,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 include {
 	hisat2;
@@ -113,7 +131,10 @@ include {
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishHisat,
 	cleanupScript: cleanupScript,
-	gzipCmd: params.gzipCmd,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 include {
 	star;
@@ -126,7 +147,10 @@ include {
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishStar,
 	cleanupScript: cleanupScript,
-	gzipCmd: params.gzipCmd,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 include {
 	bowtie2;
@@ -139,7 +163,10 @@ include {
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishBowtie,
 	cleanupScript: cleanupScript,
-	gzipCmd: params.gzipCmd,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 include {
 	dedup;
@@ -149,7 +176,10 @@ include {
 	pubishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishDedup,
 	cleanupScript: cleanupScript,
-	gzipCmd: params.gzipCmd,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 include {
 	gsnap;
@@ -163,12 +193,19 @@ include {
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishGsnap,
 	cleanupScript: cleanupScript,
-	gzipCmd: params.gzipCmd,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 include {
 	stats_csv;
 } from './modules/local/stats.nf' params(
 	skipHisat: params.skipHisat,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 
 def join_by_id(ch1, ch2) {

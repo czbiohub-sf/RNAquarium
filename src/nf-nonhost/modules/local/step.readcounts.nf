@@ -7,6 +7,10 @@ params.publishDir = "$PWD"
 params.publishIntermediate = true
 params.refIndexes = null //"Danio_rerio.GRCz11.108"
 params.cleanupScript = ""
+params.tmp = null
+params.backupTmp = null
+params.backupScratchHack = false
+params.nxfUnstageHack = false
 
 params.metaIn = 'step_2_sheet.csv'
 include {

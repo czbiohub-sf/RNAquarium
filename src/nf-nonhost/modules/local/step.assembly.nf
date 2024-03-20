@@ -6,6 +6,10 @@ params.bioprojPath = null
 params.publishDir = "$PWD"
 params.publishIntermediate = true
 params.genomeSize = null
+params.tmp = null
+params.backupTmp = null
+params.backupScratchHack = false
+params.nxfUnstageHack = false
 
 params.metaIn = 'step_assembly_sheet.csv'
 params.metaOut = 'step_assembly_sheet.csv'

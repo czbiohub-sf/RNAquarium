@@ -7,6 +7,10 @@ params.parallelDownloads = 10
 params.publishDir = "$PWD"
 params.publishIntermediate = true
 params.cleanupScript = ""
+params.tmp = null
+params.backupTmp = null
+params.backupScratchHack = false
+params.nxfUnstageHack = false
 
 params.metaOut = 'step_1_sheet.csv'
 include {
@@ -15,7 +19,6 @@ include {
 
 
 process prefetch {
-	debug true
 	label 'sratools'
 	maxForks params.parallelDownloads
 
@@ -57,7 +60,7 @@ process fastq_dump {
 	publishDir "$params.publishDir", enabled: params.publishIntermediate
 
 	input:
-	tuple val(meta), path("${meta.id}/*.sra*")
+	tuple val(meta), path("${meta.id}/${meta.id}.sra*")
 
 	output:
 	tuple val(meta), path("fastq/${meta.id}/*.fastq.gz"), emit: mates

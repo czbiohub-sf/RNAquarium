@@ -4,6 +4,10 @@ import nextflow.util.SysHelper
 
 params.publishDir = "$PWD"
 params.publishIntermediate = true
+params.tmp = null
+params.backupTmp = null
+params.backupScratchHack = false
+params.nxfUnstageHack = false
 // https://ftp.ensembl.org/pub/release-108/fasta/danio_rerio/dna/
 // https://ftp.ensembl.org/pub/release-108/fasta/danio_rerio/dna/Danio_rerio.GRCz11.dna_sm.primary_assembly.fa.gz
 params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"

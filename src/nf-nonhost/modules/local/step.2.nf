@@ -5,6 +5,10 @@ nextflow.enable.dsl=2
 params.publishDir = "$PWD"
 params.publishIntermediate = true
 params.cleanupScript = ""
+params.tmp = null
+params.backupTmp = null
+params.backupScratchHack = false
+params.nxfUnstageHack = false
 
 params.metaIn = 'step_1_sheet.csv'
 params.metaOut = 'step_2_sheet.csv'

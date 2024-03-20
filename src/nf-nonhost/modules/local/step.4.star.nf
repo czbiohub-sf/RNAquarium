@@ -8,6 +8,10 @@ params.genomeSize = null
 params.refIndexesErcc = null // "Danio_rerio.GRCz11.108.ERCC"
 params.refIndexes = null //"Danio_rerio.GRCz11.108"
 params.cleanupScript = ""
+params.tmp = null
+params.backupTmp = null
+params.backupScratchHack = false
+params.nxfUnstageHack = false
 
 params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
 params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"

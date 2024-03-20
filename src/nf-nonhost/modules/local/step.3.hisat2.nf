@@ -7,6 +7,10 @@ params.publishIntermediate = true
 params.genomeSize = null
 params.refIndexes = null
 params.cleanupScript = ""
+params.tmp = null
+params.backupTmp = null
+params.backupScratchHack = false
+params.nxfUnstageHack = false
 
 params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
 params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
