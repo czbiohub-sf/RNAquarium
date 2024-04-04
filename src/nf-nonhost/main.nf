@@ -73,7 +73,9 @@ fi
 done""" : ""
 
 include { validateParameters; paramsHelp; paramsSummaryLog } from 'plugin/nf-validation'
-include { cleanup_branched; } from './modules/local/utils.nf' params(cleanupScript: cleanupScript)
+include { cleanup_branched; } from './modules/local/utils.nf' params(cleanupScript: cleanupScript,
+																	 tmp: params.tmp, backupTmp: params.backupTmp,
+																	 backupScratchHack: params.backupScratchHack)
 include { } from './modules/local/step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
 	hisatUseTranscript: params.hisatUseTranscript,

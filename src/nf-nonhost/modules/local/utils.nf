@@ -1,6 +1,9 @@
 nextflow.enable.dsl=2
 
 params.cleanupScript = ""
+params.tmp = null
+params.backupTmp = null
+params.backupScratchHack = false
 
 
 // we may want to validate that mate fq/bam/etc. filepaths exist here

@@ -66,6 +66,28 @@ process fastq_dump {
 	tuple val(meta), path("fastq/${meta.id}/*.fastq.gz"), emit: mates
 	tuple val(meta), path("stats.txt"), emit: stats
 
+	beforeScript = {"""module load mamba
+		rm -rf \$NXF_SCRATCH || true
+		local tmp_avail=\$(df -P "${params.tmp}" | tail -1 | awk '{print \$4}')
+		tmp_choice="${params.backupTmp}"
+		readarray -t ids < <(squeue -w \$SLURMD_NODENAME -o "%i" -S i | tail -n +2)
+		PERJOBGUESS=67108864  # 64 GB? / 1024 (df reports 1K blocks)
+		res_guess=0
+		for (( i=0; i < \${#ids[@]}; i++ ));
+		do
+			if [[ \${ids[\$i]} -eq "\$SLURM_JOB_ID" ]];
+			then
+				res_guess=\$(( \$PERJOBGUESS * \$i ))
+			fi
+		done
+		if [[ ${meta.sra_size} -ne 0 && \$(( ${meta.sra_size} * 50 * 2 )) -le \$(( (\$tmp_avail - \$res_guess) * 1024 )) ]]
+		then
+			tmp_choice="${params.tmp}"
+		fi
+		NXF_SCRATCH="\$(set +u; nxf_mktemp \$tmp_choice)"
+					"""}
+
+
 	script:
 	mem = task.memory.toString() - ~/ /
 	if (task.attempt == 1) """
@@ -143,6 +165,14 @@ process filter_barcodes {
 			echo $meta.id scRNAseq
 			rm ${meta.id}_1.fastq # discard read 1 (cell barcode)
 			mv ${meta.id}_2.fastq ${meta.id}.fastq
+			${task.ext.gzipCmd} -fnc ${meta.id}.fastq > ${meta.id}${SUFFIX}.staging
+			mv ${meta.id}${SUFFIX}.staging ${meta.id}${SUFFIX}
+		elif [ \$median1 -gt 80 ] && [ \$median -lt 32 ]
+		then
+			echo $meta.id scRNAseq
+			rm ${meta.id}_2.fastq # discard read 2 (cell barcode)
+			mv ${meta.id}_1.fastq ${meta.id}.fastq
+			median=\$median1
 			${task.ext.gzipCmd} -fnc ${meta.id}.fastq > ${meta.id}${SUFFIX}.staging
 			mv ${meta.id}${SUFFIX}.staging ${meta.id}${SUFFIX}
 		else
