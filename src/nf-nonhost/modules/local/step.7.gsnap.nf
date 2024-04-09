@@ -72,7 +72,7 @@ process gsnap {
 	${GSNAP_CMD} mate1.fastq
 	set -e  # resume terminate-on-error, check error and clear outfile.
 	eval "\$restore_err_trap"
-	
+
 	if [[ \$? > 0 ]] ; then :> gsnap_out.sam.staging ; fi
 
 	mv gsnap_out.sam.staging gsnap_out.sam
@@ -158,7 +158,7 @@ process gsnap_skip {
 	mv ${mategz} Unmapped.out.mate1.${SUFFIX}.gz
 	"""
 }
-	
+
 
 def ensure_gsnap_indexes(ref_indexes,
 						 ref_genome, ercc) {

@@ -39,7 +39,7 @@ include {
 process star {
 	label 'star'
 	publishDir "$params.publishDir/STAR_out/$meta.id", enabled: params.publishIntermediate
-	
+
 	input:
 	tuple val(meta), path(fqgz, arity: '1..2')
 	path indexes_dir // "Danio_rerio.GRCz11.108.ERCC"

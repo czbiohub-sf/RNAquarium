@@ -96,7 +96,7 @@ process fastq_dump {
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	fasterq-dump --split-3 -e ${task.cpus} -m ${task.memory.toMega()-100}MB \
 		--outdir fastq/${meta.id}.staging ${meta.id} 2>stats.txt
-	
+
 	trap -- '' SIGTERM
 	${task.ext.gzipCmd} fastq/${meta.id}.staging/*.fastq
 	mv fastq/${meta.id}.staging fastq/${meta.id}

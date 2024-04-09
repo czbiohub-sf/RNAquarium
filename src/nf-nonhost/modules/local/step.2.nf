@@ -65,7 +65,7 @@ process fastp {
 		--in1 fq1.fastq --out1 ${meta.id}${extension}.staging 2>stats.txt
 	${task.ext.gzipCmd} -nc ${meta.id}${extension}.staging > ${meta.id}${extension}.gz.staging
 	mv ${meta.id}${extension}.gz.staging ${meta.id}${extension}.gz
-	
+
 	${STATS_CMD}
 	cleanup="${meta.cleanup}"
 	${params.cleanupScript}

@@ -43,7 +43,7 @@ process star_generate_indexes {
 	def genome_name = ref_genome_fa.getSimpleName()
 	def STAR_INDEXGEN_CMD = """STAR --runMode genomeGenerate --runThreadN ${task.cpus} \
 		--sjdbOverhang ${params.starSjdbOverhang} --limitGenomeGenerateRAM ${task.memory.toBytes()} 
-	    """
+		"""
 	"""
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
 	cat $ref_genome_gtf $ERCC_gtf > indexes_ERCC.gtf
@@ -69,7 +69,6 @@ process hisat2_generate_indexes {
 	output:
 	tuple val("${ref_genome_fa.simpleName}"), path("${ref_genome_fa.simpleName}*.{ht2,ht2l}")
 
-	// untested
 	script:
 	if (params.hisatUseTranscript && ref_genome_gtf.exists())
 	"""
@@ -122,7 +121,7 @@ process gsnap_generate_indexes {
 
 	output:
 	path("gmap_*_indexes")
-	
+
 	script:
 	def genome_name = ref_genome_fa.getSimpleName()
 	"""

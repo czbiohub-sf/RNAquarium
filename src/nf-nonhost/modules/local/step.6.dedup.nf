@@ -25,7 +25,7 @@ process dedup {
 	input:
 	tuple val(meta), path(mategz, arity: '1..2'), path(star_log)
 	// when would we ever /not/ have STAR logs and want to continue this readset?
-	
+
 	output:
 	tuple val(meta), path("Unmapped.out.mate?.filteredbyBT.dedup.fastq.gz", arity: '1..2'), emit: mates
 	tuple val(meta), stdout, emit: stats

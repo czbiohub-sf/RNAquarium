@@ -20,23 +20,23 @@ include {
 
 
 process spades {
-    label 'spades'
+	label 'spades'
 
 	debug true
 	publishDir "$params.publishDir/SPAdes/"
 	cpus 8
 	memory "196GB"
-	
+
 	label 'spades'
 
 	input:
 	tuple val(meta), path(mategz)
 
 	output:
-    tuple val(meta), path("$meta.id")
-	
+	tuple val(meta), path("$meta.id")
+
 	script:
-    def SPADES_CMD = """spades.py --rnaviral --threads ${task.cpus} \
+	def SPADES_CMD = """spades.py --rnaviral --threads ${task.cpus} \
 		--memory ${task.memory.toGiga()} """
 	if (!meta.single_end)
 	"""
@@ -46,19 +46,19 @@ process spades {
 }
 
 workflow assemble {
-    take: bioprojects_dir
+	take: bioprojects_dir
 
 	main:
 	log.info bioprojects_dir
 	bioproject_mates = Channel.fromPath(file(bioprojects_dir).resolve('*'), followLinks: true)
-	    .view()
-	    .map { path ->
+		.view()
+		.map { path ->
 			def new_meta = [ id: path.getSimpleName(),
 							fastq_size: files("$path/*.fastq.gz")[0].size() ]
 			[ new_meta, Channel.fromPath("$path/*.fastq.gz") ]
 		}
 	bioproject_mates.view()
-	
+
 	bioproj_with_meta = bioproject_mates
 		.map { meta, mates ->
 			def new_meta = meta.clone()
@@ -70,21 +70,21 @@ workflow assemble {
 }
 
 workflow {
-    if (params.bioprojPath) {
-	    bioprojects_dir = file(params.bioprojPath)
-	    bioproject_mates = Channel.fromPath("$bioprojects_dir/*", type: 'dir', followLinks: true)
-	        .map { path ->
-			    def new_meta = [ id: path.getSimpleName(),
-				                fastq_size: files("$path/*.fastq.gz")[0].size() ]
-			    [ new_meta, files("$path/*.fastq.gz") ]
+	if (params.bioprojPath) {
+		bioprojects_dir = file(params.bioprojPath)
+		bioproject_mates = Channel.fromPath("$bioprojects_dir/*", type: 'dir', followLinks: true)
+			.map { path ->
+				def new_meta = [ id: path.getSimpleName(),
+								fastq_size: files("$path/*.fastq.gz")[0].size() ]
+				[ new_meta, files("$path/*.fastq.gz") ]
 			}
-	    bioproj_with_meta = bioproject_mates
-	        .map { meta, mates ->
-			    def new_meta = meta.clone()
-			    new_meta.single_end = mates.size() != 2
-			    [ new_meta, mates ]
+		bioproj_with_meta = bioproject_mates
+			.map { meta, mates ->
+				def new_meta = meta.clone()
+				new_meta.single_end = mates.size() != 2
+				[ new_meta, mates ]
 			}
 
-	    spades(bioproj_with_meta)
+		spades(bioproj_with_meta)
 	}
 }

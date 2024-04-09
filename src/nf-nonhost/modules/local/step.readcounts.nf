@@ -19,11 +19,11 @@ include {
 
 process star_counts {
 	label 'star'
-	
+
 	input:
 	tuple val(meta), path(fqgz)
 	path indexes_dir2 // "Danio_rerio.GRCz11.108"
-	
+
 	output:
 	tuple val(meta), path("counts/Aligned.out.bam"), emit: bam
 
@@ -39,7 +39,7 @@ process star_counts {
 	if (!meta.single_end)
 	"""
 	trap 'echo "Interrupt by external (OOM?), exiting."; exit 130' SIGINT
-	
+
 	${STAR_READCOUNTS_CMD} \
 		--genomeDir ${indexes_dir2} \
 		--readFilesCommand ${task.ext.gzipCmd} -dc \
@@ -49,7 +49,7 @@ process star_counts {
 	else if (meta.single_end)
 	"""
 	trap 'echo "Interrupt by external (OOM?), exiting."; exit 130' SIGINT
-	
+
 	${STAR_READCOUNTS_CMD} \
 		--genomeDir ${indexes_dir2} \
 		--readFilesCommand ${task.ext.gzipCmd} -dc \
@@ -72,7 +72,7 @@ process sort_bam {
 	def mem = "${(task.memory.toMega() * 0.75).toLong().intdiv(task.cpus)}M"
 	"""
 	trap 'echo "Interrupt by external (OOM?), exiting."; exit 130' SIGINT
-	
+
 	samtools sort -m $mem -n -@ $task.cpus \
 		-o Aligned.out.namesorted.bam $bam
 	"""
@@ -80,7 +80,7 @@ process sort_bam {
 
 process htseq_count {
 	label 'htseq'
-	
+
 	input:
 	tuple val(meta), path(sorted_bam)
 	path gtf_noERCC // "Danio_rerio.GRCz11.108.gtf"
@@ -101,10 +101,10 @@ process htseq_count {
 
 workflow {
 	indexes2 = params.refIndexes
-	
+
 	fastqs = channel.fromFilePairs("$params.fastqPath/[SED]RR*_?[12]?.fastq",
 								   size: -1)
-	
+
 	bam = star_counts(fastqs, indexes2)
 	bam_sorted = sort_bam(bam)
 	count = htseq_count(bam_sorted, params.gtfNoErcc)

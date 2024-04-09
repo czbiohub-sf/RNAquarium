@@ -42,7 +42,7 @@ process hisat2 {
 	tuple val(meta), path("?E/Unmapped.out.mate?.gz", arity: '1..2'), emit: mates
 	tuple val(meta), path("stats.txt"), emit: stats
 	tuple val(meta), path("metrics.txt"), emit: hisat2_debug
-	
+
 	script:
 	def HISAT2_CMD = """hisat2 --met-file metrics.txt --summary-file stats.txt -p $task.cpus -k 1 -S /dev/null \
 		-x hisat2_index/${idx_basename} """

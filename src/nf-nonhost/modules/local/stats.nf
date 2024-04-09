@@ -1,57 +1,5 @@
 params.skipHisat = false
 
-/*process parse_fastp {
-	cache = false
-	input:
-	tuple val(idx), val(meta), file("fastp_stats.txt")
-
-	output:
-	
-	
-	script:
-	'''
-	# FASTP
-	fastp_before=\$(sed -n '/Read1 before filtering:/{;n;p;}' fastp_stats.txt | cut -f3 -d' ')
-	fastp_after=\$(sed -n '/Read1 after filtering:/{;n;p;}' fastp_stats.txt | cut -f3 -d' ')
-	fastp_short=\$(sed -n '/reads failed due to too short:/{;p;}' fastp_stats.txt | cut -f7 -d' ')
-	fastp_trimmed=\$(sed -n '/reads with adapter trimmed:/{;p;}' fastp_stats.txt | cut -f5 -d' ')
-	printf "%s,%s,%s,%s," \$fastp_before \$fastp_after \$fastp_short \$fastp_trimmed > fastp_stats.csv
-	'''
-}
-
-process parse_price {
-	input:
-
-	output:
-	// add env to mates output ?
-	tuple val(meta), file("price_stats.csv"), name: csv
-	
-	script:
-	'''
-	# PRICE
-	# price outputs \b to non-interactive output
-	price_total=\$(echo "${price_stats.split("\n")[3].split("/")[1]}" | grep -o "[0-9]\\+")
-	price_removed=\$(echo "${price_stats.split("\n")[3].split("/")[2]}" | grep -o "[0-9]\\+")
-	price_after=\$(bc <<< "\$price_total - \$price_removed")
-	printf "%d,%d," "\$price_total" "\$price_after" > price_stats.csv
-	'''
-}
-
-process parse_star {
-
-	script:
-	'''
-	star_before=\$(grep "Number of input reads |" star_stats.txt | grep -o "[0-9]\\+")
-	star_avg=\$(grep "Average input read length |" star_stats.txt | grep -o "[0-9]\\+")
-	star_unique=\$(grep "Uniquely mapped reads number |" star_stats.txt | grep -o "[0-9]\\+")
-	star_multialign=\$(grep "Number of reads mapped to multiple loci |" star_stats.txt | grep -o "[0-9]\\+")
-	star_unaligned=\$(bc <<< "\$star_before - \$star_unique - \$star_multialign")
-	star_short=\$(grep "Number of reads unmapped: too short |" star_stats.txt | grep -o "[0-9]\\+")
-	printf "%s,%s,%s,%s,%s,%s," \$star_before \$star_avg \$star_unique \$star_multialign \$star_unaligned \$star_short
-	'''
-}*/
-
-
 process stats_csv {
 	cache = false
 

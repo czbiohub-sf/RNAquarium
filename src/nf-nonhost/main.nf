@@ -287,7 +287,7 @@ workflow {
 				.map { path -> // need to think about this more, failure handling?
 					def new_meta = [id: path.getSimpleName(),
 									sra_size: files("$path/*.fastq")[0].size()
- 									]
+									]
 					[ new_meta, path ]
 				}
 			direct_fastq_ids = direct_fastqs
