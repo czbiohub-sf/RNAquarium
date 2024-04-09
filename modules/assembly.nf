@@ -2,6 +2,8 @@ process spades_single_end {
     publishDir 'single_end', mode: 'copy'
     container 'docker://staphb/spades'
 
+    memory '32 GB'
+
     input:
     tuple val(bioproj_id), path(fq)
 
@@ -18,6 +20,8 @@ process spades_single_end {
 process spades_paired_end {
     publishDir 'paired_end', mode: 'copy'
     container 'docker://staphb/spades'
+
+    memory '32 GB'
 
     input:
     tuple val(bioproj_id), path(fq1), path(fq2)
