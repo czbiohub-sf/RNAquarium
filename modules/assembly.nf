@@ -1,6 +1,7 @@
 process spades_single_end {
     publishDir 'single_end', mode: 'copy'
     container 'docker://staphb/spades'
+    conda 'bioconda::spades=3.15.5'
 
     memory '32 GB'
 
@@ -20,6 +21,7 @@ process spades_single_end {
 process spades_paired_end {
     publishDir 'paired_end', mode: 'copy'
     container 'docker://staphb/spades'
+    conda 'bioconda::spades=3.15.5'
 
     memory '32 GB'
 

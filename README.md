@@ -1,16 +1,24 @@
 # RNAquarium merge & assembly steps
 
-Example usage with test data:
+## Example usage
+
+Test Data:
 
 ```
-nextflow run -profile test,bruno main.nf
+nextflow run -profile test,slurm,singularity main.nf
 ```
 
-Example usage with subset of test data (only two accessions):
+Subset of test data (only two accessions):
 
 ```
-nextflow run -profile test,bruno \
+nextflow run -profile test,slurm,singularity \
     --accession_list test/accession_subset.txt \
     --bioproj_map false \
     main.nf
+```
+
+Using conda instead of singularity
+
+```
+nextflow run -profile test,slurm,conda main.nf
 ```
