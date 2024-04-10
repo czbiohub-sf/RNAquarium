@@ -1,0 +1,27 @@
+process parse_accessions {
+    input:
+    path tabfile
+    path accfile
+
+    output:
+    path "bioproject_accession_mapping.json"
+
+    script:
+    """
+    parse_accessions.py \
+        --tab $tabfile \
+        --acc $accfile \
+        --outfile bioproject_accession_mapping.json \
+        --unmapped unmapped_accessions.txt
+    """
+}
+
+process download_sra_tab {
+    output:
+    path "SRA_Accessions.tab"
+
+    script:
+    """
+    wget ftp://ftp.ncbi.nlm.nih.gov/sra/reports/Metadata/SRA_Accessions.tab
+    """
+}
