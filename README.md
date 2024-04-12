@@ -2,7 +2,7 @@
 
 ## Example usage
 
-Test Data:
+Test data:
 
 ```
 nextflow run -profile test,slurm,singularity main.nf
@@ -17,7 +17,7 @@ nextflow run -profile test,slurm,singularity \
     main.nf
 ```
 
-Using conda instead of singularity
+Using conda instead of singularity:
 
 ```
 nextflow run -profile test,slurm,conda main.nf
