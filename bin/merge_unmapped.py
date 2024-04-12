@@ -32,7 +32,7 @@ def get_run_fqs(fq_dir: Path) -> list[Path]:
 
 def append_fq_to_file(src_fq: Path, target_fq: Path) -> None:
     cmd = ["zcat", str(src_fq)]
-    with open(target_fq, "a") as f:
+    with target_fq.open("a") as f:
         subprocess.run(cmd, stdout=f)
 
 
@@ -46,11 +46,12 @@ def main():
     bp_id = args.ID
     indir = Path(args.indir)
     outdir = Path(args.outdir)
+    mapfile = Path(args.mapping)
 
     outdir.mkdir(exist_ok=True)
     fqs_to_compress = set()
 
-    with open(args.mapping, "r") as f:
+    with mapfile.open("r") as f:
         mapping = json.load(f)
 
     run_ids = mapping[args.ID]

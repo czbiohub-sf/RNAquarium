@@ -31,10 +31,10 @@ def main():
 
     mapping_dict = defaultdict(list)
 
-    with open(accfile, "r") as f:
+    with accfile.open("r") as f:
         accessions = set(f.read().splitlines())
 
-    with open(tabfile, "r") as f:
+    with tabfile.open("r") as f:
         header = f.readline().strip().split("\t")
         bioproj_idx = header.index("BioProject")
         accession_idx = header.index("Accession")
@@ -55,10 +55,10 @@ def main():
             if not accessions:  # No more accessions to map
                 break
 
-    with open(outfile, "w") as f:
+    with outfile.open("w") as f:
         json.dump(mapping_dict, f)
 
-    with open(unmapfile, "w") as f:
+    with unmapfile.open("w") as f:
         f.write("\n".join(accessions))
 
 
