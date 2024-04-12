@@ -4,7 +4,7 @@ process merge_unmapped {
     input:
     val bioproject_id
     path bioproject_mapping
-    path gsnap_dir
+    path unmerged_accessions
 
     output:
     tuple val(bioproject_id), path("${bioproject_id}_*/*.fastq.gz", arity: '1..3')
@@ -14,7 +14,7 @@ process merge_unmapped {
     merge_unmapped.py \
         --ID $bioproject_id \
         --mapping $bioproject_mapping \
-        --indir $gsnap_dir \
+        --indir $unmerged_accessions \
         --outdir .
     """
 }

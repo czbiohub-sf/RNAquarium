@@ -3,8 +3,8 @@ include { spades_single_end; spades_paired_end } from './modules/assembly.nf'
 include { parse_accessions; download_sra_tab   } from './modules/accession_mapping.nf'
 
 workflow {
-    if (!params.gsnap_dir) {
-        log.error("No Gsnap directory was provided")
+    if (!params.unmerged_accessions) {
+        log.error("No directory was provided for unmerged accessions!")
         exit 1
     }
 
@@ -34,7 +34,7 @@ workflow {
     // of IDs and the mapping file.
     bioproj_ids = bioproj_map.splitJson().map{ it.key }
 
-    results = merge_unmapped(bioproj_ids, bioproj_map, params.gsnap_dir)
+    results = merge_unmapped(bioproj_ids, bioproj_map, params.unmerged_accessions)
 
     single_end_fqs = results.filter{ it[1].size() == 1 }
     paired_end_fqs = results.filter{ it[1].size() == 2 }
