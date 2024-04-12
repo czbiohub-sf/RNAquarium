@@ -12,13 +12,13 @@ workflow {
         if (!params.accession_list) {
             log.error("Either a bioproject mapping or accession list must be provided.")
             exit 1
+        }
+
+        if (!params.sra_tab_file) {
+            log.info("Downloading SRA accession list...")
+            sra_tab_file = download_sra_tab()
         } else {
-            if (!params.sra_tab_file) {
-                log.info("Downloading SRA accession list...")
-                sra_tab_file = download_sra_tab()
-            } else {
-                sra_tab_file = Channel.fromPath(params.sra_tab_file)
-            }
+            sra_tab_file = Channel.fromPath(params.sra_tab_file)
         }
 
         bioproj_map = parse_accessions(
