@@ -1,5 +1,5 @@
 process spades_single_end {
-    publishDir 'single_end', mode: 'copy'
+    publishDir "${params.publish_dir}/single_end"
     container 'docker://staphb/spades'
     conda 'bioconda::spades=3.15.5'
 
@@ -19,7 +19,7 @@ process spades_single_end {
 }
 
 process spades_paired_end {
-    publishDir 'paired_end', mode: 'copy'
+    publishDir "${params.publish_dir}/paired_end"
     container 'docker://staphb/spades'
     conda 'bioconda::spades=3.15.5'
 

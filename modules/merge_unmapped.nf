@@ -1,5 +1,5 @@
 process merge_unmapped {
-    publishDir "output/"
+    publishDir "${params.publish_dir}/merged_nonhost/"
 
     input:
     val bioproject_id
