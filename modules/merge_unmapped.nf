@@ -1,4 +1,7 @@
 process MERGE_UNMAPPED {
+    label 'retry'
+    label 'skippable'
+
     publishDir "${params.publish_dir}/merged_nonhost/"
 
     input:
