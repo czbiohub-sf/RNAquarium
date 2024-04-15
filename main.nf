@@ -21,10 +21,11 @@ workflow {
             sra_tab_file = Channel.fromPath(params.sra_tab_file)
         }
 
-        bioproj_map = parse_accessions(
+        parse_accessions(
             sra_tab_file,
             Channel.fromPath(params.accession_list)
-        ).first()
+        )
+        bioproj_map = parse_accessions.out.mapping.first()
     } else {
         bioproj_map = Channel.fromPath(params.bioproj_map).first()
     }

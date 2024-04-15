@@ -4,7 +4,8 @@ process parse_accessions {
     path accfile
 
     output:
-    path "bioproject_accession_mapping.json"
+    path "bioproject_accession_mapping.json", emit: mapping
+    path "unmapped_accessions.txt", emit: unmapped_accs
 
     script:
     """
