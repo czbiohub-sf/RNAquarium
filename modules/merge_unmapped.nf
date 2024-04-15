@@ -1,5 +1,5 @@
 process MERGE_UNMAPPED {
-    label 'retry'
+    tag "${bioproject_id}"
     label 'skippable'
 
     publishDir "${params.publish_dir}/merged_nonhost/"

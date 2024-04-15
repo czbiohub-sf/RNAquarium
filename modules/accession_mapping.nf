@@ -18,6 +18,8 @@ process PARSE_ACCESSIONS {
 }
 
 process DOWNLOAD_SRA_TAB {
+    storeDir "${params.db_dir}"
+
     output:
     path "SRA_Accessions.tab"
 

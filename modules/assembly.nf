@@ -1,4 +1,5 @@
 process SPADES_SINGLE_END {
+    tag "${bioproj_id}"
     label 'retry'
     label 'skippable'
 
@@ -22,6 +23,7 @@ process SPADES_SINGLE_END {
 }
 
 process SPADES_PAIRED_END {
+    tag "${bioproj_id}"
     label 'retry'
     label 'skippable'
 
