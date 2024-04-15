@@ -1,4 +1,4 @@
-process merge_unmapped {
+process MERGE_UNMAPPED {
     publishDir "${params.publish_dir}/merged_nonhost/"
 
     input:

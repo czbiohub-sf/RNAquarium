@@ -1,4 +1,4 @@
-process parse_accessions {
+process PARSE_ACCESSIONS {
     input:
     path tabfile
     path accfile
@@ -17,7 +17,7 @@ process parse_accessions {
     """
 }
 
-process download_sra_tab {
+process DOWNLOAD_SRA_TAB {
     output:
     path "SRA_Accessions.tab"
 
