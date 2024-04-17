@@ -83,8 +83,14 @@ def main():
 
             fqs_to_compress.add(outfq_mate1)
             fqs_to_compress.add(outfq_mate2)
+        elif endedness == 0:
+            print(f"{run_id} does not have any associated non-host reads.")
+            continue
         else:
             raise ValueError(f"Unknown number of FASTQs found for {run_id}!")
+
+    if not fqs_to_compress:
+        raise ValueError(f"No non-host reads found for {bp_id}")
 
     for fq in fqs_to_compress:
         gzip(fq)
