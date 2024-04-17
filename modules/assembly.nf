@@ -1,13 +1,13 @@
 process SPADES_SINGLE_END {
     tag "${bioproj_id}"
-    label 'retry'
-    label 'skippable'
 
     publishDir "${params.publish_dir}/single_end"
     container 'docker://staphb/spades'
     conda 'bioconda::spades=3.15.5'
 
-    memory { 16.G * task.attempt }
+    memory { 16.GB * task.attempt }
+    maxRetries 3
+    errorStrategy 'ignore'
 
     input:
     tuple val(bioproj_id), path(fq)
@@ -18,20 +18,26 @@ process SPADES_SINGLE_END {
     script:
     """
     spades.py --rna -s $fq -o .
-    mv transcripts.fasta ${bioproj_id}_S.transcripts.fasta
+    if [ -f transcripts.fasta ]; then
+        sed -i 's/>NODE/>${bioproj_id}_S_NODE/g' transcripts.fasta
+        mv transcripts.fasta ${bioproj_id}_S.transcripts.fasta
+    else
+        echo 'No transcripts.fasta file found!'
+        exit 1
+    fi
     """
 }
 
 process SPADES_PAIRED_END {
     tag "${bioproj_id}"
-    label 'retry'
-    label 'skippable'
 
     publishDir "${params.publish_dir}/paired_end"
     container 'docker://staphb/spades'
     conda 'bioconda::spades=3.15.5'
 
-    memory { 32.G * task.attempt }
+    memory { 32.GB * task.attempt }
+    maxRetries 3
+    errorStrategy 'ignore'
 
     input:
     tuple val(bioproj_id), path(fq1), path(fq2)
@@ -42,6 +48,12 @@ process SPADES_PAIRED_END {
     script:
     """
     spades.py --rna -1 $fq1 -2 $fq2 -o .
-    mv transcripts.fasta ${bioproj_id}_P.transcripts.fasta
+    if [ -f transcripts.fasta ]; then
+        sed -i 's/>NODE/>${bioproj_id}_P_NODE/g' transcripts.fasta
+        mv transcripts.fasta ${bioproj_id}_P.transcripts.fasta
+    else
+        echo 'No transcripts.fasta file found!'
+        exit 1
+    fi
     """
 }
