@@ -1,4 +1,4 @@
-UNMERGED_ACC="/hpc/projects/balla_group/sra_experiments/RNAquarium_prototyping/rnaquarium_unmapped_sample"
+UNMERGED_ACC="/hpc/projects/balla_group/sra_experiments/zebrafish_RNAseq/rnaquarium_output/nonhost_reads/"
 BIOPROJ_MAP="tmp/full_mapping.json"
 WORK_DIR="/hpc/scratch/group.swe/rnaquarium/work"
 
