@@ -1,4 +1,7 @@
 process PARSE_ACCESSIONS {
+    container 'docker://python:3.10'
+    conda 'python=3.10'
+
     input:
     path tabfile
     path accfile
