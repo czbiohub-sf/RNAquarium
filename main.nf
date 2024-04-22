@@ -44,13 +44,13 @@ workflow {
     // https://stackoverflow.com/a/75248731
     single_end_fqs = single_end_fqs
         .concat(
-            both_end_fqs.map{ x, y -> tuple(x, y.findAll{ it =~ /PRJNA\d+_S/ }) }
+            both_end_fqs.map{ x, y -> tuple(x, y.findAll{ it =~ /PRJ[A-Z]{2}\d+_S/ }) }
         )
         .map{ id, fqs -> tuple(id, fqs[0]) }
 
     paired_end_fqs = paired_end_fqs
         .concat(
-            both_end_fqs.map{ x, y -> tuple(x, y.findAll{ it =~ /PRJNA\d+_P/ }) }
+            both_end_fqs.map{ x, y -> tuple(x, y.findAll{ it =~ /PRJ[A-Z]{2}\d+_P/ }) }
         )
         .map{ id, fqs -> tuple(id, fqs[0], fqs[1]) }
 
