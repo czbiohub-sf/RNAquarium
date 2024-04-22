@@ -5,9 +5,13 @@ process SPADES_SINGLE_END {
     container 'docker://staphb/spades'
     conda 'bioconda::spades=3.15.5'
 
+    time '6h'
+    cpus 16
     memory { 16.GB * task.attempt }
-    maxRetries 3
-    errorStrategy { task.exitStatus == 9 ? 'ignore' : 'retry' }
+    maxRetries 5
+    errorStrategy {
+        (task.exitStatus == 9 || task.attempt > maxRetries) ? 'ignore' : 'retry' 
+    }
     scratch true
 
     input:
@@ -36,9 +40,13 @@ process SPADES_PAIRED_END {
     container 'docker://staphb/spades'
     conda 'bioconda::spades=3.15.5'
 
+    time '6h'
+    cpus 16
     memory { 32.GB * task.attempt }
-    maxRetries 3
-    errorStrategy { task.exitStatus == 9 ? 'ignore' : 'retry' }
+    maxRetries 5
+    errorStrategy {
+        (task.exitStatus == 9 || task.attempt > maxRetries) ? 'ignore' : 'retry' 
+    }
     scratch true
 
     input:
