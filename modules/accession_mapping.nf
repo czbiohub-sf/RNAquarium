@@ -1,10 +1,14 @@
-process parse_accessions {
+process PARSE_ACCESSIONS {
+    container 'docker://python:3.10'
+    conda 'python=3.10'
+
     input:
     path tabfile
     path accfile
 
     output:
-    path "bioproject_accession_mapping.json"
+    path "bioproject_accession_mapping.json", emit: mapping
+    path "unmapped_accessions.txt", emit: unmapped_accs
 
     script:
     """
@@ -16,7 +20,9 @@ process parse_accessions {
     """
 }
 
-process download_sra_tab {
+process DOWNLOAD_SRA_TAB {
+    storeDir "${params.db_dir}"
+
     output:
     path "SRA_Accessions.tab"
 

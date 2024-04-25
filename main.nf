@@ -1,6 +1,6 @@
-include { merge_unmapped                       } from './modules/merge_unmapped.nf'
-include { spades_single_end; spades_paired_end } from './modules/assembly.nf'
-include { parse_accessions; download_sra_tab   } from './modules/accession_mapping.nf'
+include { MERGE_UNMAPPED                       } from './modules/merge_unmapped.nf'
+include { SPADES_SINGLE_END; SPADES_PAIRED_END } from './modules/assembly.nf'
+include { PARSE_ACCESSIONS; DOWNLOAD_SRA_TAB   } from './modules/accession_mapping.nf'
 
 workflow {
     if (!params.unmerged_accessions) {
@@ -16,15 +16,16 @@ workflow {
 
         if (!params.sra_tab_file) {
             log.info("Downloading SRA accession list...")
-            sra_tab_file = download_sra_tab()
+            sra_tab_file = DOWNLOAD_SRA_TAB()
         } else {
             sra_tab_file = Channel.fromPath(params.sra_tab_file)
         }
 
-        bioproj_map = parse_accessions(
+        PARSE_ACCESSIONS(
             sra_tab_file,
             Channel.fromPath(params.accession_list)
-        ).first()
+        )
+        bioproj_map = PARSE_ACCESSIONS.out.mapping.first()
     } else {
         bioproj_map = Channel.fromPath(params.bioproj_map).first()
     }
@@ -34,7 +35,7 @@ workflow {
     // of IDs and the mapping file.
     bioproj_ids = bioproj_map.splitJson().map{ it.key }
 
-    results = merge_unmapped(bioproj_ids, bioproj_map, params.unmerged_accessions)
+    results = MERGE_UNMAPPED(bioproj_ids, bioproj_map, params.unmerged_accessions)
 
     single_end_fqs = results.filter{ it[1].size() == 1 }
     paired_end_fqs = results.filter{ it[1].size() == 2 }
@@ -43,16 +44,16 @@ workflow {
     // https://stackoverflow.com/a/75248731
     single_end_fqs = single_end_fqs
         .concat(
-            both_end_fqs.map{ x, y -> tuple(x, y.findAll{ it =~ /PRJNA\d+_S/ }) }
+            both_end_fqs.map{ x, y -> tuple(x, y.findAll{ it =~ /PRJ[A-Z]{2}\d+_S/ }) }
         )
         .map{ id, fqs -> tuple(id, fqs[0]) }
 
     paired_end_fqs = paired_end_fqs
         .concat(
-            both_end_fqs.map{ x, y -> tuple(x, y.findAll{ it =~ /PRJNA\d+_P/ }) }
+            both_end_fqs.map{ x, y -> tuple(x, y.findAll{ it =~ /PRJ[A-Z]{2}\d+_P/ }) }
         )
         .map{ id, fqs -> tuple(id, fqs[0], fqs[1]) }
 
-    spades_single_end(single_end_fqs)
-    spades_paired_end(paired_end_fqs)
+    SPADES_SINGLE_END(single_end_fqs)
+    SPADES_PAIRED_END(paired_end_fqs)
 }

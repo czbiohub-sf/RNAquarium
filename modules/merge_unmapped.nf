@@ -1,5 +1,13 @@
-process merge_unmapped {
-    publishDir "output/"
+process MERGE_UNMAPPED {
+    tag "${bioproject_id}"
+    publishDir "${params.publish_dir}/merged_nonhost/"
+
+    container 'docker://python:3.10'
+    conda 'python=3.10'
+
+    debug true
+    errorStrategy 'ignore'
+    cache 'lenient'
 
     input:
     val bioproject_id
