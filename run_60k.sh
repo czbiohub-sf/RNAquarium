@@ -26,7 +26,7 @@ nextflow run \
     -with-timeline $TIMELINE \
     -w $WORK_DIR \
     -ansi-log false \
-    -resume \
+    -resume 97b8256e-2675-40da-9f81-23c31ddbc327 \
     --bioproj_map $BIOPROJ_MAP \
     --unmerged_accessions $UNMERGED_ACC \
     --publish_dir $PUB_DIR \
