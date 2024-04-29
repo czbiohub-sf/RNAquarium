@@ -106,7 +106,7 @@ process bowtie2_generate_indexes {
 
 	script:
 	"""
-	bowtie2-build -f --threads $task.cpus $ref_genome_fa,$ERCC_fa \
+	bowtie2-build -f --threads $task.cpus ${ref_genome_fa},${ERCC_fa} \
 		${ref_genome_fa.simpleName}
 	"""
 }

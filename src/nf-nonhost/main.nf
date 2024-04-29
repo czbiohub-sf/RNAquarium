@@ -79,6 +79,11 @@ include { cleanup_branched; } from './modules/local/utils.nf' params(cleanupScri
 include { } from './modules/local/step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
 	hisatUseTranscript: params.hisatUseTranscript,
+	refGenome: params.refGenome,
+	refGenomeGtf: params.refGenomeGtf,
+	erccFa: params.erccFa,
+	erccGtf: params.erccGtf,
+	starSjdbOverhang: params.starSjdbOverhang,
 	tmp: params.tmp,
 	backupTmp: params.backupTmp,
 	backupScratchHack: params.backupScratchHack,

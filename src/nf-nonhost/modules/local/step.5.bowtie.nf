@@ -23,6 +23,14 @@ include {
 	bowtie2_generate_indexes;
 } from './step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
+	refGenome: params.refGenome,
+	refGenomeGtf: params.refGenomeGtf,
+	erccFa: params.erccFa,
+	erccGtf: params.erccGtf,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 
 params.metaIn = 'step_4_sheet.csv'

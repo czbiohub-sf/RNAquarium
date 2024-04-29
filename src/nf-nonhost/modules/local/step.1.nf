@@ -33,8 +33,8 @@ process prefetch {
 	// fastq-dump wants sras in the current directory. this is a problem for
 	// nf's usually directory-agnostic behavior - it could be that the input is
 	// cached from a previous run and the absolute dir invisible,
-	beforeScript = """module load mamba
-	sleep \$((1 + RANDOM % 30))s"""
+	beforeScript = {"""${task.ext.extraBeforeScript}
+					sleep \$((1 + RANDOM % 30))s"""}
 
 	script:
 	"""
@@ -66,7 +66,7 @@ process fastq_dump {
 	tuple val(meta), path("fastq/${meta.id}/*.fastq.gz"), emit: mates
 	tuple val(meta), path("stats.txt"), emit: stats
 
-	beforeScript = {"""module load mamba
+	beforeScript = {"""${task.ext.extraBeforeScript}
 		rm -rf \$NXF_SCRATCH || true
 		local tmp_avail=\$(df -P "${params.tmp}" | tail -1 | awk '{print \$4}')
 		tmp_choice="${params.backupTmp}"

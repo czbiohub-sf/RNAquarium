@@ -21,6 +21,15 @@ include {
 	hisat2_generate_indexes;
 } from './step.0.generate_indexes.nf' params(
 	publishDir: params.publishDir,
+	hisatUseTranscript: params.hisatUseTranscript,
+	refGenome: params.refGenome,
+	refGenomeGtf: params.refGenomeGtf,
+	erccFa: params.erccFa,
+	erccGtf: params.erccGtf,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
 )
 
 params.metaIn = 'step_2_sheet.csv'
@@ -32,7 +41,6 @@ include {
 
 process hisat2 {
 	label 'hisat2'
-	publishDir "$params.publishDir/hisat2_out/$meta.id", enabled: params.publishIntermediate
 
 	input:
 	tuple val(meta), path(fqgz, arity: '1..2')
