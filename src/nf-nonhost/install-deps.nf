@@ -115,3 +115,29 @@ cd ..
 rm -rf gmap-${VER} && rm gmap-gsnap-${VER}.tar.gz
 	"""
 }
+
+process install_hisat2 {
+	executor params.myExecutor
+	cpus 2
+	memory '4GB'
+	time '10min'
+	output:
+	file("hisat2")
+	file("hisat2-build*")
+	file("hisat2-align*")
+	file("hisat2-inspect")
+	file("hisat2*.py")
+	publishDir params.prefix, mode: 'move'
+	
+	script:
+	BINNAME="hisat2 hisat2-build* hisat2-align* hisat2-inspect hisat2*.py"
+	def VER="fE9QCsX3NH4QwBi" // 2.2.1-source
+	def URL="https://cloud.biohpc.swmed.edu/index.php/s/$VER/download"
+	"""
+wget $URL -O hisat2-${VER}.zip
+unzip hisat2-${VER}.zip && cd hisat2-${VER}.zip
+make -j${task.cpus} both EXTRA_FLAGS="-DPOPCNT_CAPABILITY -std=c++11 -mavx2 -g0" && mv $BINNAME ../
+cd ..
+rm -rf hisat2-${VER} && rm hisat2-${VER}.zip
+	"""	
+}
