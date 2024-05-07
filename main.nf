@@ -1,6 +1,7 @@
 include { MERGE_UNMAPPED                       } from './modules/merge_unmapped.nf'
 include { SPADES_SINGLE_END; SPADES_PAIRED_END } from './modules/assembly.nf'
 include { PARSE_ACCESSIONS; DOWNLOAD_SRA_TAB   } from './modules/accession_mapping.nf'
+include { BLAST                                } from './modules/blast.nf'
 
 workflow {
     if (!params.unmerged_accessions) {
@@ -54,6 +55,8 @@ workflow {
         )
         .map{ id, fqs -> tuple(id, fqs[0], fqs[1]) }
 
-    SPADES_SINGLE_END(single_end_fqs)
-    SPADES_PAIRED_END(paired_end_fqs)
+    single_end_transcripts = SPADES_SINGLE_END(single_end_fqs)
+    paired_end_transcripts = SPADES_PAIRED_END(paired_end_fqs)
+
+    single_end_transcripts.mix(paired_end_transcripts) | BLAST
 }
