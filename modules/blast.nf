@@ -1,8 +1,7 @@
 process BLAST {
     tag "${transcripts.simpleName}"
     container 'staphb/blast:2.15.0'
-    // TODO: Update to make mount arg agnostic to containerization software
-    containerOptions "--bind ${params.nt_dir}:/db"
+    containerOptions "--mount type=bind,src=${params.nt_dir},dst=/db"
 
     input:
     path transcripts
