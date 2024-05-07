@@ -1,5 +1,5 @@
 process BLAST {
-    tag "${transcripts}"
+    tag "${transcripts.simpleName}"
     container 'staphb/blast:2.15.0'
     // TODO: Update to make mount arg agnostic to containerization software
     containerOptions "--bind ${params.nt_dir}:/db"
@@ -8,11 +8,11 @@ process BLAST {
     path transcripts
 
     output:
-    path "${transcripts}.blast.txt"
+    path "${transcripts.simpleName}.blast.txt"
 
     script:
     """
-    OUTPUT="\${PWD}/${transcripts}.blast.txt"
+    OUTPUT="\${PWD}/${transcripts.simpleName}.blast.txt"
     INPUT="\${PWD}/${transcripts}"
 
     # Seems like we need to be in the DB directory?
