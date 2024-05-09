@@ -11,13 +11,11 @@ test:
 		main.nf
 	@nextflow clean test_run -f
 
-.PHONY: test
+.PHONY: small
 small:
 	nextflow run \
 		-profile test,slurm,singularity \
 		-resume \
 		-ansi-log false \
-		--accession_list test/accession_subset.txt \
-		--bioproj_map false \
 		--publish_dir output/small_run \
 		main.nf

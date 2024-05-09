@@ -1,13 +1,9 @@
 process BLAST {
-    tag "${transcripts.simpleName}"
-    container 'staphb/blast:2.15.0'
-    containerOptions "--mount type=bind,src=${params.nt_dir},dst=/db"
-
     input:
     path transcripts
 
     output:
-    path "${transcripts.simpleName}.blast.txt"
+    path "${transcripts.simpleName}.blast.txt.gz"
 
     script:
     """
@@ -25,5 +21,22 @@ process BLAST {
         -evalue ${params.evalue} \
         -max_target_seqs "${params.max_target_seqs}" \
         -out \$OUTPUT
+    gzip \$OUTPUT
+    """
+}
+
+process CONCAT_BLAST {
+    input:
+    path blast_results, arity: '1..*'
+
+    output:
+    path "concat_blast.txt.gz"
+
+    script:
+    """
+    # TODO: Use params.outfmt to create header.
+    #       Need to account for different outfmts (i.e. tab vs CSV)
+    #       Outfmt 7 also adds comment lines to each file so maybe don't concat?
+    cat ${blast_results} > concat_blast.txt.gz
     """
 }
