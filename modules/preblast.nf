@@ -1,3 +1,6 @@
+// Look into parallelizing instead of using a for loop in bash
+// Maybe create a process that takes in num_chunks, transcripts, chunk_num
+//     and calculate the correct transcript splitting for each chunk separately
 process CHUNK_ASSEMBLED_FASTAS {
     input:
     path transcripts, arity: '1..*'
