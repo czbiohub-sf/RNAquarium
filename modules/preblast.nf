@@ -36,3 +36,25 @@ process CHUNK_ASSEMBLED_FASTAS {
     done
     """
 }
+
+process CHUNK_ASSEMBLED_FASTAS2 {
+    input:
+    path transcripts, arity: '1..*'
+
+    output:
+    path "chunk_*.fasta"
+
+    script:
+    num_chunks = params.blast_chunks
+    """
+    for transcript in ${transcripts}
+    do
+        seqkit split2 -p ${num_chunks} \$transcript 
+    done
+
+    for chunk in {001..${num_chunks}}
+    do
+        cat *.split/*part_\$chunk.fasta > chunk_\$chunk.fasta
+    done
+    """
+}

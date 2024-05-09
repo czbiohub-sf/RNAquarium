@@ -1,7 +1,7 @@
 include { MERGE_UNMAPPED                       } from './modules/merge_unmapped.nf'
 include { SPADES_SINGLE_END; SPADES_PAIRED_END } from './modules/assembly.nf'
 include { PARSE_ACCESSIONS; DOWNLOAD_SRA_TAB   } from './modules/accession_mapping.nf'
-include { CHUNK_ASSEMBLED_FASTAS               } from './modules/preblast.nf'
+include { CHUNK_ASSEMBLED_FASTAS2              } from './modules/preblast.nf'
 include { BLAST; CONCAT_BLAST                  } from './modules/blast.nf'
 
 workflow {
@@ -63,6 +63,7 @@ workflow {
         .mix(paired_end_transcripts)
         .collect()
 
-    chunked_transcripts = CHUNK_ASSEMBLED_FASTAS(all_transcripts).flatten()
+    // chunked_transcripts = CHUNK_ASSEMBLED_FASTAS(all_transcripts).flatten()
+    chunked_transcripts = CHUNK_ASSEMBLED_FASTAS2(all_transcripts).flatten()
     blast_results = BLAST(chunked_transcripts).collect() | CONCAT_BLAST
 }
