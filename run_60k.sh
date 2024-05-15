@@ -15,7 +15,7 @@ BIOPROJ_MAP="tmp/full_mapping.json"
 WORK_DIR="/hpc/scratch/group.swe/rnaquarium/work"
 PUB_DIR="./output/"
 
-mkdir $PUB_DIR
+mkdir -p $PUB_DIR
 
 REPORT="${PUB_DIR}/report.60k.html"
 TIMELINE="${PUB_DIR}/timeline.60k.html"
@@ -27,6 +27,7 @@ nextflow run \
     -w $WORK_DIR \
     -ansi-log false \
     -resume 97b8256e-2675-40da-9f81-23c31ddbc327 \
+    -process.cache=lenient \
     --bioproj_map $BIOPROJ_MAP \
     --unmerged_accessions $UNMERGED_ACC \
     --publish_dir $PUB_DIR \
