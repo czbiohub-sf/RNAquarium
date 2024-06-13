@@ -9,7 +9,6 @@ test:
 		--bioproj_map false \
 		--publish_dir $(TMP_OUTPUT) \
 		main.nf
-	@nextflow clean test_run -f
 
 .PHONY: small
 small:

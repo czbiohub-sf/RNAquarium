@@ -13,7 +13,7 @@ process BLAST {
     # Seems like we need to be in the DB directory?
     cd /db
     blastn \
-        -db /db/nt \
+        -db /db/${params.nt_db_name} \
         -query \$INPUT \
         -taxids "${params.taxids}" \
         -outfmt "${params.outfmt}" \

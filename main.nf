@@ -2,7 +2,7 @@ include { MERGE_UNMAPPED                       } from './modules/merge_unmapped.
 include { SPADES_SINGLE_END; SPADES_PAIRED_END } from './modules/assembly.nf'
 include { PARSE_ACCESSIONS; DOWNLOAD_SRA_TAB   } from './modules/accession_mapping.nf'
 include { CHUNK_ASSEMBLED_FASTAS2              } from './modules/preblast.nf'
-include { BLAST; CONCAT_BLAST                  } from './modules/blast.nf'
+include { BLAST; BLAST2; CONCAT_BLAST          } from './modules/blast.nf'
 
 workflow {
     if (!params.unmerged_accessions) {
