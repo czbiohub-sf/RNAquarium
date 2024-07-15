@@ -20,15 +20,11 @@ NXF_OPTS="-Xms500M -Xmx16G" PATH=$PATH:$PWD/bin nextflow run main.nf \
         --ercc-gtf /hpc/projects/balla_group/sra_experiments/tools/STAR/ERCC92.gtf \
 	--genome-size 1396431182 --skip-host-counts false \
 	--hisat-use-transcript true \
-	--star-threads-small 4 --star-threads-large 16 --max-cpus 128 --max-memory "256GB" --star-use-shared-mem false \
-  --bowtie-ref-indexes bowtie2_Danio_rerio.GRCz11.dna_sm.primary_assembly_indexes --parallel-downloads 50 \
-  --star-ref-indexes-ercc star_Danio_rerio_indexes.ERCC \
-  --star-ref-indexes star_Danio_rerio_indexes \
-	--hisat-ref-indexes hisat2_Danio_rerio.GRCz11.dna_sm.primary_assembly_indexes \
-	--gsnap-ref-indexes gmap_Danio_rerio_indexes \
+	--star-threads-small 4 --star-threads-large 16 --max-cpus 128 --max-memory "256GB" \
+	--star-use-shared-mem false --parallel-downloads 50 \
 	--tmp /tmp/ \
 	--cleanup-intermediate true --nxf-unstage-hack true \
-	-profile slurm,mamba
+	-profile bruno,mamba
 
 
 #	--fastq-path $PWD/fastq \
