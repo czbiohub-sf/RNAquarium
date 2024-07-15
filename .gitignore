@@ -68,11 +68,14 @@ STAR_out/
 star_Danio_rerio_indexes.ERCC
 star_Danio_rerio_indexes
 Danio_rerio_genome
-hisat2_Danio_rerio.GRCz11.dna_sm.primary_assembly_indexes
-bowtie2_Danio_rerio.GRCz11.dna_sm.primary_assembly_indexes
 gmap_Danio_rerio_index
 gmap_Danio_rerio_indexes
 bowtie2_index
+hisat2_*_indexes
+bowtie2_*_indexes
+gmap_*_indexes
+star_*_indexes
+star_*_indexes.ERCC
 
 slurm.out
 src/nf-nonhost/fastq/
