@@ -1,0 +1,6 @@
+util/*.log
+resource_tuning/*.png
+resource_tuning/*.html
+
+work/
+reports/

@@ -1,0 +1,302 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "https://raw.githubusercontent.com/czbiohub-sf/Zebrafish-RNAquarium/master/nextflow_schema.json",
+    "title": "czbiohub-sf/Zebrafish-RNAquarium pipeline parameters",
+    "description": "reprocessing of public rna-seq datasets for non-host reads",
+    "type": "object",
+    "definitions": {
+        "reference_genome_options": {
+            "title": "Reference genome options",
+            "type": "object",
+            "description": "Reference genome related files and options required for the workflow.",
+            "default": "",
+            "fa_icon": "fas fa-dna",
+            "properties": {
+                "genomeSize": {
+                    "type": "number",
+                    "minimum": 1,
+                    "description": "Reference genome size, in bytes (FASTA file size is good enough)"
+                },
+                "starRefIndexes": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Pre-generated STAR indexes for reference genome (without spike-in)"
+                },
+                "starRefIndexesErcc": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Pre-generated STAR indexes, with ERCC spike-in controls"
+                },
+                "hisatRefIndexes": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Pre-generated hisat2 indexes for reference genome"
+                },
+                "bowtieRefIndexes": {
+                    "type": "string",
+                    "format": "path",
+                    "description": "Pre-generated bowtie2 indexes for reference genome"
+                },
+                "gsnapRefIndexes": {
+                    "type": "string",
+                    "format": "path",
+                    "description": "Pre-generated gmap/gsnap indexes for reference genome"
+                },
+                "refGenome": {
+                    "type": "string",
+                    "pattern": "^.+\\.fa(sta)?$",
+                    "format": "file-path",
+                    "default": "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa",
+                    "description": "Path to ensembl reference genome fasta"
+                },
+                "refGenomeGtf": {
+                    "type": "string",
+                    "default": "Danio_rerio.GRCz11.108.gtf",
+                    "description": "Path to ensembl reference genome annotations"
+                },
+                "erccFa": {
+                    "type": "string",
+                    "pattern": "^.+\\.fa(sta)?$",
+                    "format": "file-path",
+                    "default": "ERCC92.fa",
+                    "description": "Path to ERCC spike-in control sequences"
+                },
+                "erccGtf": {
+                    "type": "string",
+                    "default": "ERCC92.gtf",
+                    "description": "Path to ERCC spike-in control annotations"
+                }
+            },
+            "required": [
+                "genomeSize"
+            ]
+        },
+        "input_output_options": {
+            "title": "Input/output options",
+            "type": "object",
+            "description": "Basic inputs and outputs",
+            "default": "",
+            "properties": {
+                "accessionList": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "description": "Path to list of SRA accessions to fetch, one per line",
+                    "help_text": "If an accession in the list matches a directory name in `fastqPath`, the existing fastq takes priority and prefetch/dump is skipped."
+                },
+                "fastqPath": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Path to a directory containing folders of local FASTQs to use in the pipeline",
+                    "help_text": "This directory, if specified, must contain subdirectories containing either one(single-ended) or two(paired) FASTQ files. The subfolder name will be treated as a read ID.\n\nFor example:\n```\nfastq_path/\n - SRR1234/\n   - SRR1234.fastq\n - MYREADS1\n   - MYREADS1_1.fastq\n   - MYREADS1_2.fastq\n```\nExtra files of other types in the read directories are tolerated, but extra directories in the fastq path without reads as formatted above are not allowed."
+                }
+            },
+            "required": [
+                "accessionList"
+            ],
+            "fa_icon": "fas fa-terminal"
+        },
+        "generic_options": {
+            "title": "Generic options",
+            "type": "object",
+            "fa_icon": "fas fa-file-import",
+            "description": "Less common options for the pipeline, typically set in a config file.",
+            "help_text": "These options allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
+            "properties": {
+                "help": {
+                    "type": "boolean",
+                    "description": "Display help text.",
+                    "fa_icon": "fas fa-question-circle",
+                    "hidden": true
+                },
+                "reportdir": {
+                    "type": "string",
+                    "default": "reports",
+                    "format": "directory-path",
+                    "description": "directory to write nextflow reports/traces to"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "default": "231108-222816",
+                    "hidden": true,
+                    "description": "timestamp to append to nextflow reports (default: current time, YYMMDD-HHmmss)"
+                },
+                "tmp": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "working directory for temporary files.  should have capacity for many very large files."
+                },
+                "backupScratchHack": {
+                    "type": "boolean",
+                    "description": "use --backup-tmp if job's scratch specified by --tmp does not have capacity"
+                },
+                "backupTmp": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "if --backup-scratch-hack, backup working directory for temporary files"
+                },
+                "nxfUnstageHack": {
+                    "type": "boolean",
+                    "description": "enable hack to catch filesystem failures during nextflow unstaging and fail correctly."
+                },
+                "smallQueue": {
+                    "type": "string",
+                    "description": "executor queue/partition for smaller, preemptible short-lived jobs"
+                },
+                "largeQueue": {
+                    "type": "string",
+                    "description": "executor queue/partition for larger jobs that suffer when preempted"
+                },
+                "largeThreshold": {
+                    "type": "number",
+                    "description": "threshold in bytes for switching to large queue."
+                },
+                "maxMemory": {
+                    "type": "string",
+                    "pattern": "^\\d+(\\.\\d+)? *[KMGT]?B$",
+                    "description": "maximum amount of memory to dynamically allocate to a single job",
+                    "default": "240GB"
+                },
+                "maxCpus": {
+                    "type": "number",
+                    "default": 16,
+                    "description": "maximum number of cores to dynamically allocate to a single job"
+                },
+                "parallelDownloads": {
+                    "type": "number",
+                    "minimum": 1,
+                    "description": "maximum number of SRAs to fetch in parallel at once.",
+                    "default": 100
+                },
+                "cleanupIntermediate": {
+                    "type": "boolean",
+                    "description": "recover disk space from nextflow cache."
+                },
+                "publishDir": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "output directory"
+                },
+                "publishIntermediate": {
+                    "type": "boolean"
+                },
+                "publishFastqs": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true
+                },
+                "publishPricefiltered": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true
+                },
+                "publishReadcounts": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true
+                },
+                "publishHisat": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true
+                },
+                "publishStar": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true
+                },
+                "publishBowtie": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true
+                },
+                "publishDedup": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true
+                },
+                "publishGsnap": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true
+                }
+            }
+        },
+        "pipeline_options": {
+            "title": "Pipeline options",
+            "type": "object",
+            "description": "Control for pipeline flow",
+            "default": "",
+            "properties": {
+                "skipHostCounts": {
+                    "type": "boolean",
+                    "description": "If true, do not perform host read counting."
+                },
+                "skipHisat": {
+                    "type": "boolean",
+                    "description": "If true, do not use the hisat2 mapper step"
+                },
+                "hisatUseTranscript": {
+                    "type": "boolean",
+                    "description": "When building hisat2 reference indexes from scratch, if true, don't use GTF transcript information"
+                },
+                "retainMixed": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "whether to treat mixed alignments (only one mate in a pair has an alignment) as nonhost"
+                },
+                "dedupPercentLen": {
+                    "type": "number",
+                    "default": 100,
+                    "description": "duplicate sequence identity threshold for dedup"
+                },
+                "dedupMinLen": {
+                    "type": "number",
+                    "default": 20,
+                    "description": "minimum allowed sequence length in dedup"
+                }
+            },
+            "fa_icon": "fas fa-project-diagram"
+        },
+        "tool_extra_parameters": {
+            "title": "Tool extra parameters",
+            "type": "object",
+            "description": "Advanced tool configuration",
+            "default": "",
+            "properties": {
+                "starUseSharedMem": {
+                    "type": "boolean",
+                    "description": "If true, STAR will load and use genomes in shared memory. You probably do not want to use this, the resource allocation scheme cannot take advantage of shared memory."
+                },
+                "starThreadsSmall": {
+                    "type": "number",
+                    "default": 4,
+                    "description": "threads to allocate to STAR jobs for small (<4GB) inputs"
+                },
+                "starThreadsLarge": {
+                    "type": "number",
+                    "default": 16,
+                    "description": "threads to allocate to STAR jobs for large (>=4GB) inputs"
+                }
+            },
+            "fa_icon": "fas fa-cogs"
+        }
+    },
+    "allOf": [
+        {
+            "$ref": "#/definitions/reference_genome_options"
+        },
+        {
+            "$ref": "#/definitions/input_output_options"
+        },
+        {
+            "$ref": "#/definitions/generic_options"
+        },
+        {
+            "$ref": "#/definitions/pipeline_options"
+        },
+        {
+            "$ref": "#/definitions/tool_extra_parameters"
+        }
+    ]
+}

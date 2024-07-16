@@ -1,0 +1,53 @@
+AllObjects: [
+SRA: cylinder "54k" "RNA-seq" "datasets" width .7in height .7in thick fill Bisque
+FASTQDUMP: box "fastq-dump" "(SRA-tools)" at 0.8in below previous thin fill aliceblue
+
+BARCODE: box "filter barcodes" at 0.8in below FASTQDUMP thin fill aliceblue
+LOCAL: file "local" "RNA-seq" "fastq" at 0.8in left of BARCODE fill Bisque
+
+FASTP: box "Adapter" "trimming" "(fastp)" at 0.8in below BARCODE thin fill aliceblue
+
+PRICE: box "Quality" "control" "(PRICE)" at 0.8in below FASTP thin fill aliceblue
+
+HISAT2: box "Map to zfish" "(hisat2)" at 1in right of PRICE thin fill aliceblue
+
+STAR: box "Map to zfish" "(STAR)" at .8in above HISAT2 thin fill aliceblue
+
+BOWTIE2: box "Map to zfish" "(bowtie2)" at .8in above STAR thin fill aliceblue
+
+DEDUP: box "deduplicate" "(czid-dedup)" at .8in above BOWTIE2 thin fill aliceblue
+
+GSNAP: box "Map to zfish" "(gsnap)" at .8in above DEDUP thin fill aliceblue
+
+NONHOSTBOTTOM: file at 2in right of GSNAP fill aliceblue
+file at 0.05in below 0.05in right of NONHOSTBOTTOM fill aliceblue
+NONHOSTTOP: file at 0.1in below 0.1in right of NONHOSTBOTTOM
+file "Non-zfish" "reads" at NONHOSTTOP fill aliceblue
+
+arrow from SRA.s to FASTQDUMP.n
+arrow from FASTQDUMP.s to BARCODE.n
+arrow from LOCAL.e to BARCODE.w
+arrow from BARCODE.s to FASTP.n
+arrow from FASTP.s to PRICE.n
+arrow from PRICE.e to HISAT2.w
+arrow from HISAT2.n to STAR.s " retain unmapped" ljust
+arrow from STAR.n to BOWTIE2.s " retain unmapped" ljust
+arrow from BOWTIE2.n to DEDUP.s " retain unmapped" ljust
+arrow from DEDUP.n to GSNAP.s
+arrow from GSNAP.e to NONHOSTBOTTOM.w " retain unmapped" above
+
+
+STARCOUNTS: box "Map to zfish" "(STAR)" at 0.8in below PRICE thin fill honeydew
+
+GENECOUNTSBOTTOM: file at 1in right of STARCOUNTS fill honeydew
+file at 0.05in below 0.05in right of GENECOUNTSBOTTOM fill honeydew
+GENECOUNTSTOP: file at 0.1in below 0.1in right of GENECOUNTSBOTTOM
+file "Zfish" "gene" "counts" at GENECOUNTSTOP fill honeydew
+
+arrow from PRICE.s to STARCOUNTS.n
+arrow from STARCOUNTS.e to GENECOUNTSBOTTOM.w
+
+
+]
+# Label the whole diagram
+text "RNA-seq Dataset Reprocessing (Nextflow Version)" big bold  at .8cm above north of AllObjects

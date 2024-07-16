@@ -6,6 +6,9 @@
 *.o
 *.pm.tdy
 *.bs
+.nextflow*
+report*.html
+bin/
 
 # Devel::Cover
 cover_db/
@@ -38,15 +41,36 @@ inc/
 **/.ipynb_checkpoints
 
 # Output directories and files
-/src/nonhost/fastq/
-/src/nonhost/logs/
-/src/nonhost/prefetched/
-/src/nonhost/slurm.out/
-/src/nonhost/STAR_out/
-/src/nonhost/stdout_stderr
+slurm.out
+src/nonhost/fastq/
+src/nonhost/nonhost_reads/
+src/nonhost/counts/
+
+Bowtie2_out/
+hisat2_out/
+STAR_out/
+star_Danio_rerio_indexes.ERCC
+star_Danio_rerio_indexes
+Danio_rerio_genome
+gmap_Danio_rerio_index
+gmap_Danio_rerio_indexes
+bowtie2_index
+hisat2_*_indexes
+bowtie2_*_indexes
+gmap_*_indexes
+star_*_indexes
+star_*_indexes.ERCC
+reports
+old_reports/
+prod-reports/
+benchmark_reports/
+resource-tuning/*.txt
+resource_tuning/*.txt
+readstats/*.txt
+readstats/*.png
+/src/nonhost/util/old/
+
 /src/Serratus_Lite/query_virus_data/*.fa.*
 !/src/Serratus_Lite/query_virus_data/*.tsv
 /src/Serratus_Lite/slurm.out/
 /src/Serratus_Lite/results/
-/src/nonhost/test10/
-/src/nonhost/slurm.out/
