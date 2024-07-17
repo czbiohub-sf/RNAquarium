@@ -8,7 +8,7 @@ hisat-ref-indexes:     hisat2_Danio_rerio.GRCz11.dna_sm.primary_assembly_indexes
 star-ref-indexes-ercc: star_Danio_rerio_indexes.ERCC
 star-ref-indexes:      star_Danio_rerio_indexes
 bowtie-ref-indexes:    bowtie2_Danio_rerio.GRCz11.dna_sm.primary_assembly_indexes
-gsnap-ref-indexes:    gmap_Danio_rerio_index
+gsnap-ref-indexes:    gmap_Danio_rerio_indexes
 hisat-use-transcript: true
 publish-intermediate: false
 star-use-shared-mem: false
