@@ -1,12 +1,15 @@
 # Zebrafish RNAquarium
 
-## Streamlined analysis of all Zebrafish RNAseq datasets in the public archive
+## Pre-processing pipeline for all Zebrafish RNAseq datasets in the [NCBI Sequence Read Archive (SRA)](https://www.ncbi.nlm.nih.gov/sra)
 Produce the following for each Zebrafish dataset:
 - Gene counts table
 - Non-zebrafish reads
-- Transcriptome assembly of non-zebrafish reads
-- Taxonomy of non-zebrafish transcriptomes
+
+The RNAquarium pre-processing pipeline filters, by alignment to host genome, the majority of host
+reads retrieved.  For Zebrafish, starting from 60,912 runs this means retaining approximately
+22 billion out of 1.06 trillion input reads (~2%) as "possible nonhost" - this initial filtering is
+necessary to make more computationally expensive downstream searches and taxonomy calling feasible.
 
 ## Overview of the workflow
-![56d4797c-2520-4f9e-9789-04e08899bcdb](https://github.com/czbiohub-sf/Zebrafish-RNAquarium/assets/4129442/3fa6415c-ffdf-4847-ac2e-c364404ae905)
-(Illustration by Jacob Paras)
+![RNAquarium pipeline overview illustration](docs/_images/Q2_update_TLG3_v2_RNAquarium_pipeline_v1.svg)
+
