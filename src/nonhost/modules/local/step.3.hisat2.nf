@@ -16,6 +16,7 @@ params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
 params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
 params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
+params.hisatUseTranscript = true
 
 include {
 	hisat2_generate_indexes;

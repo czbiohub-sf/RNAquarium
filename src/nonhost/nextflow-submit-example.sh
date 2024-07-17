@@ -9,7 +9,7 @@
 module load nextflow
 module load mamba
 
-ACCESSIONS=data/SRA_accessions_list.test.txt
+ACCESSIONS=data/SRA_accessions_list.test.2.txt
 
 set -o verbose
 NXF_OPTS="-Xms500M -Xmx16G" PATH=$PATH:$PWD/bin nextflow run main.nf \
@@ -24,7 +24,7 @@ NXF_OPTS="-Xms500M -Xmx16G" PATH=$PATH:$PWD/bin nextflow run main.nf \
 	--star-use-shared-mem false --parallel-downloads 50 \
 	--tmp /tmp/ \
 	--cleanup-intermediate true --nxf-unstage-hack true \
-	-profile bruno,mamba
+	-profile testing,conda
 
 
 #	--fastq-path $PWD/fastq \
