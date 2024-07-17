@@ -2,25 +2,16 @@
 
 nextflow.enable.dsl=2
 
-def container_usage() {
-	return """Containerization options:
--profile docker           use docker containers to run commands when possible
--profile singularity      use singularity containers to run commands when possible
-							(avoid most pre-installation procedure)
-"""
-}
-
 params.accessionList = ""
 params.fastqPath = null // "$PWD/fastq"
 params.parallelDownloads = 100
 params.skipHostCounts = false
 params.skipHisat = false
-params.hisatUseTranscript = true
 params.help = false
 
 params.genomeSize = null // must be filled
-params.starRefIndexesErcc = null // "Danio_rerio.GRCz11.108.ERCC"
-params.starRefIndexes = null // "Danio_rerio.GRCz11.108"
+params.starRefIndexesErcc = null
+params.starRefIndexes = null
 params.hisatRefIndexes = null
 params.bowtieRefIndexes = null
 params.gsnapRefIndexes = null
@@ -48,6 +39,8 @@ params.backupTmp = null
 params.backupScratchHack = false
 params.nxfUnstageHack = false
 
+params.hisatUseTranscript = true
+params.starSjdbOverhang = 100
 params.starUseSharedMem = false
 params.starThreadsSmall = 4
 params.starThreadsLarge = 16
@@ -77,13 +70,13 @@ include { cleanup_branched; } from './modules/local/utils.nf' params(cleanupScri
 																	 tmp: params.tmp, backupTmp: params.backupTmp,
 																	 backupScratchHack: params.backupScratchHack)
 include { } from './modules/local/step.0.generate_indexes.nf' params(
-	publishDir: params.publishDir,
-	hisatUseTranscript: params.hisatUseTranscript,
 	refGenome: params.refGenome,
 	refGenomeGtf: params.refGenomeGtf,
 	erccFa: params.erccFa,
 	erccGtf: params.erccGtf,
 	starSjdbOverhang: params.starSjdbOverhang,
+	publishDir: params.publishDir,
+	hisatUseTranscript: params.hisatUseTranscript,
 	tmp: params.tmp,
 	backupTmp: params.backupTmp,
 	backupScratchHack: params.backupScratchHack,
@@ -134,6 +127,7 @@ include {
 	hisat2;
 	ensure_hisat2_indexes;
 } from './modules/local/step.3.hisat2.nf' params(
+	hisatUseTranscript: params.hisatUseTranscript,
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishHisat,
@@ -147,10 +141,10 @@ include {
 	star;
 	ensure_star_indexes;
 } from './modules/local/step.4.star.nf' params(
-	genomeSize: params.genomeSize,
 	starUseSharedMem: params.starUseSharedMem,
 	starThreadsSmall: params.starThreadsSmall,
 	starThreadsLarge: params.starThreadsLarge,
+	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishStar,
 	cleanupScript: cleanupScript,
@@ -215,6 +209,16 @@ include {
 	nxfUnstageHack: params.nxfUnstageHack
 )
 
+CONTAINERS = ["docker", "singularity", "conda", "mamba"]
+def container_usage() {
+	return """Containerization options:
+-profile docker           use docker containers to run commands when possible
+-profile singularity      use singularity containers to run commands when possible
+-profile conda            use conda packages to run commands when possible
+-profile mamba            use conda packages, through mamba, to run commands when possible
+"""
+}
+
 def join_by_id(ch1, ch2) {
 	keyed_ch1_mates = ch1.map { meta, data -> [meta.id, meta, data] }
 	keyed_ch2_mates = ch2.map { meta, data -> [meta.id, meta, data] }
@@ -248,6 +252,7 @@ workflow {
 		log.error "--ref-genome-gtf annotations are required for host read counts"
 		exit 1
 	}
+	// possibly check if container profiles are not active and we can't find a binary here
 	validateParameters()
 	StringBuilder param_info = new StringBuilder()
 	for (e in params) {
