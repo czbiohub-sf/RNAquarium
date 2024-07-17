@@ -71,6 +71,7 @@
                 "genomeSize"
             ]
         },
+
         "input_output_options": {
             "title": "Input/output options",
             "type": "object",
@@ -96,6 +97,7 @@
             ],
             "fa_icon": "fas fa-terminal"
         },
+
         "generic_options": {
             "title": "Generic options",
             "type": "object",
@@ -121,6 +123,12 @@
                     "hidden": true,
                     "description": "timestamp to append to nextflow reports (default: current time, YYMMDD-HHmmss)"
                 },
+                "minSafeMemory": {
+                    "type": "string",
+                    "default": "1 GB",
+                    "description": "minimum safe memory to request (used internally for HPC profile quirks)",
+                    "hidden": true,
+                },
                 "tmp": {
                     "type": "string",
                     "format": "directory-path",
@@ -138,14 +146,6 @@
                 "nxfUnstageHack": {
                     "type": "boolean",
                     "description": "enable hack to catch filesystem failures during nextflow unstaging and fail correctly."
-                },
-                "smallQueue": {
-                    "type": "string",
-                    "description": "executor queue/partition for smaller, preemptible short-lived jobs"
-                },
-                "largeQueue": {
-                    "type": "string",
-                    "description": "executor queue/partition for larger jobs that suffer when preempted"
                 },
                 "largeThreshold": {
                     "type": "number",
@@ -222,6 +222,7 @@
                 }
             }
         },
+
         "pipeline_options": {
             "title": "Pipeline options",
             "type": "object",
@@ -238,6 +239,7 @@
                 },
                 "hisatUseTranscript": {
                     "type": "boolean",
+                    "default": true,
                     "description": "When building hisat2 reference indexes from scratch, if true, don't use GTF transcript information"
                 },
                 "retainMixed": {
@@ -258,12 +260,18 @@
             },
             "fa_icon": "fas fa-project-diagram"
         },
+
         "tool_extra_parameters": {
             "title": "Tool extra parameters",
             "type": "object",
             "description": "Advanced tool configuration",
             "default": "",
             "properties": {
+                "starSjdbOverhang": {
+                    "type": "number",
+                    "default": 100,
+                    "description": "overhang length on each side of junctions. see STAR manual for details."
+                },
                 "starUseSharedMem": {
                     "type": "boolean",
                     "description": "If true, STAR will load and use genomes in shared memory. You probably do not want to use this, the resource allocation scheme cannot take advantage of shared memory."

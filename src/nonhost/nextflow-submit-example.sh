@@ -11,5 +11,5 @@ module load mamba
 
 set -o verbose
 NXF_OPTS="-Xms500M -Xmx16G" PATH=$PATH:$PWD/bin nextflow run main.nf \
-    -params-file params.example.yaml \
+	-params-file params.example.yaml \
 	-profile bruno,mamba
