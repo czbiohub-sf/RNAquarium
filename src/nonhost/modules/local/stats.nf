@@ -27,7 +27,7 @@ process stats_csv {
 	def PARSE_HISAT = params.skipHisat ? ",,,,," : (meta.single_end ? HISAT_UNPAIRED : HISAT_PAIRED)
 	"""
 	#       id single_end     reads       readlen
-	printf "id,single_end,starting_reads,median_len,"
+	printf "id,single_end,starting_reads,r1_median_len,r2_median_len,"
 	#
 	printf "fastp_reads_before,fastp_reads_after,fastp_reads_too_short,fastp_reads_trimmed,"
 	#                               %1 - %2
@@ -38,7 +38,7 @@ process stats_csv {
 	printf "dedup_reads_before,dedup_reads_after,"
 	printf "gsnap_reads_before,gsnap_aligned,gsnap_multialign,gsnap_aligned_unique,gsnap_unaligned,gsnap_mixed,final_reads\n"
 
-	printf "${idx},${meta.single_end},${meta.reads},${meta.readlen},"
+	printf "${idx},${meta.single_end},${meta.reads},${meta.readlen},${meta.readlen_2},"
 
 
 	# FASTP
