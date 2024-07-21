@@ -83,8 +83,7 @@ include { } from './modules/local/step.0.generate_indexes.nf' params(
 	nxfUnstageHack: params.nxfUnstageHack
 )
 include {
-	prefetch;
-	fastq_dump;
+	download;
 	check_direct_fastqs;
 	filter_barcodes;
 } from './modules/local/step.1.nf' params(
@@ -323,48 +322,48 @@ workflow {
 			}
 	}
 
-	// prefetch SRAs by remaining accessions
-	sra = prefetch(accessions).sra
-		.map { meta, sra, reads, sra_size ->
+	// download SRAs by remaining accessions
+	download(accessions).mates
+		.map { meta, fastq, reads, sra_size, median1, median2, count, fsize ->
 			def new_meta = [id: meta.id,
-							reads: reads.toLong(),
+							reads: count.toLong(),
 							sra_size: sra_size.toLong(),
+							readlen: median1.toLong(),
+							readlen_2: median2 != "" ? median2.toLong() : "",
+							fastq_size: fsize.toLong(),
+							single_end: fastq.size() != 2,
 							cleanup: "",
-							cleanup_later: "${sra.toString()}"]
-			[ new_meta, sra ]
+							cleanup_later: "${fastq.toString()}"]
+			[ new_meta, fastq ]
 		}
+		.view()
+		.set { download_result }
 
-	// and convert SRA to fastq
-	fastqs = fastq_dump(sra).mates
-		.map { meta, fastq -> {
-				def new_meta = meta.clone()
-				new_meta.cleanup = meta.cleanup_later
-				new_meta.cleanup_later = "${fastq.toString()}"
-				[ new_meta, fastq ]
-			}
-		}
-		.mix(check_direct_fastqs(direct_fastqs)) // , merging any existing fastqs
+	n_direct_fastqs = check_direct_fastqs(direct_fastqs) // , merging any existing fastqs
 
-	// heuristic filter scRNAseq barcode files and add metadata for resource optimization
-	filter_barcodes(fastqs)
-		.map { meta, fastq, median, count, fsize ->
+	// heuristic filter scRNAseq barcode files and add metadata for direct path
+	filter_barcodes(n_direct_fastqs)
+		.map { meta, fastq, median1, median2, count, fsize ->
 			def new_meta = meta.clone()
 			new_meta.reads = count.toLong()
-			new_meta.readlen = median.toLong()
+			new_meta.readlen = median1.toLong()
+			new_meta.readlen_2 = median2 != "" ? median2.toLong() : ""
 			new_meta.fastq_size = fsize.toLong()
 			new_meta.single_end = fastq.size() != 2
 			new_meta.cleanup = meta.cleanup_later
 			new_meta.cleanup_later = "${fastq.toString()}"
 			[ new_meta, fastq ]
 		}
+		.mix(download_result)
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out
 			ok: { meta, fastq -> 
 				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
 					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
-				}(it)
+			}(it)
 			dropouts: true
 		}
 		.set { filter_barcodes_result }
+
 
 	// step 2: adapter trimming & filtering
 	fastp(filter_barcodes_result.ok)
@@ -381,7 +380,7 @@ workflow {
 			ok: { meta, fastq -> 
 				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
 					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
-				}(it)
+			}(it)
 			
 			dropouts: true
 		}

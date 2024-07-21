@@ -18,7 +18,7 @@ include {
 } from './utils.nf'
 
 
-process prefetch {
+process download {
 	label 'sratools'
 	maxForks params.parallelDownloads
 
@@ -26,9 +26,9 @@ process prefetch {
 	tuple val(meta), val(sra_id)
 
 	output:
-	tuple val(meta), path('[S,E,D]RR*[0-9]/*.sra*'), env(reads), env(sra_size), emit: sra
-	tuple val(meta), path("info.txt"), emit: stats
-	tuple val(meta), path("validate.txt"), emit: vdb_validate
+	tuple val(meta), path("fastq/${sra_id}/*.fastq.gz", arity: '1..2'), env(reads), env(sra_size), env(median1), env(median2), env(count1), env(size1), emit: mates
+	tuple val(meta), path("info.txt"), emit: srastats
+	tuple val(meta), path("stats.txt"), emit: dumpstats
 
 	// fastq-dump wants sras in the current directory. this is a problem for
 	// nf's usually directory-agnostic behavior - it could be that the input is
@@ -37,82 +37,78 @@ process prefetch {
 					sleep \$((1 + RANDOM % 30))s"""}
 
 	script:
-	"""
+	def PROLOGUE = """
 	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
 
+	# prefetch won't run without config, we can't control much, but at least initialize it
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-	prefetch --output-directory staging --max-size 1t --force ALL $sra_id
+	mkdir -p fastq
+	"""
+	def PREFETCH = """
+	# we get sralite most of the time, but don't want to fail if it doesn't exist
+	prefetch --output-directory staging --max-size 1t --force ALL ${sra_id}
 	cd staging
-	vdb-validate -I no $sra_id 2> ../validate.txt
-	vdb-dump --info $sra_id > ../info.txt
+	vdb-dump --info ${sra_id} > ../info.txt
 	cd ..
 	sra_size=\$(awk -F': ' '/^size/{gsub(/,/,"",\$2);print \$2}' info.txt)
 	reads=\$(awk -F': ' '/^SEQ/{gsub(/,/,"",\$2);print \$2}' info.txt)
-	trap -- '' SIGTERM
-	mv staging/$sra_id $sra_id
 	"""
-}
-
-process fastq_dump {
-	label 'sratools'
-
-	// omit 'fastq/$meta.id' because we output that entire folder here
-	publishDir "$params.publishDir", enabled: params.publishIntermediate
-
-	input:
-	tuple val(meta), path("${meta.id}/${meta.id}.sra*")
-
-	output:
-	tuple val(meta), path("fastq/${meta.id}/*.fastq.gz"), emit: mates
-	tuple val(meta), path("stats.txt"), emit: stats
-
-	/*beforeScript = {"""${task.ext.extraBeforeScript ?: ""}
-		rm -rf \$NXF_SCRATCH || true
-		local tmp_avail=\$(df -P "${params.tmp}" | tail -1 | awk '{print \$4}')
-		tmp_choice="${params.backupTmp}"
-		readarray -t ids < <(squeue -w \$SLURMD_NODENAME -o "%i" -S i | tail -n +2)
-		PERJOBGUESS=67108864  # 64 GB? / 1024 (df reports 1K blocks)
-		res_guess=0
-		for (( i=0; i < \${#ids[@]}; i++ ));
-		do
-			if [[ \${ids[\$i]} -eq "\$SLURM_JOB_ID" ]];
-			then
-				res_guess=\$(( \$PERJOBGUESS * \$i ))
-			fi
-		done
-		if [[ ${meta.sra_size} -ne 0 && \$(( ${meta.sra_size} * 50 * 2 )) -le \$(( (\$tmp_avail - \$res_guess) * 1024 )) ]]
-		then
-			tmp_choice="${params.tmp}"
-		fi
-		NXF_SCRATCH="\$(set +u; nxf_mktemp \$tmp_choice)"
-					"""}*/
-
-
-	script:
-	mem = task.memory.toString() - ~/ /
-	if (task.attempt == 1) """
-	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
-	mkdir -p fastq
-	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-	fasterq-dump --split-3 -e ${task.cpus} -m ${task.memory.toMega()-100}MB \
-		--outdir fastq/${meta.id}.staging ${meta.id} 2>stats.txt
-
+	// consider collecting vdb-dump $sra_id -R 1-100000 -C READ_TYPE,READ_LEN -ftab | \
+	// sed "s/\(SRA_READ_TYPE_\|IOLOGICAL\|ECHNICAL\|FORWARD\|REVERSE\||\)//g" | \
+	// sort --parallel=4 | uniq -c | sort -rh
+	// as well
+	def EPILOGUE = """
 	trap -- '' SIGTERM
-	${task.ext.gzipCmd} fastq/${meta.id}.staging/*.fastq
-	mv fastq/${meta.id}.staging fastq/${meta.id}
 	"""
-	else """
-	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
-
+	def FASTQ_DUMP = (task.attempt <= 2) ? """
+	fasterq-dump ${sra_id} --split-3 --temp /dev/shm -x -e ${task.cpus} \
+		-b ${task.memory.toMega()/2}M -c ${task.memory.toMega()/2}M \
+		-m ${task.memory.toMega()-100}M \
+		--seq-defline '@\$ac.\$si/\$ri' --qual-defline '+' \
+		--outdir fastq/${sra_id}.staging 2>stats.txt
+	""" : """
 	echo fasterq-dump encountered error, reverting to using fastq-dump
-	mkdir -p fastq
-	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
-	fastq-dump --split-3 --disable-multithreading \
-		--outdir fastq/${meta.id}.staging ${meta.id} 2>stats.txt
+	fastq-dump ${sra_id} --split-3 \
+		--defline-seq '@\$ac.\$si/\$ri' --defline-qual '+' \
+		--outdir fastq/${sra_id}.staging 2>stats.txt
+	"""
+	"""
+	${PROLOGUE}
+	${PREFETCH}
+	${FASTQ_DUMP}
+	rm -f ./${sra_id}/${sra_id}.sra*
 
-	trap -- '' SIGTERM
-	${task.ext.gzipCmd} fastq/${meta.id}.staging/*.fastq
-	mv fastq/${meta.id}.staging fastq/${meta.id}
+	# filter obvious barcode reads
+	f=fastq/${sra_id}.staging/${sra_id}.fastq
+	f1=fastq/${sra_id}.staging/${sra_id}_1.fastq
+	f2=fastq/${sra_id}.staging/${sra_id}_2.fastq
+	if [[ ! ( -e \${f1} && -e \${f2} ) ]]; then  # single read file
+		IFS=\$'\\t' read -rd \$'\\n' median1 differing1 count1 size1 <<<"\$(fastq-lengths summary \${f})"
+		echo $meta.id SE
+		rm -f \${f1} \${f2}
+	else # possibly paired, but may be scRNAseq barcodes
+		IFS=\$'\\t' read -rd \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary 2000000 \${f1})"
+		IFS=\$'\\t' read -rd \$'\\n' median2 differing2 count2 size2 <<< "\$(fastq-lengths summary 2000000 \${f2})"
+		if [ \$median1 -lt 32 ] && [ \$median2 -gt 80 ]; then
+			echo $meta.id scRNAseq
+			rm \${f1} # discard read 1 (cell barcode)
+			rm -f \${f}
+			mv \${f2} \${f}
+			size1=\$size2
+		elif [ \$median1 -gt 80 ] && [ \$median2 -lt 32 ]; then
+			echo $meta.id scRNAseq
+			rm \${f2} # discard read 2 (cell barcode)
+			rm -f \${f}
+			mv \${f1} \${f}
+		else
+			echo $meta.id PE
+			rm -f \${f}
+			size1=\$(bc<<<"\$size2+\$size1")
+		fi
+	fi
+	
+	${task.ext.gzipCmd} fastq/${sra_id}.staging/*.fastq
+	mv fastq/${sra_id}.staging fastq/${sra_id}
 	"""
 }
 
@@ -139,7 +135,7 @@ process filter_barcodes {
 	tuple val(meta), path(fastqs)
 
 	output:
-	tuple val(meta), path("*.filtered.fastq.gz", arity: '1..2'), env(median), env(count), env(size)
+	tuple val(meta), path("*.filtered.fastq.gz", arity: '1..2'), env(median1), env(median2), env(count1), env(size1)
 
 	script:
 	def SUFFIX = ".filtered.fastq.gz"
@@ -153,26 +149,24 @@ process filter_barcodes {
 	# one set of reads, or two?
 	if [[ ! ( -e ${meta.id}_1.fastq && -e ${meta.id}_2.fastq ) ]]
 	then # single
-	IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary ${meta.id}.fastq)"
+		IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary ${meta.id}.fastq)"
 		echo $meta.id SE
 		${task.ext.gzipCmd} -fnc ${meta.id}.fastq > ${meta.id}${SUFFIX}.staging
 		mv ${meta.id}${SUFFIX}.staging ${meta.id}${SUFFIX}
 	else # possibly paired, but may be scRNAseq barcodes
-	IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary ${meta.id}_1.fastq)"
-	IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary ${meta.id}_2.fastq)"
-		if [ \$median1 -lt 32 ] && [ \$median -gt 80 ]
-		then
+		IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary ${meta.id}_1.fastq)"
+		IFS=\$'\\t' read -r -d \$'\\n' median2 differing2 count2 size2 <<< "\$(fastq-lengths summary ${meta.id}_2.fastq)"
+		if [ \$median1 -lt 32 ] && [ \$median2 -gt 80 ]; then
 			echo $meta.id scRNAseq
 			rm ${meta.id}_1.fastq # discard read 1 (cell barcode)
 			mv ${meta.id}_2.fastq ${meta.id}.fastq
 			${task.ext.gzipCmd} -fnc ${meta.id}.fastq > ${meta.id}${SUFFIX}.staging
 			mv ${meta.id}${SUFFIX}.staging ${meta.id}${SUFFIX}
-		elif [ \$median1 -gt 80 ] && [ \$median -lt 32 ]
-		then
+			size1=\$size2
+		elif [ \$median1 -gt 80 ] && [ \$median2 -lt 32 ]; then
 			echo $meta.id scRNAseq
 			rm ${meta.id}_2.fastq # discard read 2 (cell barcode)
 			mv ${meta.id}_1.fastq ${meta.id}.fastq
-			median=\$median1
 			${task.ext.gzipCmd} -fnc ${meta.id}.fastq > ${meta.id}${SUFFIX}.staging
 			mv ${meta.id}${SUFFIX}.staging ${meta.id}${SUFFIX}
 		else
@@ -181,6 +175,7 @@ process filter_barcodes {
 			${task.ext.gzipCmd} -fnc ${meta.id}_2.fastq > ${meta.id}_2${SUFFIX}.staging
 			mv ${meta.id}_1${SUFFIX}.staging ${meta.id}_1${SUFFIX}
 			mv ${meta.id}_2${SUFFIX}.staging ${meta.id}_2${SUFFIX}
+			size1=\$(bc<<<"\$size2+\$size1")
 		fi
 	fi
 	${task.ext.gzipCmd} -t *${SUFFIX}
@@ -195,25 +190,20 @@ workflow {
 	accessions = channel.fromPath(params.accessionsList).splitText()
 		.map { acc -> [[id: acc.trim()], acc.trim()] }
 
-	sra = prefetch(accessions)
-		.map { meta, sra, reads, sra_size ->
+	fastqs_2 = download(accessions).mates
+		.map { meta, fastq, reads, sra_size, median1, median2, count, fsize ->
 			def new_meta = [id: meta.id,
-							reads: reads.toInteger(),
-							sra_size: sra_size.toInteger() ]
+							reads: count.toLong(),
+							sra_size: sra_size.toLong(),
+							readlen: median1.toLong(),
+							readlen_2: median2 != "" ? median2.toLong() : "",
+							fastq_size: fsize.toLong(),
+							single_end: fastq.size() != 2,
+							cleanup: "",
+							cleanup_later: "${sra.toString()}"]
 			[ new_meta, sra ]
 		}
 
-	fastqs = fastq_dump(sra)
-
-	fastqs_2 = filter_barcodes(fastqs)
-		.map { meta, fastq, median, count, fsize ->
-			def new_meta = meta.clone()
-			new_meta.reads = count.toInteger()
-			new_meta.readlen = median.toInteger()
-			new_meta.fastq_size = fsize.toInteger()
-			new_meta.single_end = fastq.size() != 2
-			[ new_meta, fastq ]
-		}
 
 	SAVE_METASHEET(fastqs_2, params.metaOut)
 }
