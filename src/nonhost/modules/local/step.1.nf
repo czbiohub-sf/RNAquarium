@@ -37,14 +37,14 @@ process download {
 					sleep \$((1 + RANDOM % 30))s"""}
 
 	script:
-	PROLOGUE = """
+	def PROLOGUE = """
 	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
 
 	# prefetch won't run without config, we can't control much, but at least initialize it
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	mkdir -p fastq
 	"""
-	PREFETCH = """
+	def PREFETCH = """
 	# we get sralite most of the time, but don't want to fail if it doesn't exist
 	prefetch --output-directory staging --max-size 1t --force ALL ${sra_id}
 	cd staging
@@ -57,10 +57,10 @@ process download {
 	// sed "s/\(SRA_READ_TYPE_\|IOLOGICAL\|ECHNICAL\|FORWARD\|REVERSE\||\)//g" | \
 	// sort --parallel=4 | uniq -c | sort -rh
 	// as well
-	EPILOGUE = """
+	def EPILOGUE = """
 	trap -- '' SIGTERM
 	"""
-	FASTQ_DUMP = (task.attempt <= 2) ? """
+	def FASTQ_DUMP = (task.attempt <= 2) ? """
 	fasterq-dump ${sra_id} --split-3 --temp /dev/shm -x -e ${task.cpus} \
 		-b ${task.memory.toMega()/2}M -c ${task.memory.toMega()/2}M \
 		-m ${task.memory.toMega()-100}M \
@@ -76,6 +76,7 @@ process download {
 	${PROLOGUE}
 	${PREFETCH}
 	${FASTQ_DUMP}
+	rm -f ./${sra_id}/${sra_id}.sra*
 
 	# filter obvious barcode reads
 	f=fastq/${sra_id}.staging/${sra_id}.fastq
@@ -134,7 +135,7 @@ process filter_barcodes {
 	tuple val(meta), path(fastqs)
 
 	output:
-	tuple val(meta), path("*.filtered.fastq.gz", arity: '1..2'), env(median), env(count), env(size)
+	tuple val(meta), path("*.filtered.fastq.gz", arity: '1..2'), env(median1), env(median2), env(count1), env(size1)
 
 	script:
 	def SUFFIX = ".filtered.fastq.gz"
@@ -148,26 +149,24 @@ process filter_barcodes {
 	# one set of reads, or two?
 	if [[ ! ( -e ${meta.id}_1.fastq && -e ${meta.id}_2.fastq ) ]]
 	then # single
-		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary ${meta.id}.fastq)"
+		IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary ${meta.id}.fastq)"
 		echo $meta.id SE
 		${task.ext.gzipCmd} -fnc ${meta.id}.fastq > ${meta.id}${SUFFIX}.staging
 		mv ${meta.id}${SUFFIX}.staging ${meta.id}${SUFFIX}
 	else # possibly paired, but may be scRNAseq barcodes
 		IFS=\$'\\t' read -r -d \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary ${meta.id}_1.fastq)"
-		IFS=\$'\\t' read -r -d \$'\\n' median differing count size <<< "\$(fastq-lengths summary ${meta.id}_2.fastq)"
-		if [ \$median1 -lt 32 ] && [ \$median -gt 80 ]
-		then
+		IFS=\$'\\t' read -r -d \$'\\n' median2 differing2 count2 size2 <<< "\$(fastq-lengths summary ${meta.id}_2.fastq)"
+		if [ \$median1 -lt 32 ] && [ \$median2 -gt 80 ]; then
 			echo $meta.id scRNAseq
 			rm ${meta.id}_1.fastq # discard read 1 (cell barcode)
 			mv ${meta.id}_2.fastq ${meta.id}.fastq
 			${task.ext.gzipCmd} -fnc ${meta.id}.fastq > ${meta.id}${SUFFIX}.staging
 			mv ${meta.id}${SUFFIX}.staging ${meta.id}${SUFFIX}
-		elif [ \$median1 -gt 80 ] && [ \$median -lt 32 ]
-		then
+			size1=\$size2
+		elif [ \$median1 -gt 80 ] && [ \$median2 -lt 32 ]; then
 			echo $meta.id scRNAseq
 			rm ${meta.id}_2.fastq # discard read 2 (cell barcode)
 			mv ${meta.id}_1.fastq ${meta.id}.fastq
-			median=\$median1
 			${task.ext.gzipCmd} -fnc ${meta.id}.fastq > ${meta.id}${SUFFIX}.staging
 			mv ${meta.id}${SUFFIX}.staging ${meta.id}${SUFFIX}
 		else
@@ -176,6 +175,7 @@ process filter_barcodes {
 			${task.ext.gzipCmd} -fnc ${meta.id}_2.fastq > ${meta.id}_2${SUFFIX}.staging
 			mv ${meta.id}_1${SUFFIX}.staging ${meta.id}_1${SUFFIX}
 			mv ${meta.id}_2${SUFFIX}.staging ${meta.id}_2${SUFFIX}
+			size1=\$(bc<<<"\$size2+\$size1")
 		fi
 	fi
 	${task.ext.gzipCmd} -t *${SUFFIX}

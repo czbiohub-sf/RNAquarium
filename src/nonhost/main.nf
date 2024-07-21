@@ -343,10 +343,11 @@ workflow {
 
 	// heuristic filter scRNAseq barcode files and add metadata for direct path
 	filter_barcodes(n_direct_fastqs)
-		.map { meta, fastq, median, count, fsize ->
+		.map { meta, fastq, median1, median2, count, fsize ->
 			def new_meta = meta.clone()
 			new_meta.reads = count.toLong()
-			new_meta.readlen = median.toLong()
+			new_meta.readlen = median1.toLong()
+			new_meta.readlen_2 = median2 != "" ? median2.toLong() : ""
 			new_meta.fastq_size = fsize.toLong()
 			new_meta.single_end = fastq.size() != 2
 			new_meta.cleanup = meta.cleanup_later
