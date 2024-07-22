@@ -30,9 +30,6 @@ process download {
 	tuple val(meta), path("info.txt"), emit: srastats
 	tuple val(meta), path("stats.txt"), emit: dumpstats
 
-	// fastq-dump wants sras in the current directory. this is a problem for
-	// nf's usually directory-agnostic behavior - it could be that the input is
-	// cached from a previous run and the absolute dir invisible,
 	beforeScript = {"""${task.ext.extraBeforeScript ?: ""}
 					sleep \$((1 + RANDOM % 30))s"""}
 
