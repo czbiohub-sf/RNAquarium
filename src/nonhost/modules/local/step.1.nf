@@ -36,7 +36,8 @@ process download {
 	script:
 	def PROLOGUE = """
 	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
-
+	set -v
+	
 	# prefetch won't run without config, we can't control much, but at least initialize it
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	mkdir -p fastq
@@ -59,8 +60,8 @@ process download {
 	"""
 	def FASTQ_DUMP = (task.attempt <= 2) ? """
 	fasterq-dump ${sra_id} --split-3 --temp /dev/shm -x -e ${task.cpus} \
-		-b ${task.memory.toMega()/2}M -c ${task.memory.toMega()/2}M \
-		-m ${task.memory.toMega()-100}M \
+		-b ${Math.min(task.memory.toMega()/4,1024)}M -c 16M \
+		-m ${Math.min(task.memory.toMega()/2,4096)}M \
 		--seq-defline '@\$ac.\$si/\$ri' --qual-defline '+' \
 		--outdir fastq/${sra_id}.staging 2>stats.txt
 	""" : """
