@@ -287,8 +287,15 @@ workflow {
 
 	// step 1: download and convert to fastq
 	// find existing fastqs
-	accessions = Channel.fromPath(params.accessionList, type: 'file').splitText()
-		.map { acc -> acc.trim() }
+	// allow RunInfo csv (Run, size_MB)
+	accessions = (params.accessionList =~ /\.csv$/)
+	? Channel.fromPath(params.accessionList, type: 'file')
+		.splitCsv( header: true )
+		.map { row -> [row.Run.trim(), row.size_MB.toLong()] }
+	: Channel.fromPath(params.accessionList, type: 'file')
+		.splitText()
+		.map { acc -> [acc.trim(), null] }
+
 
 	if (params.fastqPath && file(params.fastqPath).exists()) {
 		try {
@@ -301,14 +308,14 @@ workflow {
 				}
 			direct_fastq_ids = direct_fastqs
 				.map { meta, _ ->
-					[ meta.id, true ]
+					[ meta.id, null, true ]
 				}
 			// remove ids that exist in pre-dumped fastq path from accessions list
 			accessions = accessions
 				.join(direct_fastq_ids, remainder: true, by: 0)
-				.filter { key, v2 -> !v2 }
-				.map { key, _ ->
-					[ [id: key], key ]
+				.filter { key, s, v2 -> !v2 }
+				.map { key, size_MB, _ ->
+					[ [id: key, size_MB: size_MB, cleanup: "", cleanup_later: ""], key ]
 				}
 		} catch (Exception e) {
 			log.error "--fastq-path $params.fastqPath is not folders of fastq?\n$e"
@@ -317,8 +324,8 @@ workflow {
 	} else {
 		direct_fastqs = Channel.empty()
 		accessions = accessions
-			.map { key ->
-				[ [id: key, cleanup: "", cleanup_later: ""], key ]
+			.map { size_MB, key ->
+				[ [id: key, size_MB: size_MB, cleanup: "", cleanup_later: ""], key ]
 			}
 	}
 
@@ -332,6 +339,7 @@ workflow {
 							readlen_2: median2 != "" ? median2.toLong() : "",
 							fastq_size: fsize.toLong(),
 							single_end: fastq.size() != 2,
+							size_MB = meta.size_MB,
 							cleanup: "",
 							cleanup_later: "${fastq.toString()}"]
 			[ new_meta, fastq ]
@@ -350,6 +358,7 @@ workflow {
 			new_meta.readlen_2 = median2 != "" ? median2.toLong() : ""
 			new_meta.fastq_size = fsize.toLong()
 			new_meta.single_end = fastq.size() != 2
+			new_meta.size_MB = meta?.size_MB
 			new_meta.cleanup = meta.cleanup_later
 			new_meta.cleanup_later = "${fastq.toString()}"
 			[ new_meta, fastq ]
