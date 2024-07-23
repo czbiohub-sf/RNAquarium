@@ -13,7 +13,7 @@
 UNMERGED_ACC="/hpc/projects/balla_group/sra_experiments/zebrafish_RNAseq/rnaquarium_output/nonhost_reads/"
 BIOPROJ_MAP="tmp/filt_mapping.json"
 WORK_DIR="/hpc/scratch/group.swe/rnaquarium/work"
-PUB_DIR="./output_2024_05_29/"
+PUB_DIR="./output_2024_06_28/"
 NT_DIR="/hpc/scratch/group.swe/db/nt_clustered"
 NT_DB_NAME="nt_compressed_shuffled.fa"
 

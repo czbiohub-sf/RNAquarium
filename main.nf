@@ -1,8 +1,8 @@
-include { MERGE_UNMAPPED                       } from './modules/merge_unmapped.nf'
-include { SPADES_SINGLE_END; SPADES_PAIRED_END } from './modules/assembly.nf'
-include { PARSE_ACCESSIONS; DOWNLOAD_SRA_TAB   } from './modules/accession_mapping.nf'
-include { CHUNK_ASSEMBLED_FASTAS2              } from './modules/preblast.nf'
-include { BLAST; BLAST2; CONCAT_BLAST          } from './modules/blast.nf'
+include { MERGE_UNMAPPED                          } from './modules/merge_unmapped.nf'
+include { SPADES_SINGLE_END; SPADES_PAIRED_END    } from './modules/assembly.nf'
+include { PARSE_ACCESSIONS; DOWNLOAD_SRA_TAB      } from './modules/accession_mapping.nf'
+include { CHUNK_ASSEMBLED_FASTAS2                 } from './modules/preblast.nf'
+include { BLAST; CUT_BLAST_RESULTS; BLAST_FULL_NT } from './modules/blast.nf'
 
 workflow {
     if (!params.unmerged_accessions) {
@@ -65,5 +65,8 @@ workflow {
 
     // chunked_transcripts = CHUNK_ASSEMBLED_FASTAS(all_transcripts).flatten()
     chunked_transcripts = CHUNK_ASSEMBLED_FASTAS2(all_transcripts).flatten()
-    blast_results = BLAST(chunked_transcripts).collect() | CONCAT_BLAST
+    blast_results = BLAST(chunked_transcripts)
+    non_zf_hum_fa = CUT_BLAST_RESULTS(blast_results)
+    full_nt_blast_results = BLAST_FULL_NT(non_zf_hum_fa)
+    // diamond_results = DIAMOND(non_zf_hum_fa)
 }
