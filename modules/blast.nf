@@ -89,29 +89,3 @@ process BLAST_FULL_NT {
     mv "\${OUTPUT_STAGING}.gz" "\${OUTPUT}"
     """
 }
-
-process DIAMOND {
-    input:
-    path transcripts
-
-    output:
-    path "${transcripts.simpleName}.diamond.txt.gz"
-
-    script:
-    """
-    OUTPUT="\${PWD}/${transcripts.simpleName}.diamond.txt"
-    INPUT="\${PWD}/${transcripts}"
-    cd /db
-
-    diamond blastx \
-        --ultra-sensitive \
-        --db /db/nr \
-        --threads $task.cpus \
-        --query \$INPUT \
-        --outfmt 6 qseqid sseqid staxids sscinames sskingdoms pident length mismatch qcovhsp gapopen qstart qend sstart send evalue bitscore \
-        --top 3 \
-        --evalue 0.05 \
-        --out \$OUTPUT
-    gzip \$OUTPUT
-    """
-}
