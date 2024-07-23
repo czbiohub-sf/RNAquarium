@@ -288,8 +288,8 @@ workflow {
 	// step 1: download and convert to fastq
 	// find existing fastqs
 	// allow RunInfo csv (Run, size_MB)
-	accessions = (params.accessionList =~ /\.csv$/)
-	? Channel.fromPath(params.accessionList, type: 'file')
+	accessions = params.accessionList =~ /\.csv$/
+		? Channel.fromPath(params.accessionList, type: 'file')
 		.splitCsv( header: true )
 		.map { row -> [row.Run.trim(), row.size_MB.toLong()] }
 	: Channel.fromPath(params.accessionList, type: 'file')
@@ -302,8 +302,8 @@ workflow {
 			direct_fastqs = Channel.fromPath("$params.fastqPath/*", type: 'dir')
 				.map { path -> // need to think about this more, failure handling?
 					def new_meta = [id: path.getSimpleName(),
-									sra_size: files("$path/*.fastq")[0].size()
-									]
+									sra_size: files("$path/*.fastq")[0].size(),
+									size_MB: null]
 					[ new_meta, path ]
 				}
 			direct_fastq_ids = direct_fastqs
@@ -314,8 +314,8 @@ workflow {
 			accessions = accessions
 				.join(direct_fastq_ids, remainder: true, by: 0)
 				.filter { key, s, v2 -> !v2 }
-				.map { key, size_MB, _ ->
-					[ [id: key, size_MB: size_MB, cleanup: "", cleanup_later: ""], key ]
+				.map { key, MB, _ ->
+					[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
 				}
 		} catch (Exception e) {
 			log.error "--fastq-path $params.fastqPath is not folders of fastq?\n$e"
@@ -324,8 +324,8 @@ workflow {
 	} else {
 		direct_fastqs = Channel.empty()
 		accessions = accessions
-			.map { size_MB, key ->
-				[ [id: key, size_MB: size_MB, cleanup: "", cleanup_later: ""], key ]
+			.map { key, MB ->
+				[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
 			}
 	}
 
@@ -339,7 +339,7 @@ workflow {
 							readlen_2: median2 != "" ? median2.toLong() : "",
 							fastq_size: fsize.toLong(),
 							single_end: fastq.size() != 2,
-							size_MB = meta.size_MB,
+							size_MB: meta.size_MB,
 							cleanup: "",
 							cleanup_later: "${fastq.toString()}"]
 			[ new_meta, fastq ]
