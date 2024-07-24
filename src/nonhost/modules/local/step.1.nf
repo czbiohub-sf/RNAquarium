@@ -59,14 +59,14 @@ process download {
 	trap -- '' SIGTERM
 	"""
 	def FASTQ_DUMP = (task.attempt <= 2) ? """
-	fasterq-dump ${sra_id} --split-3 --temp /dev/shm -x -e ${task.cpus} \
+	fasterq-dump staging/${sra_id} --split-3 --temp /dev/shm -x -e ${task.cpus} \
 		-b 4M -c 32M \
 		-m ${4096*task.attempt}M \
 		--seq-defline '@\$ac.\$si/\$ri' --qual-defline '+' \
 		--outdir fastq/${sra_id}.staging 2>stats.txt
 	""" : """
 	echo fasterq-dump encountered error, reverting to using fastq-dump
-	fastq-dump ${sra_id} --split-3 \
+	fastq-dump staging/${sra_id} --split-3 \
 		--defline-seq '@\$ac.\$si/\$ri' --defline-qual '+' \
 		--outdir fastq/${sra_id}.staging 2>stats.txt
 	"""
