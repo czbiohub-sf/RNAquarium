@@ -154,8 +154,7 @@ include {
 )
 include {
 	bowtie2;
-	process_bowtie2_sam;
-	bowtie2_filter_by_names;
+	bowtie2_filter;
 	ensure_bowtie2_indexes;
 } from './modules/local/step.5.bowtie.nf' params(
 	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
@@ -183,8 +182,7 @@ include {
 )
 include {
 	gsnap;
-	process_gsnap_sam;
-	gsnap_filter_by_names;
+	gsnap_filter;
 	gsnap_skip;
 	ensure_gsnap_indexes;
 } from './modules/local/step.7.gsnap.nf' params(
@@ -464,25 +462,17 @@ workflow {
 	}
 	
 	// step 5: bowtie2
-	bowtie2(star_result, bowtie2_indexes).sam
-		.map { meta, sam -> 
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
-			[ m, sam ]
+	bowtie2(star_result, bowtie2_indexes).bam
+		.map { meta, bam ->
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${bam.toString()}"
+			[ m, bam ]
 		}
 		.set { bowtie2_result }
-	// add generic key for join operation
-	process_bowtie2_sam(bowtie2_result).names
-		.map { meta, names ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${names.toString()}"
-			[ m, names ]
-		}
-		.set { process_bowtie2_result }
-	bowtie2_filter_input = join_by_id(process_bowtie2_result, star.out.mates)
-	
-	bowtie2_filter_by_names(bowtie2_filter_input)
-	
+	bowtie2_filter_input = join_by_id(bowtie2_result, star.out.mates)
+	bowtie2_filter(bowtie2_filter_input)
+
 	// step 6: deduplication
-	bowtie2_filter_by_names.out.mates
+	bowtie2_filter.out.mates
 		.map { meta, mates ->
 			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
 			[ m, mates ]
@@ -513,9 +503,8 @@ workflow {
 			fails: true
 		}
 		.set { gsnap_result }
-	process_gsnap_sam(gsnap_result.ok)
-	gsnap_filter_input = join_by_id(process_gsnap_sam.out.names, dedup.out.mates)
-	gsnap_filter_by_names(gsnap_filter_input)
+	gsnap_filter_input = join_by_id(gsnap_result.ok, dedup.out.mates)
+	gsnap_filter(gsnap_filter_input)
 
 	// if gsnap fails a run for any non-oom reason, keep the nonhost reads from before that.
 	dedup.out.mates
@@ -539,9 +528,9 @@ workflow {
 		hisat2_stats = [ meta_stats[0], "n/a" ]
 	}
 	star_stats    = star.out.stats.map    { meta, stats -> [ meta.id, stats ] }
-	bowtie2_stats = process_bowtie2_sam.out.stats.map { meta, stats -> [ meta.id, stats ] }
+	bowtie2_stats = bowtie2_filter.out.stats.map { meta, stats -> [ meta.id, stats ] }
 	dedup_stats   = dedup.out.stats.map   { meta, stats -> [ meta.id, stats ] }
-	gsnap_stats   = process_gsnap_sam.out.stats.map { meta, stats -> [ meta.id, stats, "yes" ] }
+	gsnap_stats   = gsnap_filter.out.stats.map { meta, stats -> [ meta.id, stats, "yes" ] }
 		.concat (gsnap_skip.out.mates.map { meta, mates -> [ meta.id, null, "no" ] })
 
 	all_stats = meta_stats.join(fastp_stats)
