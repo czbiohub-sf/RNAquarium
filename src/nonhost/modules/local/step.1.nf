@@ -60,8 +60,8 @@ process download {
 	"""
 	def FASTQ_DUMP = (task.attempt <= 2) ? """
 	fasterq-dump ${sra_id} --split-3 --temp /dev/shm -x -e ${task.cpus} \
-		-b ${Math.min(task.memory.toMega()/4,1024)}M -c 16M \
-		-m ${Math.min(task.memory.toMega()/2,4096)}M \
+		-b 4M -c 32M \
+		-m ${4096*task.attempt}M \
 		--seq-defline '@\$ac.\$si/\$ri' --qual-defline '+' \
 		--outdir fastq/${sra_id}.staging 2>stats.txt
 	""" : """
