@@ -1,3 +1,4 @@
+#!/bin/bash
 sed -nr 's/.*\(([^)]+).*terminated with an error exit status.*/\1/p' $1 | sort | uniq |
 while read -r accession; do
 # read process name, accession, slurm job id, working directory for given accession
