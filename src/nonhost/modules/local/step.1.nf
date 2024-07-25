@@ -59,7 +59,7 @@ process download {
 	trap -- '' SIGTERM
 	"""
 	def FASTQ_DUMP = (task.attempt <= 2) ? """
-	fasterq-dump staging/${sra_id} --split-3 --temp /dev/shm -x -e ${task.cpus} \
+	fasterq-dump staging/${sra_id} --split-3 -x -e ${task.cpus} \
 		-b 4M -c 32M \
 		-m ${4096*task.attempt}M \
 		--seq-defline '@\$ac.\$si/\$ri' --qual-defline '+' \
