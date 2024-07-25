@@ -48,7 +48,7 @@ process bowtie2 {
 	tuple val(idx_basename), path("bowtie2_index/*")
 
 	output:
-	tuple val(meta), path("bowtie2.bam"), emit: bam
+	tuple val(meta), path("bowtie2.sam"), emit: sam
 
 	script:
 	// can we safely enable --no-discordant here?
@@ -58,16 +58,16 @@ process bowtie2 {
 		-x bowtie2_index/${idx_basename} """
 	if (!meta.single_end)
 	"""
-	${BOWTIE2_CMD} -1 ${mategz[0]} -2 ${mategz[1]} -b bowtie2.bam.staging
-	mv bowtie2.bam.staging bowtie2.bam
+	${BOWTIE2_CMD} -1 ${mategz[0]} -2 ${mategz[1]} -S bowtie2.staging.sam
+	mv bowtie2.staging.sam bowtie2.sam
 
 	cleanup="${meta.cleanup}"
 	${params.cleanupScript}
 	"""
 	else if (meta.single_end)
 	"""
-	${BOWTIE2_CMD} -U ${mategz} -S bowtie2.bam.staging
-	mv bowtie2.bam.staging bowtie2.bam
+	${BOWTIE2_CMD} -U ${mategz} -S bowtie2.staging.sam
+	mv bowtie2.staging.sam bowtie2.sam
 
 	cleanup="${meta.cleanup}"
 	${params.cleanupScript}
@@ -78,7 +78,7 @@ process bowtie2_filter {
 	label 'samtools'
 
 	input:
-	tuple val(meta), path("bowtie2.bam"), path(mategz, arity: '1..2')
+	tuple val(meta), path("bowtie2.sam"), path(mategz, arity: '1..2')
 
 	def SUFFIX = "filteredbyBT.fastq"
 	output:
@@ -95,8 +95,8 @@ process bowtie2_filter {
 	def FILTER_CMD = "LC_ALL=C fastq-namefilter $names -"
 	if (!meta.single_end)
 	"""
-	samtools view -@ ${task.cpus} bowtie2.bam | cut -f2 | sort | uniq -c > bowtie2.stats.txt
-	samtools view -@ ${task.cpus} -e '$cond' bowtie2.bam | cut -f1 > ${names}
+	samtools view -@ ${task.cpus} bowtie2.sam | cut -f2 | sort | uniq -c > bowtie2.stats.txt
+	samtools view -@ ${task.cpus} -e '$cond' bowtie2.sam | cut -f1 > ${names}
 
 	${task.ext.gzipCmd} -dc ${mategz[0]} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
 	${task.ext.gzipCmd} -dc ${mategz[1]} | $FILTER_CMD > Unmapped.out.mate2.${SUFFIX}
@@ -110,8 +110,8 @@ process bowtie2_filter {
 	"""
 	else if (meta.single_end)
 	"""
-	samtools view -@ ${task.cpus} bowtie2.bam | cut -f2 | sort | uniq -c > bowtie2.stats.txt
-	samtools view -@ ${task.cpus} -e '$cond' bowtie2.bam | cut -f1 > ${names}
+	samtools view -@ ${task.cpus} bowtie2.sam | cut -f2 | sort | uniq -c > bowtie2.stats.txt
+	samtools view -@ ${task.cpus} -e '$cond' bowtie2.sam | cut -f1 > ${names}
 
 	${task.ext.gzipCmd} -dc ${mategz} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
 	${task.ext.gzipCmd} -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging

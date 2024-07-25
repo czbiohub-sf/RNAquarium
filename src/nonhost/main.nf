@@ -462,10 +462,10 @@ workflow {
 	}
 	
 	// step 5: bowtie2
-	bowtie2(star_result, bowtie2_indexes).bam
-		.map { meta, bam ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${bam.toString()}"
-			[ m, bam ]
+	bowtie2(star_result, bowtie2_indexes).sam
+		.map { meta, sam ->
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
+			[ m, sam ]
 		}
 		.set { bowtie2_result }
 	bowtie2_filter_input = join_by_id(bowtie2_result, star.out.mates)
