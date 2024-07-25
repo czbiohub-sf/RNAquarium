@@ -1,1 +1,1 @@
-grep $1 reports/trace-*.txt | cut -f2 | xargs -I% find work -path "work/%*" -print -delete
+grep -o "submitted process $1 .*workDir: [^ ]\+" .nextflow.log | grep -o "[^ ]\+$" | xargs -I% rm -r "%"
