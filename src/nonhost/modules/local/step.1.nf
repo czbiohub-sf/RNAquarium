@@ -74,7 +74,7 @@ process download {
 	${PROLOGUE}
 	${PREFETCH}
 	${FASTQ_DUMP}
-	rm -f ./${sra_id}/${sra_id}.sra*
+	rm -rf ./staging/${sra_id}
 
 	# filter obvious barcode reads
 	f=fastq/${sra_id}.staging/${sra_id}.fastq
