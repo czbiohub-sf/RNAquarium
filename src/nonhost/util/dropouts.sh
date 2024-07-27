@@ -15,19 +15,24 @@ mapfile -t fails <<<$(grep -B3 "Error is ignored" ${NF_LOG} | grep "work-dir")
 
 # work directory
 for fail in "${fails[@]}"; do
-	workdir=$(echo $fail | cut -d"=" -f3)	
+	workdir=$(echo $fail | cut -d"=" -f3)
 	log=$(cat "$workdir/.command.log")
 	if $(echo $fail | grep -q "download"); then
+		if [ $VERBOSE ]; then echo "download_fail" $fail &2>/dev/stderr; fi
 		((download_fail++))
 	elif $(echo $fail | grep -q "dedup"); then
+		if [ $VERBOSE ]; then echo "dedup_fail" $fail &2>/dev/stderr; fi
 		((dedup_fail++))
 	elif $(echo $log | grep -q "PREEMPTED"); then
+		if [ $VERBOSE ]; then echo "preempted" $fail &2>/dev/stderr; fi
 		((preempt++))
 	elif $(echo $fail | grep -q "star_counts"); then
 		continue # STAR_COUNTS, don't double-count
 	elif $(echo $log | grep -q ".gz: unexpected end of file|fewer reads in file|more read characters than quality values"); then
+		if [ $VERBOSE ]; then echo "corrupte_file" $fail &2>/dev/stderr; fi
 		((corrupt_file++))
 	else
+		if [ $VERBOSE ]; then echo "other" $fail &2>/dev/stderr; fi
 		((other++))
 	fi
 done
