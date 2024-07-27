@@ -75,11 +75,11 @@ process hisat2_generate_indexes {
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
 	cat $ref_genome_gtf $ERCC_gtf > indexes_ERCC.gtf
 
-	#hisat2_extract_splice_sites.py indexes_ERCC.gtf > genome.ss
+	hisat2_extract_splice_sites.py indexes_ERCC.gtf > genome.ss
 	hisat2_extract_exons.py indexes_ERCC.gtf > genome.exon
 
 	hisat2-build -q -p $task.cpus \
-		--exon genome.exon \
+		--exon genome.exon --ss genome.ss \
 		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.simpleName}
 	"""
 	else
