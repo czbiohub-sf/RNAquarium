@@ -3,7 +3,7 @@ include { SPADES_SINGLE_END; SPADES_PAIRED_END    } from './modules/assembly.nf'
 include { PARSE_ACCESSIONS; DOWNLOAD_SRA_TAB      } from './modules/accession_mapping.nf'
 include { CHUNK_ASSEMBLED_FASTAS2                 } from './modules/preblast.nf'
 include { BLAST; CUT_BLAST_RESULTS; BLAST_FULL_NT } from './modules/blast.nf'
-include { CHUNK_NONZFHUM_FASTA } from './modules/diamond.nf'
+include { CHUNK_NONZFHUM_FASTA; DIAMOND           } from './modules/diamond.nf'
 
 workflow {
     if (!params.unmerged_accessions) {
@@ -68,7 +68,8 @@ workflow {
     chunked_transcripts = CHUNK_ASSEMBLED_FASTAS2(all_transcripts).flatten()
     blast_results = BLAST(chunked_transcripts)
     non_zf_hum_fa = CUT_BLAST_RESULTS(blast_results)
-    full_nt_blast_results = BLAST_FULL_NT(non_zf_hum_fa)
+    // full_nt_blast_results = BLAST_FULL_NT(non_zf_hum_fa)
 
     diamond_chunks = non_zf_hum_fa.flatten() | CHUNK_NONZFHUM_FASTA
+    diamond_results = diamond_chunks.flatten() | DIAMOND
 }

@@ -13,9 +13,10 @@
 UNMERGED_ACC="/hpc/projects/balla_group/sra_experiments/zebrafish_RNAseq/rnaquarium_output/nonhost_reads/"
 BIOPROJ_MAP="tmp/filt_mapping.json"
 WORK_DIR="/hpc/scratch/group.swe/rnaquarium/work"
-PUB_DIR="./output_2024_06_28/"
+PUB_DIR="./output_2024_07_25/"
 NT_DIR="/hpc/scratch/group.swe/db/nt_clustered"
 NT_DB_NAME="nt_compressed_shuffled.fa"
+NR_DIR="/hpc/scratch/group.data.science/eric_temp/databases/nr_clustered"
 
 mkdir -p $PUB_DIR
 
@@ -34,4 +35,5 @@ nextflow run \
     --publish_dir $PUB_DIR \
     --nt_dir $NT_DIR \
     --nt_db_name $NT_DB_NAME \
+    --nr_dir $NR_DIR \
     main.nf

@@ -26,16 +26,19 @@ process CHUNK_NONZFHUM_FASTA {
     """
 }
 
+// Use baseName over simpleName b/c transcripts are named chunk_XXX.Y.fasta
+//     where Y is a letter corresponding to the sub-chunk (e.g. a-j for 1-10)
 process DIAMOND {
     input:
     path transcripts
 
     output:
-    path "${transcripts.simpleName}.diamond.txt.gz"
+    path "${transcripts.baseName}.diamond.txt.gz"
 
     script:
     """
-    OUTPUT="\${PWD}/${transcripts.simpleName}.diamond.txt"
+    OUTPUT_STAGING="\${PWD}/${transcripts.baseName}.diamond.txt.staging"
+    OUTPUT="\${PWD}/${transcripts.baseName}.diamond.txt.gz"
     INPUT="\${PWD}/${transcripts}"
     cd /db
 
@@ -44,23 +47,11 @@ process DIAMOND {
         --db /db/nr \
         --threads $task.cpus \
         --query \$INPUT \
-        --outfmt 6 qseqid sseqid staxids sscinames sskingdoms pident length mismatch qcovhsp gapopen qstart qend sstart send evalue bitscore \
+        --outfmt 6 qseqid sseqid staxids sscinames sskingdoms pident length mismatch qcovhsp gapopen qstart qend sstart send evalue bitscore stitle \
         --top 3 \
         --evalue 0.05 \
-        --out \$OUTPUT
-    gzip \$OUTPUT
-    """
-}
-
-process CHUNK_FULL_NT {
-    input:
-    path transcripts, arity: '1..*'
-
-    output:
-    path "full_nt.chunk_*.fasta"
-
-    script:
-    num_chunks = params.full_nt_blast_chunks
-    """
+        --out \${OUTPUT_STAGING}
+    gzip \${OUTPUT_STAGING}
+    mv "\${OUTPUT_STAGING}.gz" "\${OUTPUT}"
     """
 }
