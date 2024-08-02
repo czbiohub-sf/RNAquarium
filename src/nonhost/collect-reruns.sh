@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [[ $# -lt 1 ]]; then
-	echo "usage: collect-reruns.sh input_accessions.txt nonhost_reads_dir .nextflow.log"
+	echo "usage: collect-reruns.sh input_accessions.txt nonhost_reads_dir counts_dir .nextflow.log"
 	exit 1
 fi
 
@@ -15,8 +15,12 @@ fi
 
 # collect input, subtract completed, subtract too short dropouts
 outdir=${2:-"nonhost_reads"}
-completed="$(ls -1 $outdir)"
-nf_log=${3:-".nextflow.log"}
+countsdir=${3:-"counts"}
+nonhostcompleted="$(ls -1 $outdir)"
+countscompleted="$(ls -1 $countsdir)"
+completed="$(printf '%s\n' $nonhostcompleted $countscompleted | sort | uniq -d)"
+
+nf_log=${4:-".nextflow.log"}
 dedup_short=$(grep -o "Process \`dedup (.RR[0-9]\+)\` terminated with an error exit status (1)" $nf_log\
 		   | grep -o ".RR[0-9]\+")
 

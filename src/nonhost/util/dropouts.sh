@@ -27,6 +27,7 @@ for fail in "${fails[@]}"; do
 		if [ $VERBOSE ]; then echo "preempted" $fail &2>/dev/stderr; fi
 		((preempt++))
 	elif $(echo $fail | grep -q "star_counts"); then
+		if [ $VERBOSE ]; then echo "star_counts_fail" $fail &2>/dev/stderr; fi
 		continue # STAR_COUNTS, don't double-count
 	elif $(echo $log | grep -q ".gz: unexpected end of file|fewer reads in file|more read characters than quality values"); then
 		if [ $VERBOSE ]; then echo "corrupte_file" $fail &2>/dev/stderr; fi
