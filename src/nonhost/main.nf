@@ -339,7 +339,7 @@ workflow {
 							single_end: fastq.size() != 2,
 							size_MB: meta.size_MB,
 							cleanup: "",
-							cleanup_later: "${fastq.toString()}"]
+							cleanup_later: "${fastq.join(' ')}"]
 			[ new_meta, fastq ]
 		}
 		.view()
@@ -358,7 +358,7 @@ workflow {
 			new_meta.single_end = fastq.size() != 2
 			new_meta.size_MB = meta?.size_MB
 			new_meta.cleanup = meta.cleanup_later
-			new_meta.cleanup_later = "${fastq.toString()}"
+			new_meta.cleanup_later = "${fastq.join(' ')}"
 			[ new_meta, fastq ]
 		}
 		.mix(download_result)
@@ -378,7 +378,7 @@ workflow {
 		.map { meta, fastq, fastp_reads_after -> {
 				def new_meta = meta.clone()
 				new_meta.cleanup = meta.cleanup_later
-				new_meta.cleanup_later = "${fastq.toString()}"
+				new_meta.cleanup_later = "${fastq.join(' ')}"
 				new_meta.fastp_reads_after = fastp_reads_after.toLong()
 				[ new_meta, fastq ]
 			}
@@ -398,7 +398,7 @@ workflow {
 			def new_meta = meta.clone()
 			new_meta.cleanup = meta.cleanup_later
 			new_meta.cleanup_later = "" // price is before branch so needs special cleanup
-			new_meta.price_cleanup = "${fastq.toString()}"
+			new_meta.price_cleanup = "${fastq.join(' ')}"
 			[ new_meta, fastq ]
 		}
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
@@ -417,7 +417,7 @@ workflow {
 				def new_meta = meta.clone()
 				// cleanup didn't happen in this step
 				new_meta.cleanup = "${meta.cleanup} ${meta.cleanup_later}"
-				new_meta.cleanup_later = "${bam.toString()}"
+				new_meta.cleanup_later = "${bam.join(' ')}"
 				[ new_meta, bam ]
 			}
 			.set { starcounts_result }
@@ -426,7 +426,7 @@ workflow {
 				def new_meta = meta.clone()
 				// cleanup didn't happen in this step
 				new_meta.cleanup = "${meta.cleanup} ${meta.cleanup_later}"
-				new_meta.cleanup_later = "${bam.toString()}"
+				new_meta.cleanup_later = "${bam.join(' ')}"
 				[ new_meta, bam ]
 			}
 			.set { sortbam_result }
@@ -440,7 +440,7 @@ workflow {
 		hisat2(priceseqfilter_result.ok, hisat2_indexes)
 		hisat2.out.mates
 			.map { meta, mates ->
-				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
+				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
 				[ m, mates ]
 			}
 			.set { unmapped_reads_1 }
@@ -451,7 +451,7 @@ workflow {
 	// step 4: STAR
 	star(unmapped_reads_1, star_indexes).mates
 		.map { meta, mates ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
 			[ m, mates ]
 		}
 		.set { star_result }
@@ -464,7 +464,7 @@ workflow {
 	// step 5: bowtie2
 	bowtie2(star_result, bowtie2_indexes).sam
 		.map { meta, sam ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.join(' ')}"
 			[ m, sam ]
 		}
 		.set { bowtie2_result }
@@ -474,7 +474,7 @@ workflow {
 	// step 6: deduplication
 	bowtie2_filter.out.mates
 		.map { meta, mates ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
 			[ m, mates ]
 		}
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
@@ -495,7 +495,7 @@ workflow {
 	gsnap(dedup.out.mates, gsnap_indexes)
 	gsnap.out.sam
 		.map { meta, sam ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.join(' ')}"
 			[ m, sam ]
 		}
 		.branch {
