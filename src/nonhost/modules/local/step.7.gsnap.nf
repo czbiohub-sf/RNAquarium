@@ -82,53 +82,44 @@ process gsnap {
 	"""
 }
 
-process process_gsnap_sam {
+process gsnap_filter {
 	label 'samtools'
 
 	input:
-	tuple val(meta), path(gsnap_sam)
-
-	output:
-	tuple val(meta), path("gsnap.unmapped.names.txt"), emit: names
-	tuple val(meta), path("gsnap.stats.txt"), emit: stats
-
-	script:
-	def cond = params.retainMixed ?
-		'flag.unmap || (flag.paired && flag.munmap)' :
-		'(!flag.paired && flag.unmap) || (flag.paired && flag.unmap && flag.munmap)'
-	//def FILTER_CMD = "LC=ALL grep -A3 --color=never -wFf gsnap.unmapped.names.txt | sed '/^--\$/d'"
-	"""
-	samtools view -@ ${task.cpus} $gsnap_sam | cut -f2 | sort | uniq -c > gsnap.stats.txt
-	samtools view -@ ${task.cpus} -e '$cond' $gsnap_sam | cut -f1  > gsnap.unmapped.names.txt
-
-	cleanup="${meta.cleanup}"
-	${params.cleanupScript}
-	"""
-}
-
-process gsnap_filter_by_names {
-	label "fastq_filter"
-
-	input:
-	tuple val(meta), path(names), path(mategz, arity: '1..2')
+	tuple val(meta), path(gsnap_sam), path(mategz, arity: '1..2')
 
 	def SUFFIX = "filteredbyBT.dedup.gsnapFiltered.fastq"
 	output:
 	tuple val(meta), path("Unmapped.out.mate?.${SUFFIX}.gz"), emit: mates
+	tuple val(meta), path("gsnap.stats.txt"), emit: stats
 
 	script:
+	def names = "gsnap.unmapped.names.txt"
+	def cond = params.retainMixed ?
+		'flag.unmap || (flag.paired && flag.munmap)' :
+		'(!flag.paired && flag.unmap) || (flag.paired && flag.unmap && flag.munmap)'
+	//def FILTER_CMD = "LC=ALL grep -A3 --color=never -wFf ${names} | sed '/^--\$/d'"
 	def FILTER_CMD = "LC_ALL=C fastq-namefilter $names -"
 	if (!meta.single_end)
 	"""
+	samtools view -@ ${task.cpus} $gsnap_sam | cut -f2 | sort | uniq -c > gsnap.stats.txt
+	samtools view -@ ${task.cpus} -e '$cond' $gsnap_sam | cut -f1  > ${names}
+
 	${task.ext.gzipCmd} -cd ${mategz[0]} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
 	${task.ext.gzipCmd} -cd ${mategz[1]} | $FILTER_CMD > Unmapped.out.mate2.${SUFFIX}
 	${task.ext.gzipCmd} -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
 	${task.ext.gzipCmd} -nc Unmapped.out.mate2.${SUFFIX} > Unmapped.out.mate2.${SUFFIX}.gz.staging
 	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
 	mv Unmapped.out.mate2.${SUFFIX}.gz.staging Unmapped.out.mate2.${SUFFIX}.gz
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
 	"""
 	else if (meta.single_end)
 	"""
+	samtools view -@ ${task.cpus} $gsnap_sam | cut -f2 | sort | uniq -c > gsnap.stats.txt
+	samtools view -@ ${task.cpus} -e '$cond' $gsnap_sam | cut -f1  > ${names}
+
 	${task.ext.gzipCmd} -cd ${mategz} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
 	${task.ext.gzipCmd} -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
 	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz

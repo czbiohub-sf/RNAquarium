@@ -30,16 +30,14 @@ process download {
 	tuple val(meta), path("info.txt"), emit: srastats
 	tuple val(meta), path("stats.txt"), emit: dumpstats
 
-	// fastq-dump wants sras in the current directory. this is a problem for
-	// nf's usually directory-agnostic behavior - it could be that the input is
-	// cached from a previous run and the absolute dir invisible,
 	beforeScript = {"""${task.ext.extraBeforeScript ?: ""}
 					sleep \$((1 + RANDOM % 30))s"""}
 
 	script:
 	def PROLOGUE = """
 	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
-
+	set -v
+	
 	# prefetch won't run without config, we can't control much, but at least initialize it
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	mkdir -p fastq
@@ -61,14 +59,14 @@ process download {
 	trap -- '' SIGTERM
 	"""
 	def FASTQ_DUMP = (task.attempt <= 2) ? """
-	fasterq-dump ${sra_id} --split-3 --temp /dev/shm -x -e ${task.cpus} \
-		-b ${task.memory.toMega()/2}M -c ${task.memory.toMega()/2}M \
-		-m ${task.memory.toMega()-100}M \
+	fasterq-dump staging/${sra_id} --split-3 -x -e ${task.cpus} \
+		-b 4M -c 32M \
+		-m ${4096*task.attempt}M \
 		--seq-defline '@\$ac.\$si/\$ri' --qual-defline '+' \
 		--outdir fastq/${sra_id}.staging 2>stats.txt
 	""" : """
 	echo fasterq-dump encountered error, reverting to using fastq-dump
-	fastq-dump ${sra_id} --split-3 \
+	fastq-dump staging/${sra_id} --split-3 \
 		--defline-seq '@\$ac.\$si/\$ri' --defline-qual '+' \
 		--outdir fastq/${sra_id}.staging 2>stats.txt
 	"""
@@ -76,7 +74,7 @@ process download {
 	${PROLOGUE}
 	${PREFETCH}
 	${FASTQ_DUMP}
-	rm -f ./${sra_id}/${sra_id}.sra*
+	rm -rf ./staging/${sra_id}
 
 	# filter obvious barcode reads
 	f=fastq/${sra_id}.staging/${sra_id}.fastq

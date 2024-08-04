@@ -154,8 +154,7 @@ include {
 )
 include {
 	bowtie2;
-	process_bowtie2_sam;
-	bowtie2_filter_by_names;
+	bowtie2_filter;
 	ensure_bowtie2_indexes;
 } from './modules/local/step.5.bowtie.nf' params(
 	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
@@ -183,8 +182,7 @@ include {
 )
 include {
 	gsnap;
-	process_gsnap_sam;
-	gsnap_filter_by_names;
+	gsnap_filter;
 	gsnap_skip;
 	ensure_gsnap_indexes;
 } from './modules/local/step.7.gsnap.nf' params(
@@ -287,28 +285,35 @@ workflow {
 
 	// step 1: download and convert to fastq
 	// find existing fastqs
-	accessions = Channel.fromPath(params.accessionList, type: 'file').splitText()
-		.map { acc -> acc.trim() }
+	// allow RunInfo csv (Run, size_MB)
+	accessions = params.accessionList =~ /\.csv$/
+		? Channel.fromPath(params.accessionList, type: 'file')
+		.splitCsv( header: true )
+		.map { row -> [row.Run.trim(), row.size_MB.toLong()] }
+	: Channel.fromPath(params.accessionList, type: 'file')
+		.splitText()
+		.map { acc -> [acc.trim(), null] }
+
 
 	if (params.fastqPath && file(params.fastqPath).exists()) {
 		try {
 			direct_fastqs = Channel.fromPath("$params.fastqPath/*", type: 'dir')
 				.map { path -> // need to think about this more, failure handling?
 					def new_meta = [id: path.getSimpleName(),
-									sra_size: files("$path/*.fastq")[0].size()
-									]
+									sra_size: files("$path/*.fastq")[0].size(),
+									size_MB: null]
 					[ new_meta, path ]
 				}
 			direct_fastq_ids = direct_fastqs
 				.map { meta, _ ->
-					[ meta.id, true ]
+					[ meta.id, null, true ]
 				}
 			// remove ids that exist in pre-dumped fastq path from accessions list
 			accessions = accessions
 				.join(direct_fastq_ids, remainder: true, by: 0)
-				.filter { key, v2 -> !v2 }
-				.map { key, _ ->
-					[ [id: key], key ]
+				.filter { key, s, v2 -> !v2 }
+				.map { key, MB, _ ->
+					[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
 				}
 		} catch (Exception e) {
 			log.error "--fastq-path $params.fastqPath is not folders of fastq?\n$e"
@@ -317,8 +322,8 @@ workflow {
 	} else {
 		direct_fastqs = Channel.empty()
 		accessions = accessions
-			.map { key ->
-				[ [id: key, cleanup: "", cleanup_later: ""], key ]
+			.map { key, MB ->
+				[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
 			}
 	}
 
@@ -332,8 +337,9 @@ workflow {
 							readlen_2: median2 != "" ? median2.toLong() : "",
 							fastq_size: fsize.toLong(),
 							single_end: fastq.size() != 2,
+							size_MB: meta.size_MB,
 							cleanup: "",
-							cleanup_later: "${fastq.toString()}"]
+							cleanup_later: "${fastq.join(' ')}"]
 			[ new_meta, fastq ]
 		}
 		.view()
@@ -350,8 +356,9 @@ workflow {
 			new_meta.readlen_2 = median2 != "" ? median2.toLong() : ""
 			new_meta.fastq_size = fsize.toLong()
 			new_meta.single_end = fastq.size() != 2
+			new_meta.size_MB = meta?.size_MB
 			new_meta.cleanup = meta.cleanup_later
-			new_meta.cleanup_later = "${fastq.toString()}"
+			new_meta.cleanup_later = "${fastq.join(' ')}"
 			[ new_meta, fastq ]
 		}
 		.mix(download_result)
@@ -371,7 +378,7 @@ workflow {
 		.map { meta, fastq, fastp_reads_after -> {
 				def new_meta = meta.clone()
 				new_meta.cleanup = meta.cleanup_later
-				new_meta.cleanup_later = "${fastq.toString()}"
+				new_meta.cleanup_later = "${fastq.join(' ')}"
 				new_meta.fastp_reads_after = fastp_reads_after.toLong()
 				[ new_meta, fastq ]
 			}
@@ -391,7 +398,7 @@ workflow {
 			def new_meta = meta.clone()
 			new_meta.cleanup = meta.cleanup_later
 			new_meta.cleanup_later = "" // price is before branch so needs special cleanup
-			new_meta.price_cleanup = "${fastq.toString()}"
+			new_meta.price_cleanup = "${fastq.join(' ')}"
 			[ new_meta, fastq ]
 		}
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
@@ -410,7 +417,7 @@ workflow {
 				def new_meta = meta.clone()
 				// cleanup didn't happen in this step
 				new_meta.cleanup = "${meta.cleanup} ${meta.cleanup_later}"
-				new_meta.cleanup_later = "${bam.toString()}"
+				new_meta.cleanup_later = "${bam.join(' ')}"
 				[ new_meta, bam ]
 			}
 			.set { starcounts_result }
@@ -419,7 +426,7 @@ workflow {
 				def new_meta = meta.clone()
 				// cleanup didn't happen in this step
 				new_meta.cleanup = "${meta.cleanup} ${meta.cleanup_later}"
-				new_meta.cleanup_later = "${bam.toString()}"
+				new_meta.cleanup_later = "${bam.join(' ')}"
 				[ new_meta, bam ]
 			}
 			.set { sortbam_result }
@@ -433,7 +440,7 @@ workflow {
 		hisat2(priceseqfilter_result.ok, hisat2_indexes)
 		hisat2.out.mates
 			.map { meta, mates ->
-				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
+				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
 				[ m, mates ]
 			}
 			.set { unmapped_reads_1 }
@@ -444,7 +451,7 @@ workflow {
 	// step 4: STAR
 	star(unmapped_reads_1, star_indexes).mates
 		.map { meta, mates ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
 			[ m, mates ]
 		}
 		.set { star_result }
@@ -456,26 +463,18 @@ workflow {
 	
 	// step 5: bowtie2
 	bowtie2(star_result, bowtie2_indexes).sam
-		.map { meta, sam -> 
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
+		.map { meta, sam ->
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.join(' ')}"
 			[ m, sam ]
 		}
 		.set { bowtie2_result }
-	// add generic key for join operation
-	process_bowtie2_sam(bowtie2_result).names
-		.map { meta, names ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${names.toString()}"
-			[ m, names ]
-		}
-		.set { process_bowtie2_result }
-	bowtie2_filter_input = join_by_id(process_bowtie2_result, star.out.mates)
-	
-	bowtie2_filter_by_names(bowtie2_filter_input)
-	
+	bowtie2_filter_input = join_by_id(bowtie2_result, star.out.mates)
+	bowtie2_filter(bowtie2_filter_input)
+
 	// step 6: deduplication
-	bowtie2_filter_by_names.out.mates
+	bowtie2_filter.out.mates
 		.map { meta, mates ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
 			[ m, mates ]
 		}
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
@@ -496,7 +495,7 @@ workflow {
 	gsnap(dedup.out.mates, gsnap_indexes)
 	gsnap.out.sam
 		.map { meta, sam ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.join(' ')}"
 			[ m, sam ]
 		}
 		.branch {
@@ -504,9 +503,8 @@ workflow {
 			fails: true
 		}
 		.set { gsnap_result }
-	process_gsnap_sam(gsnap_result.ok)
-	gsnap_filter_input = join_by_id(process_gsnap_sam.out.names, dedup.out.mates)
-	gsnap_filter_by_names(gsnap_filter_input)
+	gsnap_filter_input = join_by_id(gsnap_result.ok, dedup.out.mates)
+	gsnap_filter(gsnap_filter_input)
 
 	// if gsnap fails a run for any non-oom reason, keep the nonhost reads from before that.
 	dedup.out.mates
@@ -530,9 +528,9 @@ workflow {
 		hisat2_stats = [ meta_stats[0], "n/a" ]
 	}
 	star_stats    = star.out.stats.map    { meta, stats -> [ meta.id, stats ] }
-	bowtie2_stats = process_bowtie2_sam.out.stats.map { meta, stats -> [ meta.id, stats ] }
+	bowtie2_stats = bowtie2_filter.out.stats.map { meta, stats -> [ meta.id, stats ] }
 	dedup_stats   = dedup.out.stats.map   { meta, stats -> [ meta.id, stats ] }
-	gsnap_stats   = process_gsnap_sam.out.stats.map { meta, stats -> [ meta.id, stats, "yes" ] }
+	gsnap_stats   = gsnap_filter.out.stats.map { meta, stats -> [ meta.id, stats, "yes" ] }
 		.concat (gsnap_skip.out.mates.map { meta, mates -> [ meta.id, null, "no" ] })
 
 	all_stats = meta_stats.join(fastp_stats)

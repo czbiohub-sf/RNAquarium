@@ -58,61 +58,46 @@ process bowtie2 {
 		-x bowtie2_index/${idx_basename} """
 	if (!meta.single_end)
 	"""
-	${BOWTIE2_CMD} -1 ${mategz[0]} -2 ${mategz[1]} -S bowtie2.sam.staging
-	mv bowtie2.sam.staging bowtie2.sam
+	${BOWTIE2_CMD} -1 ${mategz[0]} -2 ${mategz[1]} -S bowtie2.staging.sam
+	mv bowtie2.staging.sam bowtie2.sam
 
 	cleanup="${meta.cleanup}"
 	${params.cleanupScript}
 	"""
 	else if (meta.single_end)
 	"""
-	${BOWTIE2_CMD} -U ${mategz} -S bowtie2.sam.staging
-	mv bowtie2.sam.staging bowtie2.sam
+	${BOWTIE2_CMD} -U ${mategz} -S bowtie2.staging.sam
+	mv bowtie2.staging.sam bowtie2.sam
 
 	cleanup="${meta.cleanup}"
 	${params.cleanupScript}
 	"""
 }
 
-process process_bowtie2_sam {
+process bowtie2_filter {
 	label 'samtools'
 
 	input:
-	tuple val(meta), path("bowtie2.sam")
-
-	output:
-	tuple val(meta), path("bowtie2.unmapped.names.txt"), emit: names
-	tuple val(meta), path("bowtie2.stats.txt"), emit: stats
-
-	// +discordant would be (flag.paired && !flag.proper_pair)
-	script:
-	def cond = params.retainMixed ?
-		'flag.unmap || (flag.paired && flag.munmap)' :
-		'(!flag.paired && flag.unmap) || (flag.paired && flag.unmap && flag.munmap)'
-	//def FILTER_CMD = "LC_ALL=C grep -A3 --color=never -wFf bowtie2.unmapped.names.txt | sed '/^--\$/d'"
-	"""
-	samtools view -@ ${task.cpus} bowtie2.sam | cut -f2 | sort | uniq -c > bowtie2.stats.txt
-	samtools view -@ ${task.cpus} -e '$cond' bowtie2.sam | cut -f1 > bowtie2.unmapped.names.txt
-
-	cleanup="${meta.cleanup}"
-	${params.cleanupScript}
-	"""
-}
-
-process bowtie2_filter_by_names {
-	label "fastq_filter"
-
-	input:
-	tuple val(meta), path(names), path(mategz, arity: '1..2')
+	tuple val(meta), path("bowtie2.sam"), path(mategz, arity: '1..2')
 
 	def SUFFIX = "filteredbyBT.fastq"
 	output:
 	tuple val(meta), path("Unmapped.out.mate?.${SUFFIX}.gz", arity: '1..2'), emit: mates
+	tuple val(meta), path("bowtie2.stats.txt"), emit: stats
 
+	// +discordant would be (flag.paired && !flag.proper_pair)
 	script:
+	def names="bowtie2.unmapped.names.txt"
+	def cond = params.retainMixed ?
+		'flag.unmap || (flag.paired && flag.munmap)' :
+		'(!flag.paired && flag.unmap) || (flag.paired && flag.unmap && flag.munmap)'
+	//def FILTER_CMD = "LC_ALL=C grep -A3 --color=never -wFf bowtie2.unmapped.names.txt | sed '/^--\$/d'"
 	def FILTER_CMD = "LC_ALL=C fastq-namefilter $names -"
 	if (!meta.single_end)
 	"""
+	samtools view -@ ${task.cpus} bowtie2.sam | cut -f2 | sort | uniq -c > bowtie2.stats.txt
+	samtools view -@ ${task.cpus} -e '$cond' bowtie2.sam | cut -f1 > ${names}
+
 	${task.ext.gzipCmd} -dc ${mategz[0]} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
 	${task.ext.gzipCmd} -dc ${mategz[1]} | $FILTER_CMD > Unmapped.out.mate2.${SUFFIX}
 	${task.ext.gzipCmd} -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
@@ -125,6 +110,9 @@ process bowtie2_filter_by_names {
 	"""
 	else if (meta.single_end)
 	"""
+	samtools view -@ ${task.cpus} bowtie2.sam | cut -f2 | sort | uniq -c > bowtie2.stats.txt
+	samtools view -@ ${task.cpus} -e '$cond' bowtie2.sam | cut -f1 > ${names}
+
 	${task.ext.gzipCmd} -dc ${mategz} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
 	${task.ext.gzipCmd} -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
 	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
