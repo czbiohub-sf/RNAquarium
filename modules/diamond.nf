@@ -32,6 +32,8 @@ process DIAMOND {
     input:
     path transcripts
 
+    scratch true
+
     output:
     path "${transcripts.baseName}.diamond.txt.gz"
 
@@ -40,7 +42,6 @@ process DIAMOND {
     OUTPUT_STAGING="\${PWD}/${transcripts.baseName}.diamond.txt.staging"
     OUTPUT="\${PWD}/${transcripts.baseName}.diamond.txt.gz"
     INPUT="\${PWD}/${transcripts}"
-    cd /db
 
     diamond blastx \
         --ultra-sensitive \

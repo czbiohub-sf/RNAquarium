@@ -2,7 +2,7 @@
 #SBATCH --job-name=nf-RNAquarium
 #SBATCH --chdir=/hpc/mydata/gibraan.rahman/projects/RNAquarium/merge_assemble
 #SBATCH --output=./slurm/nf-RNAquarium.out
-#SBATCH --time=14-00:00:00
+#SBATCH --time=21-00:00:00
 #SBATCH --mem=16G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
