@@ -392,6 +392,7 @@ workflow {
 			dropouts: true
 		}
 		.set { fastp_result }
+		.view()
 
 	priceseqfilter(fastp_result.ok).mates
 		.map { meta, fastq ->
@@ -464,7 +465,7 @@ workflow {
 	// step 5: bowtie2
 	bowtie2(star_result, bowtie2_indexes).sam
 		.map { meta, sam ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.join(' ')}"
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
 			[ m, sam ]
 		}
 		.set { bowtie2_result }
@@ -495,7 +496,7 @@ workflow {
 	gsnap(dedup.out.mates, gsnap_indexes)
 	gsnap.out.sam
 		.map { meta, sam ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.join(' ')}"
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
 			[ m, sam ]
 		}
 		.branch {
