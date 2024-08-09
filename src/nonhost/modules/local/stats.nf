@@ -24,7 +24,7 @@ process stats_csv {
 	hisat_discordant=\$(sed -n '/aligned discordantly 1 time/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
 	printf "%s,%s,%s,%s,%s," "\$hisat_before" "\$hisat_unaligned" "\$hisat_aligned_unique" "\$hisat_multialign" "\$hisat_discordant"
 	'''
-	def PARSE_HISAT = params.skipHisat ? ",,,,," : (meta.single_end ? HISAT_UNPAIRED : HISAT_PAIRED)
+	def PARSE_HISAT = params.skipHisat ? 'printf ",,,,,"' : (meta.single_end ? HISAT_UNPAIRED : HISAT_PAIRED)
 	"""
 	#       id single_end     reads       readlen
 	printf "id,single_end,starting_reads,r1_median_len,r2_median_len,"
