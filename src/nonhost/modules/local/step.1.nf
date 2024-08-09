@@ -104,6 +104,8 @@ process download {
 			size1=\$(bc<<<"\$size2+\$size1")
 		fi
 	fi
+	count1=\$reads
+	count2=\$reads
 	
 	${task.ext.gzipCmd} fastq/${sra_id}.staging/*.fastq
 	mv fastq/${sra_id}.staging fastq/${sra_id}
