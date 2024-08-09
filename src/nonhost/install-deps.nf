@@ -7,7 +7,7 @@ params.prefix = 'bin/'
 workflow {
 	install_fastq_lengths()
 	install_fastq_namefilter()
-	install_priceseqfilter(Channel.fromPath( 'pricesource.patch' ))
+	//install_priceseqfilter(Channel.fromPath( 'pricesource.patch' ))
 	install_czid_dedup()
 	install_gsnap(Channel.fromList( ["", "sse42", "avx2"]) )
 }

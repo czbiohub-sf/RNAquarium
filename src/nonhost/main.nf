@@ -26,7 +26,7 @@ params.erccGtf = "ERCC92.gtf"
 params.publishDir = "$PWD"
 params.publishIntermediate = false
 params.publishFastqs = true
-params.publishPricefiltered = true
+params.publishQCfiltered = true
 params.publishReadcounts = true
 params.publishHisat = true
 params.publishStar = true
@@ -98,10 +98,9 @@ include {
 )
 include {
 	fastp;
-	priceseqfilter;
 } from './modules/local/step.2.nf' params(
 	publishDir: params.publishDir,
-	publishIntermediate: params.publishIntermediate && params.publishPricefiltered,
+	publishIntermediate: params.publishIntermediate && params.publishQCfiltered,
 	cleanupScript: cleanupScript,
 	tmp: params.tmp,
 	backupTmp: params.backupTmp,
@@ -378,7 +377,13 @@ workflow {
 		.map { meta, fastq, fastp_reads_after -> {
 				def new_meta = meta.clone()
 				new_meta.cleanup = meta.cleanup_later
-				new_meta.cleanup_later = "${fastq.join(' ')}"
+				if (!params.skipHostCounts) {
+					new_meta.cleanup_later = "" // fastp is before branch so needs special cleanup
+					new_meta.qc_cleanup = "${fastq.join(' ')}"
+				} else {
+					new_meta.cleanup_later = "${fastq.join(' ')}"
+					new_meta.qc_cleanup = ""
+				}
 				new_meta.fastp_reads_after = fastp_reads_after.toLong()
 				[ new_meta, fastq ]
 			}
@@ -392,28 +397,11 @@ workflow {
 			dropouts: true
 		}
 		.set { fastp_result }
-		.view()
 
-	priceseqfilter(fastp_result.ok).mates
-		.map { meta, fastq ->
-			def new_meta = meta.clone()
-			new_meta.cleanup = meta.cleanup_later
-			new_meta.cleanup_later = "" // price is before branch so needs special cleanup
-			new_meta.price_cleanup = "${fastq.join(' ')}"
-			[ new_meta, fastq ]
-		}
-		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
-			ok: { meta, fastq -> 
-				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
-					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
-			}(it)
-			dropouts: true
-		}
-		.set { priceseqfilter_result }
 
 	// host read counts path
 	if (!params.skipHostCounts) {
-		star_counts(priceseqfilter_result.ok, star_indexes2).bam
+		star_counts(fastp_result.ok, star_indexes2).bam
 			.map { meta, bam ->
 				def new_meta = meta.clone()
 				// cleanup didn't happen in this step
@@ -438,7 +426,7 @@ workflow {
 
 	// step 3: hisat2
 	if (!params.skipHisat) {
-		hisat2(priceseqfilter_result.ok, hisat2_indexes)
+		hisat2(fastp_result.ok, hisat2_indexes)
 		hisat2.out.mates
 			.map { meta, mates ->
 				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
@@ -446,7 +434,7 @@ workflow {
 			}
 			.set { unmapped_reads_1 }
 	} else {
-		unmapped_reads_1 = filtered_fastqs
+		unmapped_reads_1 = fastp_result.ok
 	}
 
 	// step 4: STAR
@@ -522,11 +510,10 @@ workflow {
 	//fastq_stats = fastqs.out.stats.map { meta, fastq -> [ meta.id, sra ] }
 	meta_stats    = filter_barcodes_result.ok.map { meta, fastq -> [ meta.id, meta ] }
 	fastp_stats   = fastp.out.stats_txt.map       { meta, stats -> [ meta.id, stats ] }
-	price_stats   = priceseqfilter.out.stats.map  { meta, stats -> [ meta.id, stats ] }
 	if (!params.skipHisat) {
 		hisat2_stats  = hisat2.out.stats.map  { meta, stats -> [ meta.id, stats ] }
 	} else {
-		hisat2_stats = [ meta_stats[0], "n/a" ]
+		hisat2_stats = meta_stats.map { id, _ -> [ id, "na" ] }
 	}
 	star_stats    = star.out.stats.map    { meta, stats -> [ meta.id, stats ] }
 	bowtie2_stats = bowtie2_filter.out.stats.map { meta, stats -> [ meta.id, stats ] }
@@ -535,7 +522,6 @@ workflow {
 		.concat (gsnap_skip.out.mates.map { meta, mates -> [ meta.id, null, "no" ] })
 
 	all_stats = meta_stats.join(fastp_stats)
-		.join(price_stats)
 		.join(hisat2_stats)
 		.join(star_stats)
 		.join(bowtie2_stats)
