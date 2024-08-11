@@ -406,7 +406,7 @@ workflow {
 				def new_meta = meta.clone()
 				// cleanup didn't happen in this step
 				new_meta.cleanup = "${meta.cleanup} ${meta.cleanup_later}"
-				new_meta.cleanup_later = "${bam.join(' ')}"
+				new_meta.cleanup_later = "${bam.toString()}"
 				[ new_meta, bam ]
 			}
 			.set { starcounts_result }
@@ -415,7 +415,7 @@ workflow {
 				def new_meta = meta.clone()
 				// cleanup didn't happen in this step
 				new_meta.cleanup = "${meta.cleanup} ${meta.cleanup_later}"
-				new_meta.cleanup_later = "${bam.join(' ')}"
+				new_meta.cleanup_later = "${bam.toString()}"
 				[ new_meta, bam ]
 			}
 			.set { sortbam_result }
