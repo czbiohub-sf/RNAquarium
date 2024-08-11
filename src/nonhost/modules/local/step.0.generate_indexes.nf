@@ -22,7 +22,7 @@ params.genomeSize = null
 
 params.starSjdbOverhang = 100
 
-params.hisatUseTranscript = false
+params.hisatUseTranscript = true
 
 
 process star_generate_indexes {

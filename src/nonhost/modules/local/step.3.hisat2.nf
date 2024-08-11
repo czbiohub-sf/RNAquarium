@@ -54,7 +54,7 @@ process hisat2 {
 
 	script:
 	def HISAT2_CMD = """hisat2 --met-file metrics.txt --summary-file stats.txt -p $task.cpus -k 1 -S /dev/null \
-		-x hisat2_index/${idx_basename} """
+		-x hisat2_index/${idx_basename} --no-temp-splicesite -t """
 	if (!meta.single_end) """
 	mkdir -p PE
 	${HISAT2_CMD} \

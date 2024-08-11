@@ -185,7 +185,7 @@
                     "default": true,
                     "hidden": true
                 },
-                "publishPricefiltered": {
+                "publishQCfiltered": {
                     "type": "boolean",
                     "hidden": true,
                     "default": true

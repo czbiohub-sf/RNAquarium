@@ -4,7 +4,7 @@ process stats_csv {
 	cache = false
 
 	input:
-	tuple val(idx), val(meta), file("fastp_stats.txt"), val(price_stats), file("hisat2_stats.txt"), file("star_stats.txt"), file("bowtie2_stats.txt"), val(dedup_stats), file(gsnap_stats), val(gsnap_used)
+	tuple val(idx), val(meta), file("fastp_stats.txt"), file("hisat2_stats.txt"), file("star_stats.txt"), file("bowtie2_stats.txt"), val(dedup_stats), file(gsnap_stats), val(gsnap_used)
 
 	output:
 	stdout
@@ -24,14 +24,13 @@ process stats_csv {
 	hisat_discordant=\$(sed -n '/aligned discordantly 1 time/{;p;}' hisat2_stats.txt | cut -f5 -d' ')
 	printf "%s,%s,%s,%s,%s," "\$hisat_before" "\$hisat_unaligned" "\$hisat_aligned_unique" "\$hisat_multialign" "\$hisat_discordant"
 	'''
-	def PARSE_HISAT = params.skipHisat ? ",,,,," : (meta.single_end ? HISAT_UNPAIRED : HISAT_PAIRED)
+	def PARSE_HISAT = params.skipHisat ? 'printf ",,,,,"' : (meta.single_end ? HISAT_UNPAIRED : HISAT_PAIRED)
 	"""
 	#       id single_end     reads       readlen
 	printf "id,single_end,starting_reads,r1_median_len,r2_median_len,"
 	#
 	printf "fastp_reads_before,fastp_reads_after,fastp_reads_too_short,fastp_reads_trimmed,"
 	#                               %1 - %2
-	printf "price_reads_before,price_reads_after,"
 	printf "hisat2_reads_before,hisat2_unaligned,hisat2_aligned_unique,hisat2_multialign,hisat2_discordant,"
 	printf "star_reads_before,star_avg_len,star_aligned_unique,star_multialign,star_unaligned,star_too_short,"
 	printf "bowtie2_reads_before,bowtie2_aligned,bowtie2_multialign,bowtie2_aligned_unique,bowtie2_unaligned,bowtie2_mixed,"
@@ -47,13 +46,6 @@ process stats_csv {
 	fastp_short=\$(sed -n '/reads failed due to too short:/{;p;}' fastp_stats.txt | cut -f7 -d' ')
 	fastp_trimmed=\$(sed -n '/reads with adapter trimmed:/{;p;}' fastp_stats.txt | cut -f5 -d' ')
 	printf "%s,%s,%s,%s," \$fastp_before \$fastp_after \$fastp_short \$fastp_trimmed
-
-	# PRICE
-	# price outputs \b to non-interactive output
-	price_total=\$(echo "${price_stats.split("\n")[3].split("/")[1]}" | grep -o "[0-9]\\+")
-	price_removed=\$(echo "${price_stats.split("\n")[3].split("/")[2]}" | grep -o "[0-9]\\+")
-	price_after=\$(bc <<< "\$price_total - \$price_removed")
-	printf "%d,%d," "\$price_total" "\$price_after"
 
 	# HISAT2
 	${PARSE_HISAT}
