@@ -1,16 +1,16 @@
 process CHUNK_NONZFHUM_FASTA {
     input:
     path transcript
+    val diamond_chunks
 
     output:
     path "${transcript.simpleName}.*.fasta", arity: params.diamond_chunks
 
     script:
-    num_chunks = params.diamond_chunks
     """
     echo ${transcript.simpleName}
     alphabet="abcdefghijklmnopqrstuvwxyz"
-    seqkit split2 -p ${num_chunks} ${transcript }
+    seqkit split2 -p ${diamond_chunks} ${transcript }
     file_chunks=(\$(ls ${transcript}.split))
 
     i=1
