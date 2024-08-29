@@ -46,3 +46,31 @@ process CUT_BLAST_RESULTS {
     seqtk subseq $fasta \$NONZFHUM_FILE >> \$NONZFHUM_FA_FILE
     """
 }
+
+process BLAST_FULL_NT {
+    input:
+    path transcripts
+
+    output:
+    path "${transcripts.simpleName}.blast.txt.gz"
+
+    script:
+    """
+    OUTPUT_STAGING="\${PWD}/${transcripts.simpleName}.blast.txt.staging"
+    OUTPUT="\${PWD}/${transcripts.simpleName}.blast.txt.gz"
+    INPUT="\${PWD}/${transcripts}"
+
+    # Seems like we need to be in the DB directory?
+    cd /db
+    blastn \
+        -db /db/${params.nt_db_name} \
+        -query \$INPUT \
+        -outfmt "${params.full_nt_outfmt}" \
+        -num_threads ${task.cpus} \
+        -evalue ${params.full_nt_evalue} \
+        -max_target_seqs "${params.full_nt_max_target_seqs}" \
+        -out \${OUTPUT_STAGING}
+    gzip \${OUTPUT_STAGING}
+    mv "\${OUTPUT_STAGING}.gz" "\${OUTPUT}"
+    """
+}

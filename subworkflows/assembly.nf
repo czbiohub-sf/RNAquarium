@@ -1,6 +1,6 @@
-include { SPADES_SINGLE_END; SPADES_PAIRED_END } from './modules/assembly.nf'
+include { SPADES_SINGLE_END; SPADES_PAIRED_END } from '../modules/assembly.nf'
 
-workflow SPADES {
+workflow ASSEMBLE {
     take:
         single_end_fqs
         paired_end_fqs

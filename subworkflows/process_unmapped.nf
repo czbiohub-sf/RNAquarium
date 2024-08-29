@@ -1,5 +1,5 @@
-include { MERGE_UNMAPPED                     } from './modules/merge_unmapped.nf'
-include { PARSE_ACCESSIONS; DOWNLOAD_SRA_TAB } from './modules/accession_mapping.nf'
+include { MERGE_UNMAPPED                     } from '../modules/merge_unmapped.nf'
+include { PARSE_ACCESSIONS; DOWNLOAD_SRA_TAB } from '../modules/accession_mapping.nf'
 
 workflow PROCESS_UNMAPPED {
     take:
@@ -7,7 +7,6 @@ workflow PROCESS_UNMAPPED {
         bioproj_map
         sra_tab_file
         accession_list
-        bioproj_map
 
     main:
         if (!unmerged_accessions) {

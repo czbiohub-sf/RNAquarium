@@ -1,28 +1,24 @@
+// TODO: Handle case where num_diamond_chunks > num seq
 process CHUNK_NONZFHUM_FASTA {
     input:
     path transcript
-    val diamond_chunks
 
     output:
-    path "${transcript.simpleName}.*.fasta", arity: params.diamond_chunks
+    path "${transcript.simpleName}.*.fasta"
 
     script:
     """
-    echo ${transcript.simpleName}
     alphabet="abcdefghijklmnopqrstuvwxyz"
-    seqkit split2 -p ${diamond_chunks} ${transcript }
+    seqkit split2 -p ${params.num_diamond_chunks} ${transcript}
     file_chunks=(\$(ls ${transcript}.split))
 
     i=1
     for f in ${transcript}.split/*.fasta
     do
-        echo \$f
         letter=\${alphabet:i-1:1}
         mv \$f ${transcript.simpleName}.\$letter.fasta
         i=\$((i+1))
     done
-
-    echo \$(ls)
     """
 }
 
