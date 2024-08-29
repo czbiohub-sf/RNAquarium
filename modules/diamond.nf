@@ -25,10 +25,10 @@ process CHUNK_NONZFHUM_FASTA {
 // Use baseName over simpleName b/c transcripts are named chunk_XXX.Y.fasta
 //     where Y is a letter corresponding to the sub-chunk (e.g. a-j for 1-10)
 process DIAMOND {
+    label 'use_scratch'
+
     input:
     path transcripts
-
-    scratch true
 
     output:
     path "${transcripts.baseName}.diamond.txt.gz"
