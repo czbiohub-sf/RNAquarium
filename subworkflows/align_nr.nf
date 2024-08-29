@@ -5,6 +5,10 @@ workflow ALIGN_NR {
         non_zf_hum_fa
 
     main:
+        if (!params.nr_dir) {
+            log.error("No value was provided for nr_dir!")
+            exit 1
+        }
         diamond_chunks = CHUNK_NONZFHUM_FASTA(
             non_zf_hum_fa.flatten(),
         )
