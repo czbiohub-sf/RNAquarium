@@ -6,6 +6,14 @@ workflow NEGATIVE_FILTER {
         assembled_transcripts
 
     main:
+        if (!params.nt_dir) {
+            log.error("No value was provided for nt_dir!")
+            exit 1
+        }
+        if (!params.nt_db_name) {
+            log.error("No value was provided for nt_db_name!")
+            exit 1
+        }
         chunked_transcripts = (
             CHUNK_ASSEMBLED_FASTAS(
                 assembled_transcripts,
