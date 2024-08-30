@@ -16,10 +16,10 @@ process BLAST {
     blastn \
         -db /db/${params.nt_db_name} \
         -query \$INPUT \
-        -outfmt "${params.full_nt_outfmt}" \
+        -outfmt "${params.outfmt}" \
         -num_threads ${task.cpus} \
-        -evalue ${params.full_nt_evalue} \
-        -max_target_seqs "${params.full_nt_max_target_seqs}" \
+        -evalue ${params.evalue} \
+        -max_target_seqs "${params.max_target_seqs}" \
         -out \${OUTPUT_STAGING}
     gzip \${OUTPUT_STAGING}
     mv "\${OUTPUT_STAGING}.gz" "\${OUTPUT}"
