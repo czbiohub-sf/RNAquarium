@@ -1,6 +1,6 @@
 #!/bin/bash
-OUTDIR=${1:-"nonhost_reads/"}
-NF_LOG=${2:-".nextflow.log"}
+NF_LOG=.nextflow.log
+OUTDIR=nonhost_reads/
 download_fail=0
 corrupt_file=0
 dedup_fail=0
@@ -15,7 +15,8 @@ mapfile -t fails <<<$(grep -B3 "Error is ignored" ${NF_LOG} | grep "work-dir")
 
 # work directory
 for fail in "${fails[@]}"; do
-	workdir=$(echo $fail | cut -d"=" -f3) && log=$(cat "$workdir/.command.log")
+	workdir=$(echo $fail | cut -d"=" -f3)
+	log=$(cat "$workdir/.command.log")
 	if $(echo $fail | grep -q "download"); then
 		if [ $VERBOSE ]; then echo "download_fail" $fail &2>/dev/stderr; fi
 		((download_fail++))

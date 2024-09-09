@@ -10,8 +10,6 @@ params.backupTmp = null
 params.backupScratchHack = false
 params.nxfUnstageHack = false
 
-params.extraAdapters = "extra-adapters.fasta"
-
 params.metaIn = 'step_1_sheet.csv'
 params.metaOut = 'step_2_sheet.csv'
 include {
@@ -32,9 +30,8 @@ process fastp {
 
 	script:
 	def extension = ".trimmed.fastq"
-	def ex_adp = file(params.extraAdapters).exists() ? "--adapter_fasta ${params.extraAdapters}" : ""
 	def FASTP_CMD = """fastp -q 17 -u 15 -n \$(( ${meta.readlen}/10 > 50 ? 50 : ${meta.readlen}/10 )) \
-		--length_required 2 ${ex_adp} \
+		--length_required 2 \
 		--compression 6 --thread ${task.cpus} \
 		--json fastp.json --html fastp.html """
 	def STATS_CMD = """fastp_before=\$(sed -n '/Read1 before filtering:/{;n;p;}' stats.txt | cut -f3 -d' ')

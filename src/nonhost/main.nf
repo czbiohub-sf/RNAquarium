@@ -39,7 +39,6 @@ params.backupTmp = null
 params.backupScratchHack = false
 params.nxfUnstageHack = false
 
-params.extraAdapters = "$PWD/extra-adapters.fasta"
 params.hisatUseTranscript = true
 params.starSjdbOverhang = 100
 params.starUseSharedMem = false
@@ -100,7 +99,6 @@ include {
 include {
 	fastp;
 } from './modules/local/step.2.nf' params(
-	extraAdapters: params.extraAdapters,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishQCfiltered,
 	cleanupScript: cleanupScript,
@@ -287,41 +285,35 @@ workflow {
 	// step 1: download and convert to fastq
 	// find existing fastqs
 	// allow RunInfo csv (Run, size_MB)
-	if (params.accessionList) {
-		accessions = params.accessionList =~ /\.csv$/
-			? Channel.fromPath(params.accessionList, type: 'file')
-			.splitCsv( header: true )
-			.map { row -> [row.Run.trim(), row.size_MB.toLong()] }
-		: Channel.fromPath(params.accessionList, type: 'file')
-			.splitText()
-			.map { acc -> [acc.trim(), null] }
-	} else {
-		accessions = Channel.empty()
-	}
+	accessions = params.accessionList =~ /\.csv$/
+		? Channel.fromPath(params.accessionList, type: 'file')
+		.splitCsv( header: true )
+		.map { row -> [row.Run.trim(), row.size_MB.toLong()] }
+	: Channel.fromPath(params.accessionList, type: 'file')
+		.splitText()
+		.map { acc -> [acc.trim(), null] }
 
-	if (params.fastqPath) {
+
+	if (params.fastqPath && file(params.fastqPath).exists()) {
 		try {
-			direct_fastqs = Channel.fromFilePairs(params.fastqPath, size: -1, checkIfExists: true)
-				.map { prefix, mates ->
-					def size1 = mates[0].size()
-					def new_meta = [id: prefix,
-									sra_size: size1,
-									size_MB: (mates[0].size() + mates[1]?.size()) / 1048576]
-					[ new_meta, mates ]
+			direct_fastqs = Channel.fromPath("$params.fastqPath/*", type: 'dir')
+				.map { path -> // need to think about this more, failure handling?
+					def new_meta = [id: path.getSimpleName(),
+									sra_size: files("$path/*.fastq")[0].size(),
+									size_MB: null]
+					[ new_meta, path ]
 				}
 			direct_fastq_ids = direct_fastqs
 				.map { meta, _ ->
 					[ meta.id, null, true ]
 				}
-
 			// remove ids that exist in pre-dumped fastq path from accessions list
-			// accessions = accessions
-			// 	.join(direct_fastq_ids, remainder: true, by: 0)
-			// 	.filter { key, s, v2 -> !v2 }
-			// 	.map { key, MB, _ ->
-			// 		[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
-			// 	}
-			// 	.view()
+			accessions = accessions
+				.join(direct_fastq_ids, remainder: true, by: 0)
+				.filter { key, s, v2 -> !v2 }
+				.map { key, MB, _ ->
+					[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
+				}
 		} catch (Exception e) {
 			log.error "--fastq-path $params.fastqPath is not folders of fastq?\n$e"
 			exit(1)
@@ -333,7 +325,7 @@ workflow {
 				[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
 			}
 	}
-	
+
 	// download SRAs by remaining accessions
 	download(accessions).mates
 		.map { meta, fastq, reads, sra_size, median1, median2, count, fsize ->
@@ -352,19 +344,7 @@ workflow {
 		.view()
 		.set { download_result }
 
-	direct_fastqs.view()
 	n_direct_fastqs = check_direct_fastqs(direct_fastqs) // , merging any existing fastqs
-		.map {
-			meta, fastq, lines ->
-			def new_meta = [id: meta.id,
-							reads: lines.toLong() / 4,
-							sra_size: meta.sra_size.toLong(),
-							size_MB: meta.size_MB,
-							cleanup: "",
-							cleanup_later: "${fastq.join(' ')}"]
-			[ new_meta, fastq ]
-		}
-		.view()
 
 	// heuristic filter scRNAseq barcode files and add metadata for direct path
 	filter_barcodes(n_direct_fastqs)

@@ -87,11 +87,13 @@
                 },
                 "fastqPath": {
                     "type": "string",
-                    "description": "Glob pattern describing path of RNA-seq files (e.g. fastq/*_{1,2}.fq.gz)",
-                    "help_text": "for file pattern syntax see https://www.nextflow.io/docs/latest/channel.html#fromfilepairs"
+                    "format": "directory-path",
+                    "description": "Path to a directory containing folders of local FASTQs to use in the pipeline",
+                    "help_text": "This directory, if specified, must contain subdirectories containing either one(single-ended) or two(paired) FASTQ files. The subfolder name will be treated as a read ID.\n\nFor example:\n```\nfastq_path/\n - SRR1234/\n   - SRR1234.fastq\n - MYREADS1\n   - MYREADS1_1.fastq\n   - MYREADS1_2.fastq\n```\nExtra files of other types in the read directories are tolerated, but extra directories in the fastq path without reads as formatted above are not allowed."
                 }
             },
             "required": [
+                "accessionList"
             ],
             "fa_icon": "fas fa-terminal"
         },
@@ -265,12 +267,6 @@
             "description": "Advanced tool configuration",
             "default": "",
             "properties": {
-                "extraAdapters": {
-                    "type": "string",
-                    "format": "path",
-                    "description": "additional adapters for fastp filter (fasta format)",
-                    "default": "extra-adapters.fasta"
-                },
                 "starSjdbOverhang": {
                     "type": "number",
                     "default": 100,
