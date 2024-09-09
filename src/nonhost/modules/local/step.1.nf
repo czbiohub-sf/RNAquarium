@@ -117,10 +117,16 @@ process check_direct_fastqs {
 	tuple val(meta), path(fastqs)
 
 	output:
-	tuple val(meta), path("$fastqs/*.fastq")
+	tuple val(meta), path("fastqs/*.fastq.gz"), env(lines)
 
 	script:
 	"""
+	mkdir fastqs
+	for file in $fastqs; do
+		cp \$file "fastqs/\$(basename \${file/%.fq.gz/.fastq.gz})"
+	done
+	files=(\$(ls -1 fastqs/*.fastq.gz))
+	lines=\$(zcat \${files[0]} | wc -l)
 	"""
 }
 
