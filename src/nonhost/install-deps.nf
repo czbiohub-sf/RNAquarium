@@ -41,12 +41,12 @@ process install_fastq_namefilter {
 
 	script:
 	def BINNAME="fastq-namefilter"
-	def URL="https://github.com/yttria-aniseia/fastq-namefilter/archive/refs/tags/0.2.8.tar.gz"
+	def URL="https://github.com/yttria-aniseia/fastq-namefilter/archive/refs/tags/0.2.9.tar.gz"
 	"""
-wget $URL -O fastq-namefilter-0.2.8.tar.gz
-tar -xzf fastq-namefilter-0.2.8.tar.gz && cd fastq-namefilter-0.2.8
+wget $URL -O fastq-namefilter-0.2.9.tar.gz
+tar -xzf fastq-namefilter-0.2.9.tar.gz && cd fastq-namefilter-0.2.9
 make -j${task.cpus} && mv bin/${BINNAME} ../${BINNAME} && cd ..
-rm -rf fastq-namefilter-0.2.8/ && rm fastq-namefilter-0.2.8.tar.gz
+rm -rf fastq-namefilter-0.2.9/ && rm fastq-namefilter-0.2.9.tar.gz
 	"""
 }
 
