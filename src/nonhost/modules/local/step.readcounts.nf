@@ -99,6 +99,31 @@ process htseq_count {
 	"""
 }
 
+process feature_count {
+	label 'featurecounts'
+
+	input:
+	tuple val(meta), path(sorted_bam)
+	path gtf_noERCC // "Danio_rerio.GRCz11.108.gtf"
+
+	output:
+	tuple val(meta), path("feature-counts.txt"), emit: counts
+	tuple val(meta), path("feature-counts.txt.summary"), emit: summary
+
+	script:
+	def p = "${meta.single_end ? '' : '-p --countReadPairs'}"
+	"""
+	featureCounts $p -T ${task.cpus} -a $gtf_noERCC -o feature-counts.staging.txt \
+		$sorted_bam
+	<feature-counts.staging.txt tail -n+2 | cut -f1,7 >feature-counts.txt
+	mv feature-counts.staging.txt.summary feature-counts.txt.summary
+	rm feature-counts.staging.txt
+	
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
+	"""
+}
+
 workflow {
 	indexes2 = params.refIndexes
 

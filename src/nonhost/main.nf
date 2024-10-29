@@ -7,6 +7,7 @@ params.fastqPath = null // "$PWD/fastq"
 params.parallelDownloads = 100
 params.skipHostCounts = false
 params.skipHisat = false
+params.htseqCount = false
 params.help = false
 
 params.genomeSize = null // must be filled
@@ -113,6 +114,7 @@ include {
 	star_counts;
 	sort_bam;
 	htseq_count;
+	feature_count;
 } from './modules/local/step.readcounts.nf' params(
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
@@ -440,8 +442,13 @@ workflow {
 			}
 			.set { sortbam_result }
 
-		htseq_count(sortbam_result, file(params.refGenomeGtf))
-			.set { count_result }
+		if (params.htseqCount) {
+			htseq_count(sortbam_result, file(params.refGenomeGtf))
+				.set { count_result }
+		} else {
+			feature_count(sortbam_result, file(params.refGenomeGtf)).out.counts
+				.set { count_result }
+		}
 	}
 
 	// step 3: hisat2
