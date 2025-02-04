@@ -86,13 +86,25 @@ process htseq_count {
 	path gtf_noERCC // "Danio_rerio.GRCz11.108.gtf"
 
 	output:
-	tuple val(meta), path("counts.txt")
+	tuple val(meta), path("counts.txt"), emit: counts
+	tuple val(meta), path("htseq-mapping-extra.txt"), emit: summary
+	tuple val(meta), path("counts-row.txt"), emit: countsRow
 
 	script:
 	"""
 	htseq-count -r name -s no -f bam -m intersection-nonempty \
 		$sorted_bam $gtf_noERCC > counts.txt
 	rm $sorted_bam
+	grep "^__" counts.txt > htseq-mapping-extra.txt
+	grep -v "^__" counts.txt > counts.txt
+
+	printf "Run," >counts-row-staging.txt
+	cat count.txt | cut -f1 | tr '\n' ',' >> counts-row-staging.txt
+	:>> counts-row-staging.txt
+	printf "${meta.id}," >>counts-row-staging.txt
+	cat count.txt | cut -f2 | tr '\n' ',' >> counts-row-staging.txt
+	:>> counts-row-staging.txt
+	mv counts-row-staging.txt counts-row.txt
 
 	cleanup="${meta.cleanup}"
 	${params.cleanupScript}
@@ -109,6 +121,7 @@ process feature_count {
 	output:
 	tuple val(meta), path("counts.txt"), emit: counts
 	tuple val(meta), path("feature-counts.txt.summary"), emit: summary
+	tuple val(meta), path("counts-row.txt"), emit: countsRow
 
 	script:
 	def p = "${meta.single_end ? '' : '-p --countReadPairs'}"
@@ -118,14 +131,13 @@ process feature_count {
 		\$sorted_bam
 	<feature-counts.staging.txt tail -n+2 | cut -f1,7 >counts.txt
 
-	nofeature=\$(awk 'FNR == 13 {print \$2}' feature-counts.staging.txt.summary)
-	ambiguous=\$(awk 'FNR == 15 {print \$2}' feature-counts.staging.txt.summary)
-	toolowaqual=\$(awk 'FNR == 6 {print \$2}' feature-counts.staging.txt.summary)
-	notaligned=\$(awk 'FNR == 3 {print \$2}' feature-counts.staging.txt.summary)
-	notunique=\$(awk 'FNR == 10 {print \$2}' feature-counts.staging.txt.summary)
-	printf '__no_feature\t%d\n__ambiguous\t%d\n__too_low_aQual\t%d\n__not_aligned\t%d\n__alignment_not_unique\t%d\n' \
-		\$nofeature \$ambiguous \$toolowaqual \$notaligned \$notunique >>counts.txt
-
+	printf "Run," >counts-row.txt
+	cat count.txt | cut -f1 | tr '\n' ',' >> counts-row.txt
+	:>> counts-row.txt
+	printf "${meta.id}," >>counts-row.txt
+	cat count.txt | cut -f2 | tr '\n' ',' >> counts-row.txt
+	:>> counts-row.txt
+	
 	mv feature-counts.staging.txt.summary feature-counts.txt.summary
 	rm feature-counts.staging.txt
 	
