@@ -86,12 +86,12 @@ process htseq_count {
 	path gtf_noERCC // "Danio_rerio.GRCz11.108.gtf"
 
 	output:
-	tuple val(meta), path("htseq-count.txt")
+	tuple val(meta), path("counts.txt")
 
 	script:
 	"""
 	htseq-count -r name -s no -f bam -m intersection-nonempty \
-		$sorted_bam $gtf_noERCC > htseq-count.txt
+		$sorted_bam $gtf_noERCC > counts.txt
 	rm $sorted_bam
 
 	cleanup="${meta.cleanup}"
@@ -103,19 +103,29 @@ process feature_count {
 	label 'featurecounts'
 
 	input:
-	tuple val(meta), path(sorted_bam)
+	tuple val(meta), path("${meta.id}.bam")
 	path gtf_noERCC // "Danio_rerio.GRCz11.108.gtf"
 
 	output:
-	tuple val(meta), path("feature-counts.txt"), emit: counts
+	tuple val(meta), path("counts.txt"), emit: counts
 	tuple val(meta), path("feature-counts.txt.summary"), emit: summary
 
 	script:
 	def p = "${meta.single_end ? '' : '-p --countReadPairs'}"
 	"""
+	sorted_bam="${meta.id}.bam"
 	featureCounts $p -T ${task.cpus} -a $gtf_noERCC -o feature-counts.staging.txt \
-		$sorted_bam
-	<feature-counts.staging.txt tail -n+2 | cut -f1,7 >feature-counts.txt
+		\$sorted_bam
+	<feature-counts.staging.txt tail -n+2 | cut -f1,7 >counts.txt
+
+	nofeature=\$(awk 'FNR == 13 {print \$2}' feature-counts.staging.txt.summary)
+	ambiguous=\$(awk 'FNR == 15 {print \$2}' feature-counts.staging.txt.summary)
+	toolowaqual=\$(awk 'FNR == 6 {print \$2}' feature-counts.staging.txt.summary)
+	notaligned=\$(awk 'FNR == 3 {print \$2}' feature-counts.staging.txt.summary)
+	notunique=\$(awk 'FNR == 10 {print \$2}' feature-counts.staging.txt.summary)
+	printf '__no_feature\t%d\n__ambiguous\t%d\n__too_low_aQual\t%d\n__not_aligned\t%d\n__alignment_not_unique\t%d\n' \
+		\$nofeature \$ambiguous \$toolowaqual \$notaligned \$notunique >>counts.txt
+
 	mv feature-counts.staging.txt.summary feature-counts.txt.summary
 	rm feature-counts.staging.txt
 	
