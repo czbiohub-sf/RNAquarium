@@ -15,6 +15,7 @@ workflow {
     ASSEMBLE(PROCESS_UNMAPPED.out)
     NEGATIVE_FILTER(ASSEMBLE.out)
     ALIGN_NT(NEGATIVE_FILTER.out)
-    PROCESS_TAXONOMY(ALIGN_NT.out)
-    ALIGN_NR(NEGATIVE_FILTER.out)
+    // ALIGN_NR(NEGATIVE_FILTER.out)
+    diamond_results = Channel.fromPath("/hpc/scratch/group.swe/rnaquarium/diamond_chunks_2024_08/chunk_001_nonzfhum.a.diamond.txt.gz")
+    PROCESS_TAXONOMY(ALIGN_NT.out, diamond_results)
 }
