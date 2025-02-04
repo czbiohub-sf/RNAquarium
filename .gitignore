@@ -8,7 +8,7 @@
 *.bs
 .nextflow*
 report*.html
-bin/
+./bin/
 
 # Devel::Cover
 cover_db/
