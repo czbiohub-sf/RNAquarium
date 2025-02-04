@@ -6,6 +6,6 @@ workflow PROCESS_TAXONOMY {
         diamond_results
 
     main:
-        // PROCESS_BLAST(blast_results)
+        PROCESS_BLAST(blast_results)
         PROCESS_DIAMOND(diamond_results)
 }
