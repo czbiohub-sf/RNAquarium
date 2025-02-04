@@ -1,4 +1,5 @@
 include { PROCESS_BLAST; PROCESS_DIAMOND } from '../modules/taxonomy.nf'
+include { ALLUVIAL_PLOT                  } from '../modules/alluvial.nf'
 
 workflow PROCESS_TAXONOMY {
     take:
@@ -6,6 +7,7 @@ workflow PROCESS_TAXONOMY {
         diamond_results
 
     main:
-        PROCESS_BLAST(blast_results)
-        PROCESS_DIAMOND(diamond_results)
+        blast_tax = PROCESS_BLAST(blast_results) | collect
+        diamond_tax = PROCESS_DIAMOND(diamond_results) | collect
+        ALLUVIAL_PLOT(blast_tax, diamond_tax)
 }

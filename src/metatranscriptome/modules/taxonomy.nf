@@ -27,6 +27,26 @@ process PROCESS_DIAMOND {
     """
 }
 
+process ALLUVIAL_PLOT {
+    input:
+    path nt_files, arity: "1..*"
+    path nr_files, arity: "1..*"
+
+    output:
+    "test.txt"
+
+    script:
+    """
+    mkdir nt
+    mkdir nr
+
+    mv $nt_files nt/
+    mv $nr_files nr/
+
+    alluvial_treemap.r -nt nt -nr nr
+    """
+}
+
 // Helper function to rename diamond result while retaining subchunk letter
 def renameFile(file) {
     def pattern = /^(.+_nonzfhum)\.([a-z])\.diamond\.txt\.gz$/
