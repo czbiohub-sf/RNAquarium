@@ -17,6 +17,7 @@ PUB_DIR="./output_2024_07_25/"
 NT_DIR="/hpc/scratch/group.swe/db/nt_clustered"
 NT_DB_NAME="nt_compressed_shuffled.fa"
 NR_DIR="/hpc/scratch/group.data.science/eric_temp/databases/nr_clustered"
+TAXONOMY_DB="/hpc/scratch/group.data.science/eric_temp/mmseqs_out/taxonomizr/nameNode.sqlite"
 
 mkdir -p $PUB_DIR
 
@@ -36,4 +37,5 @@ nextflow run \
     --nt_dir $NT_DIR \
     --nt_db_name $NT_DB_NAME \
     --nr_dir $NR_DIR \
+    --taxonomy_db $TAXONOMY_DB \
     main.nf
