@@ -319,6 +319,11 @@ if (nrow(thresholded_hit_nofish_rest) == 0) {
 #   select(-n) %>% relocate(rel_abundance, .after = coverage)
 #unique(thresholded_hit_nofishnomammals$taxname_lca)
 
+## add double-check to make sure n column is removed in edge cases above
+if ("n" %in% colnames(thresholded_hit_nofishnomammals)) {
+  thresholded_hit_nofishnomammals <- thresholded_hit_nofishnomammals %>% select(-n)
+}
+
 ## TWEAKED TAXONOMIZR CODE SO WE CAN SEARCH FOR SAR 
 
 thresholded_hit_nofishnomammals$taxoncategory2 <- ifelse((grepl("root", thresholded_hit_nofishnomammals$taxname_lca) == TRUE), "Root_unresolved",
