@@ -7,7 +7,7 @@ workflow PROCESS_TAXONOMY {
         diamond_results
 
     main:
-        blast_tax = PROCESS_BLAST(blast_results) | collect
-        diamond_tax = PROCESS_DIAMOND(diamond_results) | collect
+        blast_tax = PROCESS_BLAST(blast_results.filter{ it.size() > 100 }) | collect
+        diamond_tax = PROCESS_DIAMOND(diamond_results.filter{ it.size() > 100 }) | collect
         ALLUVIAL_PLOT(blast_tax, diamond_tax)
 }

@@ -23,7 +23,7 @@ Mode <- function(x) {
 chunk_pattern <- "chunk_\\d{3}_nonzfhum\\.\\w"
 chunk_name <- stringr::str_extract(chunk_file, chunk_pattern)
 
-single_hit <- fread(chunk_file, verbose = TRUE, quote="")
+single_hit <- fread(chunk_file, quote = "", header = FALSE)
 single_hit <- as_tibble(single_hit)
 
 single_hit <- single_hit %>% rename("query" = "V1") %>% 

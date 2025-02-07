@@ -22,7 +22,7 @@ Mode <- function(x) {
 pattern <- "chunk_\\d{3}_nonzfhum"
 chunk_name <- stringr::str_extract(chunk_file, pattern)
 
-single_hit <- fread(chunk_file, verbose = TRUE, quote="")
+single_hit <- fread(chunk_file, quote = "", header = FALSE)
 
 ## these 3 lines are to test looping
 # currentrunname <- single_hit$X4[1]
