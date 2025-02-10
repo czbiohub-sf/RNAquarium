@@ -443,15 +443,19 @@ workflow {
 			.set { sortbam_result }
 
 		if (params.htseqCount) {
-			htseq_count(sortbam_result, file(params.refGenomeGtf)).out.counts
+			htseq_count(sortbam_result, file(params.refGenomeGtf))
+			htseq_count.out.counts
 				.set { count_result }
 			htseq_count.out.countsRow
-				.collectFile(name: "countsTable.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/", )
+				.map { meta, row -> row }
+				.collectFile(name: "countsTable.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/")
 		} else {
-			feature_count(sortbam_result, file(params.refGenomeGtf)).out.counts
+			feature_count(sortbam_result, file(params.refGenomeGtf))
+			feature_count.out.counts
 				.set { count_result }
 			feature_count.out.countsRow
-				.collectFile(name: "countsTable.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/", )
+				.map { meta, row -> row }
+				.collectFile(name: "countsTable.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/")
 		}
 	}
 

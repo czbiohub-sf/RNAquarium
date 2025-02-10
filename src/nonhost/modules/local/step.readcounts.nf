@@ -99,11 +99,11 @@ process htseq_count {
 	grep -v "^__" counts.txt > counts.txt
 
 	printf "Run," >counts-row-staging.txt
-	cat count.txt | cut -f1 | tr '\n' ',' >> counts-row-staging.txt
-	:>> counts-row-staging.txt
+	cat counts.txt | cut -f1 | tr '\n' ',' | sed 's/,$//' >> counts-row-staging.txt
+	printf "\n" >> counts-row-staging.txt
 	printf "${meta.id}," >>counts-row-staging.txt
-	cat count.txt | cut -f2 | tr '\n' ',' >> counts-row-staging.txt
-	:>> counts-row-staging.txt
+	cat counts.txt | cut -f2 | tr '\n' ',' | sed 's/,$//' >> counts-row-staging.txt
+	printf "\n" >> counts-row-staging.txt
 	mv counts-row-staging.txt counts-row.txt
 
 	cleanup="${meta.cleanup}"
@@ -129,14 +129,15 @@ process feature_count {
 	sorted_bam="${meta.id}.bam"
 	featureCounts $p -T ${task.cpus} -a $gtf_noERCC -o feature-counts.staging.txt \
 		\$sorted_bam
-	<feature-counts.staging.txt tail -n+2 | cut -f1,7 >counts.txt
+	<feature-counts.staging.txt tail -n +2 | cut -f1,7 >counts.txt
 
-	printf "Run," >counts-row.txt
-	cat count.txt | cut -f1 | tr '\n' ',' >> counts-row.txt
-	:>> counts-row.txt
-	printf "${meta.id}," >>counts-row.txt
-	cat count.txt | cut -f2 | tr '\n' ',' >> counts-row.txt
-	:>> counts-row.txt
+	printf "Run," >counts-row-staging.txt
+	<counts.txt tail -n +2 | cut -f1 | tr '\n' ',' | sed 's/,$//' >> counts-row-staging.txt
+	printf "\n" >> counts-row-staging.txt
+	printf "${meta.id}," >>counts-row-staging.txt
+	<counts.txt tail -n +2 | cut -f2 | tr '\n' ',' | sed 's/,$//' >> counts-row-staging.txt
+	printf "\n" >> counts-row-staging.txt
+	mv counts-row-staging.txt counts-row.txt
 	
 	mv feature-counts.staging.txt.summary feature-counts.txt.summary
 	rm feature-counts.staging.txt
