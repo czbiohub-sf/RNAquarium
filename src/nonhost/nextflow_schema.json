@@ -235,6 +235,11 @@
                     "type": "boolean",
                     "description": "If true, do not use the hisat2 mapper step"
                 },
+                "htseqCount": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If enabled, use htseq-count for gene counting instead of featureCounts"
+                },
                 "hisatUseTranscript": {
                     "type": "boolean",
                     "default": true,

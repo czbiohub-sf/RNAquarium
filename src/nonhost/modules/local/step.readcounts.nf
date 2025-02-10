@@ -86,14 +86,62 @@ process htseq_count {
 	path gtf_noERCC // "Danio_rerio.GRCz11.108.gtf"
 
 	output:
-	tuple val(meta), path("htseq-count.txt")
+	tuple val(meta), path("counts.txt"), emit: counts
+	tuple val(meta), path("htseq-mapping-extra.txt"), emit: summary
+	tuple val(meta), path("counts-row.txt"), emit: countsRow
 
 	script:
 	"""
 	htseq-count -r name -s no -f bam -m intersection-nonempty \
-		$sorted_bam $gtf_noERCC > htseq-count.txt
+		$sorted_bam $gtf_noERCC > counts.txt
 	rm $sorted_bam
+	grep "^__" counts.txt > htseq-mapping-extra.txt
+	grep -v "^__" counts.txt > counts.txt
 
+	printf "Run," >counts-row-staging.txt
+	cat counts.txt | cut -f1 | tr '\n' ',' | sed 's/,$//' >> counts-row-staging.txt
+	printf "\n" >> counts-row-staging.txt
+	printf "${meta.id}," >>counts-row-staging.txt
+	cat counts.txt | cut -f2 | tr '\n' ',' | sed 's/,$//' >> counts-row-staging.txt
+	printf "\n" >> counts-row-staging.txt
+	mv counts-row-staging.txt counts-row.txt
+
+	cleanup="${meta.cleanup}"
+	${params.cleanupScript}
+	"""
+}
+
+process feature_count {
+	label 'featurecounts'
+
+	input:
+	tuple val(meta), path("${meta.id}.bam")
+	path gtf_noERCC // "Danio_rerio.GRCz11.108.gtf"
+
+	output:
+	tuple val(meta), path("counts.txt"), emit: counts
+	tuple val(meta), path("feature-counts.txt.summary"), emit: summary
+	tuple val(meta), path("counts-row.txt"), emit: countsRow
+
+	script:
+	def p = "${meta.single_end ? '' : '-p --countReadPairs'}"
+	"""
+	sorted_bam="${meta.id}.bam"
+	featureCounts $p -T ${task.cpus} -a $gtf_noERCC -o feature-counts.staging.txt \
+		\$sorted_bam
+	<feature-counts.staging.txt tail -n +2 | cut -f1,7 >counts.txt
+
+	printf "Run," >counts-row-staging.txt
+	<counts.txt tail -n +2 | cut -f1 | tr '\n' ',' | sed 's/,$//' >> counts-row-staging.txt
+	printf "\n" >> counts-row-staging.txt
+	printf "${meta.id}," >>counts-row-staging.txt
+	<counts.txt tail -n +2 | cut -f2 | tr '\n' ',' | sed 's/,$//' >> counts-row-staging.txt
+	printf "\n" >> counts-row-staging.txt
+	mv counts-row-staging.txt counts-row.txt
+	
+	mv feature-counts.staging.txt.summary feature-counts.txt.summary
+	rm feature-counts.staging.txt
+	
 	cleanup="${meta.cleanup}"
 	${params.cleanupScript}
 	"""
