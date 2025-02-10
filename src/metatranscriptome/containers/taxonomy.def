@@ -1,0 +1,18 @@
+Bootstrap: docker
+From: bioconductor/bioconductor_docker:RELEASE_3_17
+
+%labels
+    Author Gibraan Rahman
+
+%help
+    This container contains the dependencies required to run the R scripts.
+
+%post
+    apt-get -y update
+    apt-get -y install \
+        build-essential \
+        libcurl4-gnutls-dev \
+        libxml2-dev \
+        libssl-dev \
+        libfontconfig1-dev
+    R -e "install.packages(c('argparse', 'scales', 'taxonomizr', 'tidyverse'), dependencies=TRUE)"

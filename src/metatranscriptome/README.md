@@ -1,5 +1,15 @@
 # RNAquarium merge & assembly steps
 
+## Setup
+
+Make sure you have built the Apptainer image required for running the taxonomy scripts.
+
+```
+apptainer build \
+    src/metatranscriptome/containers/taxonomy.sif \
+    src/metatranscriptome/containers/taxonomy.def
+```
+
 ## Example usage
 
 Test data:
