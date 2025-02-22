@@ -488,7 +488,7 @@ write.table(allchunks_diamondnr_andblastntclustered_platyhelminthes_q, file = "t
 
 ## also full list!
 allchunks_diamondnr_andblastntclustered_q <- allchunks_diamondnr_andblastntclustered %>% select(query)
-write.table(allchunks_diamondnr_andblastntclustered_q, file = "taxonomy_hits_nofishnohuman_list.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_q, file = "taxonomy_hits_nonhost_list.txt", sep = "\t", row.names = FALSE, quote = FALSE)
 
 
 
