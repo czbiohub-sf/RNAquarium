@@ -417,9 +417,6 @@ write.table(allchunks_diamondnr_andblastntclustered, file = "taxonomy_hits_nonho
 
 ## also always have a generic version saved NOTE THIS WILL CHANGE, BUT IS USED FOR PART 3 AND ALSO VIRUS CURATION...
 write.table(allchunks_diamondnr_andblastntclustered, file = "taxonomy_hits_nonhost_mostrecent.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
-## also always have a generic version saved NOTE THIS WILL CHANGE, BUT IS USED FOR PART 3 AND ALSO VIRUS CURATION...
-write.table(allchunks_diamondnr_andblastntclustered, file = "taxonomy_hits_nonhost_mostrecent.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
-
 
 
 ## also ALL BROAD CATEGORIES ## revise code throughout second half to use updated NTorNR categories instead of either NT or NR...
