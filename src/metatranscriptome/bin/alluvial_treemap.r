@@ -35,7 +35,9 @@ blastoutputsNT <- fs::dir_ls(blastpath, glob="*.tab", recurse = FALSE)
 thresholded_hit_nofishnomammalsNT <- read_tsv(blastoutputsNT)
 head(thresholded_hit_nofishnomammalsNT)
 
-write.table(thresholded_hit_nofishnomammalsNT, file = "allchunks_blastn_hits_nonhost.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+#write.table(thresholded_hit_nofishnomammalsNT, file = paste0("allchunks_blastn_hits_nonhost_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+#write_tsv(allchunks_diamondnr_andblastntclustered_viruses00_NRbetter, file = paste0("taxonomy_hits_viruses00_NRbetter2_", Sys.Date(), ".tsv.gz"))
+write_tsv(thresholded_hit_nofishnomammalsNT, file = paste0("allchunks_blastn_hits_nonhost.tsv.gz"))
 #######
 ## combine all NR outputs
 
@@ -47,7 +49,9 @@ blastoutputsNR <- fs::dir_ls(diamondpath, glob="*.tab", recurse = FALSE)
 thresholded_hit_nofishnomammalsNR <- read_tsv(blastoutputsNR)
 head(thresholded_hit_nofishnomammalsNR)
 
-write.table(thresholded_hit_nofishnomammalsNR, file = "allchunks_diamond_hits_nonhost.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+#write.table(thresholded_hit_nofishnomammalsNR, file = paste0("allchunks_diamond_hits_nonhost_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+write_tsv(thresholded_hit_nofishnomammalsNR, file = paste0("allchunks_diamond_hits_nonhost.tsv.gz"))
+
 
 ####################################################################################
 
@@ -66,6 +70,9 @@ write.table(thresholded_hit_nofishnomammalsNR, file = "allchunks_diamond_hits_no
 
 ########### ADD FULL JOIN TO ALL NOFISHNOMAMMALS, NOT JUST VIRUSES
 allchunks_diamondnr_andblastntclustered <- full_join(thresholded_hit_nofishnomammalsNT,thresholded_hit_nofishnomammalsNR)
+
+
+
 
 ## first rename!!
 allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntclustered %>% rename(taxoncategory_NR = taxoncategory2_NR)
@@ -118,6 +125,7 @@ allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntcluster
 allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntclustered %>% relocate(taxoncategory_NR, .before = target_NTclustered)
 allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntclustered %>% relocate(taxoncategorysimple_NTclustered, .before = target_NTclustered)
 allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntclustered %>% relocate(taxoncategorysimple_NR, .before = target_NTclustered)
+
 
 
 ### then coalesces here
@@ -213,14 +221,14 @@ allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntcluster
 allchunks_diamondnr_andblastntclustered_NRbetter <- allchunks_diamondnr_andblastntclustered %>% filter(bits_NR >= bits_NTclustered)
 allchunks_diamondnr_andblastntclustered_taxonmismatch <- allchunks_diamondnr_andblastntclustered %>% filter(taxoncategorysimple_NR != taxoncategorysimple_NTclustered)
 ## then save - NOTE BEFORE REMOVING COLUMNS WE ARE SAVING ONLY THESE 3
-
 #write.table(allchunks_diamondnr_andblastntclustered, file = paste0("allchunks_blastnanddiamond_hits_nofishnohuman_fullcols_mostrecent.tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
 #write.table(allchunks_diamondnr_andblastntclustered_NRbetter, file = paste0("allchunks_blastnanddiamond_hits_nofishnohuman_NRbetter_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
 #write.table(allchunks_diamondnr_andblastntclustered_taxonmismatch, file = paste0("allchunks_blastnanddiamond_hits_nofishnohuman_taxonmismatch_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
 
-
 ## then save
-write.table(allchunks_diamondnr_andblastntclustered, file = "taxonomy_hits_nonhost_fullcols_mostrecent.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+#write.table(allchunks_diamondnr_andblastntclustered, file = paste0("taxonomy_hits_nonhost_fullcols_mostrecent.tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+write_tsv(allchunks_diamondnr_andblastntclustered, file = paste0("taxonomy_hits_nonhost_fullcols_mostrecent.tsv.gz"))
+#write.table(allchunks_diamondnr_andblastntclustered, file = "taxonomy_hits_nonhost_fullcols_mostrecent.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(allchunks_diamondnr_andblastntclustered_NRbetter, file = "taxonomy_hits_nonhost_NRbetter.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(allchunks_diamondnr_andblastntclustered_taxonmismatch, file = "taxonomy_hits_nonhost_taxonmismatch.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
 
@@ -234,12 +242,10 @@ write.table(allchunks_diamondnr_andblastntclustered_viruses0, file = "taxonomy_h
 allchunks_diamondnr_andblastntclustered_viruses00 <- allchunks_diamondnr_andblastntclustered %>% dplyr::filter(taxoncategory_NTclustered == "Viruses" | taxoncategory_NR == "Viruses")
 write.table(allchunks_diamondnr_andblastntclustered_viruses00, file = "taxonomy_hits_viruses0_fullcols_mostrecent.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
 
-
 ## now alluvial plots & treemaps
 ####################################################################################
 ###### alluvial code
 ####################################################################################
-
 # thresholded_hit_nofishnomammalsNTsm <- thresholded_hit_nofishnomammalsNT %>% select(query,taxoncategory_NTclustered)
 # thresholded_hit_nofishnomammalsNRsm <- thresholded_hit_nofishnomammalsNR %>% select(query,taxoncategory_NR)
 # allchunks_diamondnr_andblastntclustered_lists <- full_join(thresholded_hit_nofishnomammalsNTsm,thresholded_hit_nofishnomammalsNRsm)
@@ -282,6 +288,28 @@ sumcountonepercent4 <- sumcountonepercent / 4
 data_alluvial <- data_alluviala %>% dplyr::filter(count > sumcountonepercent4)
 
 
+### alternate plan for using treemap order, out to 11
+data_heatmap0 <- data_alluviala %>%
+  group_by(used_NTorNR) %>%
+  summarise(totalcount = sum(count)) %>%
+  ungroup()
+data_heatmap0 <- data_heatmap0 %>% rename(taxoncategorysimple_NTorNR = used_NTorNR)
+data_heatmap0 <- data_heatmap0 %>% rename(count = totalcount)
+alluvialorder11o <- data_heatmap0 %>% arrange(desc(count)) %>% slice_head(n = 11)
+alluvialorder11 <- unique(alluvialorder11o$taxoncategorysimple_NTorNR)
+alluvialorder11[12] <- "Missing"
+
+## now to figure out 11 hues
+#library(colorspace)
+cl = c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999", "#FF62BC", "#A3A500")
+#lightcl <- lighten(cl, amount = 0.3)
+#darkcl <- darken(cl, amount = 0.3)
+#[1] "#9F1718" "#2D577C" "#397737" "#693870" "#B05601" "#ACAC00" "#743C1E" "#D32092" "#696969" "#CC018C" "#6F7105"
+# scale_fill_manual(values = c( "#00969A", "#4D6E00", "#C12600", "#9E00DF")) + ## 0.3
+darkcl <- c("#9F1718", "#2D577C", "#397737", "#693870", "#B05601", "#ACAC00", "#743C1E", "#D32092", "#696969", "#CC018C", "#6F7105")
+lightcl <- c("#FF6B6B", "#69A4DF", "#6ECD6C", "#C17CCD", "#FFA984", "#FFFF91", "#D4805B", "#FFA7D2", "#B7B7B7", "#FF9ACE", "#BFC144")
+
+
 ## edge case when there are groups not in NT, need to combine with other columns
 ##data_alluviala %>% expand(NT, used_NTorNR, NR) use complete - instead use pivot_longer
 alluvialorder <- data_alluvial %>% pivot_longer(cols = -count)
@@ -290,9 +318,13 @@ alluvialorder2 <- unique(alluvialorder$value)
 ## make sure there are only 9 categories, per Set1 paletted??
 #alluvialorder2 <- head(alluvialorder2, 9)
 
-data_alluvial$NT <- factor(data_alluvial$NT, levels = alluvialorder2, ordered = TRUE)
-data_alluvial$NR <- factor(data_alluvial$NR, levels = alluvialorder2, ordered = TRUE)
-data_alluvial$used_NTorNR <- factor(data_alluvial$used_NTorNR, levels = alluvialorder2, ordered = TRUE)
+# data_alluvial$NT <- factor(data_alluvial$NT, levels = alluvialorder2, ordered = TRUE)
+# data_alluvial$NR <- factor(data_alluvial$NR, levels = alluvialorder2, ordered = TRUE)
+# data_alluvial$used_NTorNR <- factor(data_alluvial$used_NTorNR, levels = alluvialorder2, ordered = TRUE)
+
+data_alluvial$NT <- factor(data_alluvial$NT, levels = alluvialorder11, ordered = TRUE)
+data_alluvial$NR <- factor(data_alluvial$NR, levels = alluvialorder11, ordered = TRUE)
+data_alluvial$used_NTorNR <- factor(data_alluvial$used_NTorNR, levels = alluvialorder11, ordered = TRUE)
 ## this works, but also have to remove "decreasing = FALSE" across the commands
 
 
@@ -323,12 +355,14 @@ alluvial_plotall <- ggplot(data_alluvial, aes(axis1 = NT, axis2 = used_NTorNR, a
   geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 5, min.y = sumcountonepercent) +
   scale_x_discrete(limits = c("NT", "best (NT or NR)", "NR"), expand = c(0.08, 0.02)) +
   scale_y_continuous(labels = scales::comma) +
-  scale_fill_brewer(palette = "Set1") + ## Set3 has more categories but worse color scheme
-  theme_minimal(base_family="Helvetica", base_size = 16) + ## also theme_minimal, theme_void
+  # scale_fill_brewer(palette = "Set1") + ## Set3 has more categories but worse color scheme
+  scale_fill_manual(values = cl) + ## 0.3, instead of darkcl use cl
+  theme_minimal(base_size = 14) + ## also theme_minimal, theme_void
+#  theme_minimal(base_family="Helvetica", base_size = 16) + ## also theme_minimal, theme_void
+  
 #  labs(title = "Alluvial Diagram of NT vs NR taxonomic categories", fill = "best (NT or NR)",
-  labs(title = "Alluvial Diagram of NT vs NR taxonomic categories",
-       x = "",
-       y = "Count") +
+  labs(title = "Alluvial Diagram of NT vs NR taxonomic categories", fill = "Taxon",
+       x = "", y = "Count") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 16))
 
 #alluvial_plotall
@@ -353,6 +387,14 @@ alluvial_plotall <- ggplot(data_alluvial, aes(axis1 = NT, axis2 = used_NTorNR, a
 #allchunks_diamondnr_andblastntclustered_lists <- allchunks_diamondnr_andblastntclustered_lists %>% mutate(taxoncategorysimple_NTorNR = coalesce(taxoncategorysimple_NTclustered,taxoncategorysimple_NR))
 # now already done for taxoncategorysimple_NTorNR
 ## then get numbers for each of the unique values of taxoncategorysimple_NTorNR
+
+# data_heatmap <- data_alluviala %>%
+#   group_by(used_NTorNR) %>%
+#   summarise(totalcount = sum(count)) %>%
+#   ungroup()
+# data_heatmap <- data_heatmap %>% rename(taxoncategorysimple_NTorNR = used_NTorNR)
+# data_heatmap <- data_heatmap %>% rename(count = totalcount)
+
 ### group by then count
 data_heatmap <- allchunks_diamondnr_andblastntclustered_lists %>%
   group_by(taxoncategorysimple_NTorNR) %>%
@@ -387,10 +429,53 @@ data_heatmap2 <- data_heatmap2 %>%
     formatted_label = paste0(taxoncategorysimple_NTorNR, "\n", (comma(count)))
   )
 
+
+## also need to order data_heatmap2
+data_heatmap2$taxoncategorysimple_NTorNR <- factor(data_heatmap2$taxoncategorysimple_NTorNR, levels = alluvialorder11, ordered = TRUE)
+
+
 NTNRcontigs_treemap <- ggplot2::ggplot(data_heatmap2,aes(area=count,fill=taxoncategorysimple_NTorNR,label=formatted_label,subgroup=taxoncategorysimple_NTorNR)) + 
   treemapify::geom_treemap(layout="squarified") + 
   geom_treemap_text(place = "centre", size = 18, fontface = "italic") + 
-  labs(title="Treemap of contigs found by NT + NR searches", fill="Taxon")
+  scale_fill_manual(values = lightcl) +
+  theme_minimal(base_size = 14) +
+  labs(title="Treemap of contigs found by NT + NR searches by taxonomic category", fill="Taxon")
+
+#NTNRcontigs_treemap
+
+### changing heatmaps to match alluvial colors:
+# #cl = c("#00BFC4", "#7CAE00" ,"#F8766D","#C77CFF")
+# ## > hue_pal()(9)
+# # [1] "#F8766D" "#D39200" "#93AA00" "#00BA38" "#00C19F" "#00B9E3" "#619CFF" "#DB72FB" "#FF61C3"
+# # > hue_pal()(10)
+# # [1] "#F8766D" "#D89000" "#A3A500" "#39B600" "#00BF7D" "#00BFC4" "#00B0F6" "#9590FF" "#E76BF3" "#FF62BC"
+# # 
+# # display.brewer.pal(n = 9, name = 'Set1')
+# # brewer.pal(9,'Set1')
+# # [1] "#E41A1C" "#377EB8" "#4DAF4A" "#984EA3" "#FF7F00" "#FFFF33" "#A65628" "#F781BF" "#999999"
+# # [1] "#E41A1C" "#377EB8" "#4DAF4A" "#984EA3" "#FF7F00" "#FFFF33" "#A65628" "#F781BF" "#999999" "#FF62BC" "#A3A500"
+# 
+# ## reorder data_heatmap2 by alluvialorder2
+# ## use more than 9, also remove missing
+# 
+# #data_alluviala %>% dplyr::filter(count > sumcountonepercent4)
+# ## edge case when there are groups not in NT, need to combine with other columns
+# ##data_alluviala %>% expand(NT, used_NTorNR, NR) use complete - instead use pivot_longer
+# alluvialorder99 <- data_alluviala %>% pivot_longer(cols = -count)
+# alluvialorder99 <- alluvialorder99 %>% arrange(desc(name),desc(count))
+# alluvialorder88 <- unique(alluvialorder99$value)
+# ## make sure there are only 9 categories, per Set1 paletted??
+# #alluvialorder2 <- head(alluvialorder2, 9)
+# 
+# data_alluvial$NT <- factor(data_alluvial$NT, levels = alluvialorder2, ordered = TRUE)
+# data_alluvial$NR <- factor(data_alluvial$NR, levels = alluvialorder2, ordered = TRUE)
+# data_alluvial$used_NTorNR <- factor(data_alluvial$used_NTorNR, levels = alluvialorder2, ordered = TRUE)
+
+## instead use original treemap ordering, out to 11 levels, and add a couple to set1 manually above
+## for alluvial above, use the darken to darken by 0.35
+
+
+
 
 ### moving saving of plots and table to very end
 # ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".png", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
@@ -465,10 +550,11 @@ allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntcluster
 
 ## now saving & subsetting
 ## then save
-write.table(allchunks_diamondnr_andblastntclustered, file = paste0("taxonomy_hits_nonhost_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+#write.table(allchunks_diamondnr_andblastntclustered, file = paste0("taxonomy_hits_nonhost_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
 
 ## also always have a generic version saved NOTE THIS WILL CHANGE, BUT IS USED FOR PART 3 AND ALSO VIRUS CURATION...
-write.table(allchunks_diamondnr_andblastntclustered, file = paste0("taxonomy_hits_nonhost_mostrecent.tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+#write.table(allchunks_diamondnr_andblastntclustered, file = paste0("taxonomy_hits_nonhost_mostrecent.tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+write_tsv(allchunks_diamondnr_andblastntclustered, file = paste0("taxonomy_hits_nonhost_mostrecent.tsv.gz"))
 
 
 ## also ALL BROAD CATEGORIES ## revise code throughout second half to use updated NTorNR categories instead of either NT or NR...
@@ -488,21 +574,22 @@ allchunks_diamondnr_andblastntclustered_nematoda <- allchunks_diamondnr_andblast
 allchunks_diamondnr_andblastntclustered_platyhelminthes <- allchunks_diamondnr_andblastntclustered %>% dplyr::filter(taxoncategorysimple_NTorNR == "Platyhelminthes")
 
 ## then save - virus0 here because more columns will be made in virus-specific scripts downstream
-write.table(allchunks_diamondnr_andblastntclustered_viruses, file = paste0("taxonomy_hits_viruses0_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+#write.table(allchunks_diamondnr_andblastntclustered_viruses, file = paste0("taxonomy_hits_viruses0_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_viruses, file = paste0("taxonomy_hits_viruses0.tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
 
 ## save all groups
-write.table(allchunks_diamondnr_andblastntclustered_bacteria, file = paste0("taxonomy_hits_bacteria_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_arthropoda, file = paste0("taxonomy_hits_arthropoda_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_plants, file = paste0("taxonomy_hits_plants_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_chordates, file = paste0("taxonomy_hits_chordates_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_fungi, file = paste0("taxonomy_hits_fungi_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_otherEukaryota, file = paste0("taxonomy_hits_otherEukaryota_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_SAR_Eukaryotes, file = paste0("taxonomy_hits_SAR_Eukaryotes_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_archaea, file = paste0("taxonomy_hits_archaea_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_mollusca, file = paste0("taxonomy_hits_mollusca_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_annelida, file = paste0("taxonomy_hits_annelida_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_nematoda, file = paste0("taxonomy_hits_nematoda_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_platyhelminthes, file = paste0("taxonomy_hits_platyhelminthes_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_bacteria, file = "taxonomy_hits_bacteria.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_arthropoda, file = "taxonomy_hits_arthropoda.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_plants, file = "taxonomy_hits_plants.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_chordates, file = "taxonomy_hits_chordates.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_fungi, file = "taxonomy_hits_fungi.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_otherEukaryota, file = "taxonomy_hits_otherEukaryota.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_SAR_Eukaryotes, file = "taxonomy_hits_SAReukaryotes.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_archaea, file = "taxonomy_hits_archaea.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_mollusca, file = "taxonomy_hits_mollusca.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_annelida, file = "taxonomy_hits_annelida.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_nematoda, file = "taxonomy_hits_nematoda.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_platyhelminthes, file = "taxonomy_hits_platyhelminthes.tsv", sep = "\t", row.names = FALSE, quote = FALSE)
 
 
 ## save lists for fasta pulling
@@ -528,7 +615,7 @@ write.table(allchunks_diamondnr_andblastntclustered_plants_q, file = paste0("tax
 write.table(allchunks_diamondnr_andblastntclustered_chordates_q, file = paste0("taxonomy_hits_chordates_list.txt"), sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(allchunks_diamondnr_andblastntclustered_fungi_q, file = paste0("taxonomy_hits_fungi_list.txt"), sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(allchunks_diamondnr_andblastntclustered_otherEukaryota_q, file = paste0("taxonomy_hits_otherEukaryota_list.txt"), sep = "\t", row.names = FALSE, quote = FALSE)
-write.table(allchunks_diamondnr_andblastntclustered_SAR_Eukaryotes_q, file = paste0("taxonomy_hits_SAR_Eukaryotes_list.txt"), sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(allchunks_diamondnr_andblastntclustered_SAR_Eukaryotes_q, file = paste0("taxonomy_hits_SAReukaryotes_list.txt"), sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(allchunks_diamondnr_andblastntclustered_archaea_q, file = paste0("taxonomy_hits_archaea_list.txt"), sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(allchunks_diamondnr_andblastntclustered_mollusca_q, file = paste0("taxonomy_hits_mollusca_list.txt"), sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(allchunks_diamondnr_andblastntclustered_annelida_q, file = paste0("taxonomy_hits_annelida_list.txt"), sep = "\t", row.names = FALSE, quote = FALSE)
@@ -590,14 +677,19 @@ write.table(allchunks_diamondnr_andblastntclustered_q, file = paste0("taxonomy_h
 
 #######################################################################################
 #### outputing plots and table last
+#ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all_",Sys.Date(),".png", sep=""), alluvial_plotall, width = 18, height = 9, units = "in", limitsize = FALSE)
+#ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all_",Sys.Date(),".pdf", sep=""), alluvial_plotall, width = 18, height = 9, units = "in", limitsize = FALSE)
+#write.table(data_alluviala, file = paste0("taxonomy_hits_nonhost_alluvialplot_counts_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+#ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".png", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
+#ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".pdf", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
+#write.table(data_heatmap, file = paste0("taxonomy_hits_nonhost_treemap_counts_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
 
-ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all_",Sys.Date(),".png", sep=""), alluvial_plotall, width = 18, height = 9, units = "in", limitsize = FALSE)
-#ggsave(filename = paste("allchunks_alluvialplot_all0_",Sys.Date(),".png", sep=""), alluvial_plotall, width = 5.6, height = 3.4, units = "in", limitsize = FALSE)
-ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all_",Sys.Date(),".pdf", sep=""), alluvial_plotall, width = 18, height = 9, units = "in", limitsize = FALSE)
+ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all.png", sep=""), alluvial_plotall, width = 18, height = 9, units = "in", limitsize = FALSE)
+ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all.pdf", sep=""), alluvial_plotall, width = 18, height = 9, units = "in", limitsize = FALSE)
 
-write.table(data_alluviala, file = paste0("taxonomy_hits_nonhost_alluvialplot_counts_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(data_alluviala, file = paste0("taxonomy_hits_nonhost_alluvialplot_counts.tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
 
-ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".png", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
-ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".pdf", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
+ggsave(filename = paste("taxonomy_hits_nonhost_treemap.png", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
+ggsave(filename = paste("taxonomy_hits_nonhost_treemap.pdf", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
 
-write.table(data_heatmap, file = paste0("taxonomy_hits_nonhost_treemap_counts_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(data_heatmap, file = paste0("taxonomy_hits_nonhost_treemap_counts.tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
