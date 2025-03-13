@@ -259,7 +259,6 @@ workflow {
 		if (e.key.equals(e.key.toLowerCase()) && !(e.key in ['help', 'h']))
 			param_info.append("${e.key.padLeft(23)}:\t$e.value\n")
 	}
-	//log.info param_info.toString()
 	log.info paramsSummaryLog(workflow)
 	if (!params.tmp) log.warn "--tmp=<path> not specified. using /tmp/\n(choose a scratch space appropriate for many very large files)"
 
@@ -329,7 +328,7 @@ workflow {
 			exit(1)
 		}
 	} else {
-		direct_fastqs = Channel.empty()
+			direct_fastqs = Channel.empty()
 		accessions = accessions
 			.map { key, MB ->
 				[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
@@ -563,6 +562,48 @@ workflow {
 		.join(dedup_stats)
 		.join(gsnap_stats)
 
+	// id,single_end,starting_reads,r1_median_len,r2_median_len,
+	// fastp_reads_before,fastp_reads_after,fastp_reads_too_short,fastp_reads_trimmed,
+	// hisat2_reads_before,hisat2_unaligned,hisat2_aligned_unique,hisat2_multialign,hisat2_discordant,
+	// star_reads_before,star_avg_len,star_aligned_unique,star_multialign,star_unaligned,star_too_short,
+	// bowtie2_reads_before,bowtie2_aligned,bowtie2_multialign,bowtie2_aligned_unique,bowtie2_unaligned,bowtie2_mixed,
+	// dedup_reads_before,dedup_reads_after,
+	// gsnap_reads_before,gsnap_aligned,gsnap_multialign,gsnap_aligned_unique,gsnap_unaligned,gsnap_mixed,
+	// final_reads
 	stats_csv(all_stats)
+	stats_csv.out
 		.collectFile(name: "stats-${params.timestamp}.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/stats/")
+
+	stats_csv.out
+		.splitCsv( header: true, skip: 0, strip: true, limit: 1 )
+		.reduce { a, b ->
+			[
+				starting_reads: a.starting_reads.toLong() + (b.starting_reads ? b.starting_reads.toLong() : 0L),
+				fastp_reads_after: a.fastp_reads_after.toLong() + (b.fastp_reads_after ? b.fastp_reads_after.toLong() : 0L),
+				// [not a mistake] using input to next step to determine output from previous
+				star_reads_before: a.star_reads_before.toLong() + (b.star_reads_before ? b.star_reads_before.toLong() : 0L),
+				bowtie2_reads_before: a.bowtie2_reads_before.toLong() + (b.bowtie2_reads_before ? b.bowtie2_reads_before.toLong() : 0L),
+				dedup_reads_before: a.dedup_reads_before.toLong() + (b.dedup_reads_before ? b.dedup_reads_before.toLong() : 0L),
+				// [not a mistake] ends here
+				dedup_reads_after: a.dedup_reads_after.toLong() + (b.dedup_reads_after ? b.dedup_reads_after.toLong() : 0L),
+				// currently gsnap output + skipped gsnap
+				final_reads: a.final_reads.toLong() + (b.final_reads ? b.final_reads.toLong() : 0L)
+			]
+		}
+		.combine(accessions.count()).combine(n_direct_fastqs.count()).combine(filter_barcodes_result.ok.count()).combine(all_stats.count())
+		.view { a -> a }
+		.map { summary, input_accessions, local_fastq_runs, runs_available, runs_in_unmapped ->
+			"input_accessions\t${input_accessions}\n" +
+				"local_fastq_runs\t${local_fastq_runs}\n" +
+				"runs_available_ok\t${runs_available}\n" +
+				"runs_in_unmapped\t${runs_in_unmapped}\n" +
+				"num_starting_reads\t${summary.starting_reads}\n" +
+				"fastp_reads_after\t${summary.fastp_reads_after}\n" +
+				"hisat2_reads_after\t${summary.star_reads_before}\n" +
+				"star_reads_after\t${summary.bowtie2_reads_before}\n" +
+				"bowtie_reads_after\t${summary.dedup_reads_before}\n" +
+				"dedup_reads_after\t${summary.dedup_reads_after}\n" +
+				"num_unmapped_reads\t${summary.final_reads}\n"
+		}
+		.collectFile(name: "host-filtering.summary.txt", storeDir: "${params.publishDir}/")
 }
