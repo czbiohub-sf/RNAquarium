@@ -19,6 +19,8 @@ params.erccGtf = "ERCC92.gtf"
 
 params.retainMixed = true
 
+params.seed = 32854
+
 include {
 	bowtie2_generate_indexes;
 } from './step.0.generate_indexes.nf' params(
@@ -55,7 +57,7 @@ process bowtie2 {
 	//def index_base = file(index_dir).listFiles()[0].getSimpleName()
 	def BOWTIE2_CMD = """bowtie2 --quiet --very-sensitive-local -p $task.cpus \
 		--rg-id na --rg LB:na --rg SM:na --rg PL:na --rg PU:na \
-		-x bowtie2_index/${idx_basename} """
+		--seed ${params.seed} -x bowtie2_index/${idx_basename} """
 	if (!meta.single_end)
 	"""
 	${BOWTIE2_CMD} -1 ${mategz[0]} -2 ${mategz[1]} -S bowtie2.staging.sam

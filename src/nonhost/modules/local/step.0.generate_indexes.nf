@@ -42,7 +42,7 @@ process star_generate_indexes {
 
 	script:
 	def genome_name = ref_genome_fa.getSimpleName()
-	def STAR_INDEXGEN_CMD = """STAR --runMode genomeGenerate --runThreadN ${task.cpus} \
+	def STAR_INDEXGEN_CMD = """STAR --runRNGseed ${params.seed} --runMode genomeGenerate --runThreadN ${task.cpus} \
 		--sjdbOverhang ${params.starSjdbOverhang} --limitGenomeGenerateRAM ${task.memory.toBytes()} """
 	"""
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
@@ -106,7 +106,7 @@ process bowtie2_generate_indexes {
 
 	script:
 	"""
-	bowtie2-build -f --threads $task.cpus ${ref_genome_fa},${ERCC_fa} \
+	bowtie2-build -f --seed ${params.seed} --threads $task.cpus ${ref_genome_fa},${ERCC_fa} \
 		${ref_genome_fa.simpleName}
 	"""
 }
