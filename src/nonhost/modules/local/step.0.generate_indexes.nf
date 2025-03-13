@@ -19,6 +19,7 @@ params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
 
 params.genomeSize = null
+params.seed = 35854
 
 params.starSjdbOverhang = 100
 
@@ -78,7 +79,7 @@ process hisat2_generate_indexes {
 	hisat2_extract_splice_sites.py indexes_ERCC.gtf > genome.ss
 	hisat2_extract_exons.py indexes_ERCC.gtf > genome.exon
 
-	hisat2-build -q -p $task.cpus \
+	hisat2-build -q --seed ${params.seed} -p $task.cpus \
 		--exon genome.exon --ss genome.ss \
 		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.simpleName}
 	"""
@@ -87,7 +88,7 @@ process hisat2_generate_indexes {
 	echo '[hisat2_generate_indexes] building index without GTF exon/splice graph'
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
 
-	hisat2-build -q -p $task.cpus \
+	hisat2-build -q --seed ${params.seed} -p $task.cpus \
 		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.simpleName}
 	"""
 }

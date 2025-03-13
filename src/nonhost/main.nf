@@ -40,6 +40,7 @@ params.backupTmp = null
 params.backupScratchHack = false
 params.nxfUnstageHack = false
 
+params.seed = 32854
 params.extraAdapters = "$PWD/extra-adapters.fasta"
 params.hisatUseTranscript = true
 params.starSjdbOverhang = 100
@@ -76,6 +77,7 @@ include { } from './modules/local/step.0.generate_indexes.nf' params(
 	refGenomeGtf: params.refGenomeGtf,
 	erccFa: params.erccFa,
 	erccGtf: params.erccGtf,
+	seed: params.seed,
 	starSjdbOverhang: params.starSjdbOverhang,
 	publishDir: params.publishDir,
 	hisatUseTranscript: params.hisatUseTranscript,
@@ -137,7 +139,8 @@ include {
 	tmp: params.tmp,
 	backupTmp: params.backupTmp,
 	backupScratchHack: params.backupScratchHack,
-	nxfUnstageHack: params.nxfUnstageHack
+	nxfUnstageHack: params.nxfUnstageHack,
+	seed: params.seed
 )
 include {
 	star;

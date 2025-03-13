@@ -17,6 +17,7 @@ params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
 params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
 params.hisatUseTranscript = true
+params.seed = 35854
 
 include {
 	hisat2_generate_indexes;
@@ -53,7 +54,7 @@ process hisat2 {
 	tuple val(meta), path("metrics.txt"), emit: hisat2_debug
 
 	script:
-	def HISAT2_CMD = """hisat2 --met-file metrics.txt --summary-file stats.txt -p $task.cpus -k 1 -S /dev/null \
+	def HISAT2_CMD = """hisat2 --seed ${params.seed} --met-file metrics.txt --summary-file stats.txt -p $task.cpus -k 1 -S /dev/null \
 		-x hisat2_index/${idx_basename} --no-temp-splicesite -t """
 	if (!meta.single_end) """
 	mkdir -p PE

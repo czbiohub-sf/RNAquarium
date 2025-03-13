@@ -121,6 +121,11 @@
                     "hidden": true,
                     "description": "timestamp to append to nextflow reports (default: current time, YYMMDD-HHmmss)"
                 },
+                "seed": {
+                    "type": "number",
+                    "default": 32854,
+                    "description": "prng seed for aligners (etc.)",
+                },
                 "minSafeMemory": {
                     "type": "string",
                     "default": "1 GB",
