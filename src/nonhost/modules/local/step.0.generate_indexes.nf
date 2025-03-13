@@ -19,7 +19,7 @@ params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
 
 params.genomeSize = null
-params.seed = 35854
+params.seed = 32854
 
 params.starSjdbOverhang = 100
 

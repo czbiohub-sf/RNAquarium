@@ -125,7 +125,8 @@ include {
 	tmp: params.tmp,
 	backupTmp: params.backupTmp,
 	backupScratchHack: params.backupScratchHack,
-	nxfUnstageHack: params.nxfUnstageHack
+	nxfUnstageHack: params.nxfUnstageHack,
+	seed: params.seed
 )
 include {
 	hisat2;
@@ -156,7 +157,8 @@ include {
 	tmp: params.tmp,
 	backupTmp: params.backupTmp,
 	backupScratchHack: params.backupScratchHack,
-	nxfUnstageHack: params.nxfUnstageHack
+	nxfUnstageHack: params.nxfUnstageHack,
+	seed: params.seed
 )
 include {
 	bowtie2;

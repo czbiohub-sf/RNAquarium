@@ -22,6 +22,8 @@ params.starUseSharedMem = false
 params.starThreadsSmall = 4
 params.starThreadsLarge = 16
 
+params.seed = 32854
+
 include {
 	star_generate_indexes;
 } from './step.0.generate_indexes.nf' params(
@@ -52,7 +54,7 @@ process star {
 	def loadType = params.starUseSharedMem ? "LoadAndRemove" : "NoSharedMemory"
 	def STAR_CMD = """STAR --outFilterMultimapNmax 99999 --outFilterMismatchNmax 999 \
 		--outFilterScoreMinOverLread 0.5 --outFilterMatchNminOverLread 0.5 \
-		--outSAMmode None \
+		--outSAMmode None --runRNGseed ${params.seed} \
 		--clip3pNbases 0 --limitOutSJcollapsed 200000000 \
 		--genomeLoad $loadType \
 		--outReadsUnmapped Fastx \
