@@ -52,10 +52,15 @@ process star {
 
 	script:
 	def loadType = params.starUseSharedMem ? "LoadAndRemove" : "NoSharedMemory"
-	def STAR_CMD = """STAR --outFilterMultimapNmax 99999 --outFilterMismatchNmax 999 \
-		--outFilterScoreMinOverLread 0.5 --outFilterMatchNminOverLread 0.5 \
-		--outSAMmode None --runRNGseed ${params.seed} \
-		--clip3pNbases 0 --limitOutSJcollapsed 200000000 \
+	def STAR_CMD = """STAR --outFilterMultimapNmax 99999 \
+    --limitOutSJcollapsed 200000000 \
+    --outFilterMismatchNmax 33 \
+    --outFilterScoreMinOverLread 0.3 \
+    --outFilterMatchNminOverLread 0.3 \
+    --seedSearchStartLmax 30 \
+    --alignSJoverhangMin 3 \
+    --outFilterType Normal \
+	--outSAMmode None --runRNGseed ${params.seed} \
 		--genomeLoad $loadType \
 		--outReadsUnmapped Fastx \
 		--runThreadN ${task.cpus} """

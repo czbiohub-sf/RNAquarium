@@ -299,9 +299,11 @@ workflow {
 			? Channel.fromPath(params.accessionList, type: 'file')
 			.splitCsv( header: true )
 			.map { row -> [row.Run.trim(), row.size_MB.toLong()] }
+			.filter { acc, size -> acc != "" }
 		: Channel.fromPath(params.accessionList, type: 'file')
 			.splitText()
 			.map { acc -> [acc.trim(), null] }
+			.filter { acc, size -> acc != "" }
 	} else {
 		accessions = Channel.empty()
 	}
@@ -437,7 +439,9 @@ workflow {
 				[ new_meta, bam ]
 			}
 			.set { starcounts_result }
-		sort_bam(starcounts_result).bam
+
+		if (params.htseqCount) {
+			sort_bam(starcounts_result).bam
 			.map { meta, bam ->
 				def new_meta = meta.clone()
 				// cleanup didn't happen in this step
@@ -447,7 +451,6 @@ workflow {
 			}
 			.set { sortbam_result }
 
-		if (params.htseqCount) {
 			htseq_count(sortbam_result, file(params.refGenomeGtf))
 			htseq_count.out.counts
 				.set { count_result }
@@ -455,7 +458,7 @@ workflow {
 				.map { meta, row -> row }
 				.collectFile(name: "countsTable.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/")
 		} else {
-			feature_count(sortbam_result, file(params.refGenomeGtf))
+			feature_count(starcounts_result, file(params.refGenomeGtf))
 			feature_count.out.counts
 				.set { count_result }
 			feature_count.out.countsRow
@@ -487,7 +490,11 @@ workflow {
 
 	// clean up the pre-branch checkpoint
 	if (!params.skipHostCounts) {
-		cleanup_branched(join_by_id(star_result, sortbam_result))
+		if (params.htseqCount) {
+			cleanup_branched(join_by_id(star_result, sortbam_result))
+		} else {
+			cleanup_branched(join_by_id(star_result, count_result))
+		}
 	}
 	
 	// step 5: bowtie2

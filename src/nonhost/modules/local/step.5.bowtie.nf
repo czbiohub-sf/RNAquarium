@@ -55,7 +55,7 @@ process bowtie2 {
 	script:
 	// can we safely enable --no-discordant here?
 	//def index_base = file(index_dir).listFiles()[0].getSimpleName()
-	def BOWTIE2_CMD = """bowtie2 --quiet --very-sensitive-local -p $task.cpus \
+	def BOWTIE2_CMD = """bowtie2 --quiet --sensitive-local -p $task.cpus \
 		--rg-id na --rg LB:na --rg SM:na --rg PL:na --rg PU:na \
 		--seed ${params.seed} -x bowtie2_index/${idx_basename} """
 	if (!meta.single_end)

@@ -1,3 +1,4 @@
+[OUTDATED]
 The RNAquarium Nonhost Read Pipeline was developed by Chan Zuckerberg Biohub SF to identify viral
 and other non-host sequences in publicly available Zebrafish datasets.
 

@@ -49,10 +49,13 @@ process star_generate_indexes {
 	cat $ref_genome_gtf $ERCC_gtf > indexes_ERCC.gtf
 
 	${STAR_INDEXGEN_CMD} --genomeFastaFiles $ref_genome_fa --sjdbGTFfile $ref_genome_gtf \
-		--genomeDir	./star_${genome_name}_indexes
+		--genomeDir	./star_${genome_name}_indexes.staging
 
 	${STAR_INDEXGEN_CMD} --genomeFastaFiles dna_sm.primary_assembly_ERCC.fa \
-		--sjdbGTFfile indexes_ERCC.gtf --genomeDir ./star_${genome_name}_indexes.ERCC
+		--sjdbGTFfile indexes_ERCC.gtf --genomeDir ./star_${genome_name}_indexes.ERCC.staging
+
+	mv star_${genome_name}_indexes.staging star_${genome_name}_indexes
+	mv star_${genome_name}_indexes.ERCC.staging star_${genome_name}_indexes.ERCC
 	"""
 }
 
@@ -82,6 +85,8 @@ process hisat2_generate_indexes {
 	hisat2-build -q --seed ${params.seed} -p $task.cpus \
 		--exon genome.exon --ss genome.ss \
 		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.simpleName}
+
+	sleep 2
 	"""
 	else
 	"""
@@ -90,6 +95,8 @@ process hisat2_generate_indexes {
 
 	hisat2-build -q --seed ${params.seed} -p $task.cpus \
 		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.simpleName}
+
+	sleep 2
 	"""
 }
 
@@ -108,6 +115,8 @@ process bowtie2_generate_indexes {
 	"""
 	bowtie2-build -f --seed ${params.seed} --threads $task.cpus ${ref_genome_fa},${ERCC_fa} \
 		${ref_genome_fa.simpleName}
+
+	sleep 2
 	"""
 }
 

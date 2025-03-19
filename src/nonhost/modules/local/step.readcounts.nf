@@ -31,7 +31,7 @@ process star_counts {
 
 	script:
 	def STAR_READCOUNTS_CMD = """STAR --outFilterMultimapNmax 20 --outFilterMismatchNmax 999 \
-		--outFilterMismatchNoverLmax 0.04 --seed ${params.seed} \
+		--outFilterMismatchNoverLmax 0.04 --runRNGseed ${params.seed} \
 		--alignSJoverhangMin 8 --alignSJDBoverhangMin 1 \
 		--alignIntronMin 20 --alignIntronMax 1000000 \
 		--alignMatesGapMax 1000000 \

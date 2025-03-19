@@ -54,8 +54,15 @@ process hisat2 {
 	tuple val(meta), path("metrics.txt"), emit: hisat2_debug
 
 	script:
-	def HISAT2_CMD = """hisat2 --seed ${params.seed} --met-file metrics.txt --summary-file stats.txt -p $task.cpus -k 1 -S /dev/null \
-		-x hisat2_index/${idx_basename} --no-temp-splicesite -t """
+	def HISAT2_CMD = """hisat2 --seed ${params.seed} \
+		--met-file metrics.txt --summary-file stats.txt \
+		-p $task.cpus -k 2 \
+		--pen-noncansplice 12 \
+		--mp 1,0 \
+		--sp 2,0 \
+		--no-temp-splicesite -t \
+		-S /dev/null \
+		-x hisat2_index/${idx_basename}"""
 	if (!meta.single_end) """
 	mkdir -p PE
 	${HISAT2_CMD} \

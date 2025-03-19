@@ -39,10 +39,12 @@ process gsnap {
 	script:
 	def index_name = file(index_dir).getName()
 	def gsnap_gmap_bin = params.genomeSize < 2**32 ? "gsnap" : "gmap"
+//		-N 1 `# find novel splice sites` \
+
 	def GSNAP_CMD = """${gsnap_gmap_bin} -A sam \
-		-N 1 `# find novel splice sites` \
-		--batch=2 \
+		--batch=4 \
 		--use-shared-memory=0 \
+		--maxsearch=128 \
 		--npaths=1 `# maximum paths to print` \
 		--ordered -t ${task.cpus} \
 		--max-mismatches $params.maxMismatch \
