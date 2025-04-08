@@ -22,6 +22,8 @@ params.starUseSharedMem = false
 params.starThreadsSmall = 4
 params.starThreadsLarge = 16
 
+params.retainMixed = true
+
 params.seed = 32854
 
 include {
@@ -40,57 +42,67 @@ include {
 
 process star {
 	label 'star'
-	publishDir "$params.publishDir/STAR_out/$meta.id", enabled: params.publishIntermediate
+
+	def ALIGNER = "star"
+	def SUFFIX_OK = "STAR.fastq"
+	def SUFFIX_NG = "failedSTAR.fastq" // unused for STAR
+	def SAM_NAME = "${ALIGNER}_out.bam"
 
 	input:
-	tuple val(meta), path(fqgz, arity: '1..2')
+	tuple val(meta), path("m?.fq.gz", arity: '1..2')
 	path indexes_dir // "Danio_rerio.GRCz11.108.ERCC"
 
+	
 	output:
-	tuple val(meta), path("?E/Unmapped.out.mate?.gz", arity: '1..2'), emit: mates
+	tuple val(meta), path("Unmapped.out.mate?.*.gz", arity: '1..2'), emit: mates
+	//tuple val(meta), path("${SAM_NAME}"), emit: sam
 	tuple val(meta), path("Log.final.out"), emit: stats
+	tuple val(meta), path("${ALIGNER}.stats.txt"), emit: sam_stats
 
 	script:
+	// note: we could get read num with --outSAMreadID Number
+	//	--seedSearchStartLmax 30 \
+	//	--alignSJoverhangMin 3 \
 	def loadType = params.starUseSharedMem ? "LoadAndRemove" : "NoSharedMemory"
-	def STAR_CMD = """STAR --outFilterMultimapNmax 99999 \
-    --limitOutSJcollapsed 200000000 \
-    --outFilterMismatchNmax 33 \
-    --outFilterScoreMinOverLread 0.3 \
-    --outFilterMatchNminOverLread 0.3 \
-    --seedSearchStartLmax 30 \
-    --alignSJoverhangMin 3 \
-    --outFilterType Normal \
-	--outSAMmode None --runRNGseed ${params.seed} \
+	def ALIGNER_CMD = """STAR --outFilterMultimapNmax 99999 \
+		--limitOutSJcollapsed 200000000 \
+		--outFilterMismatchNmax 999 \
+		--outFilterScoreMinOverLread 0.5 \
+		--outFilterMatchNminOverLread 0.5 \
+		--outFilterType Normal \
+		--outSAMtype BAM Unsorted \
+		--outSAMmode NoQS \
+		--outSAMunmapped Within `# needed for samstats` \
+		--outSAMmultNmax 1 \
+		--runRNGseed ${params.seed} \
 		--genomeLoad $loadType \
-		--outReadsUnmapped Fastx \
+		--genomeDir ${indexes_dir} \
+		--readFilesCommand ${task.ext.gzipCmd} -dc \
 		--runThreadN ${task.cpus} """
-	if (!meta.single_end)
-	"""
-	${STAR_CMD} \
-		--genomeDir ${indexes_dir} \
-		--readFilesCommand ${task.ext.gzipCmd} -dc \
-		--outFileNamePrefix PE/ \
-		--readFilesIn ${fqgz[0]} ${fqgz[1]}
+	def ALIGNER_CMD_PE = """${ALIGNER_CMD} --readFilesIn m1.fq.gz m2.fq.gz"""
+	def ALIGNER_CMD_SE = """${ALIGNER_CMD} --readFilesIn m1.fq.gz"""
 
-	${task.ext.gzipCmd} -n PE/Unmapped.out.mate1
-	${task.ext.gzipCmd} -n PE/Unmapped.out.mate2
-	${task.ext.gzipCmd} -t PE/Unmapped.out.mate*.gz
-	mv PE/Log.final.out Log.final.out
+	// filter settings
+	def cond = params.retainMixed ?
+		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap || flag.munmap)') :
+		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap && flag.munmap)')
 
-	cleanup="${meta.cleanup}"
-	${params.cleanupScript}
-	"""
-	else if (meta.single_end)
-	"""
-	${STAR_CMD} \
-		--genomeDir ${indexes_dir} \
-		--readFilesCommand ${task.ext.gzipCmd} -dc \
-		--outFileNamePrefix SE/ \
-		--readFilesIn ${fqgz}
+	def NAMES = "${ALIGNER}_unmapped_names.txt"
+	def SAMSTATS_CMD = """samtools view -@ ${task.cpus} ${SAM_NAME} | cut -f2 | sort | uniq -c > ${ALIGNER}.stats.txt"""
+	def GET_NAMES_CMD = """samtools view -@ ${task.cpus} -e '${cond}' ${SAM_NAME} | cut -f1  > ${NAMES}"""
+	def FILTER_CMD = """LC_ALL=C fastq-namefilter ${NAMES} -"""
 
-	${task.ext.gzipCmd} -n SE/Unmapped.out.mate1
-	${task.ext.gzipCmd} -t SE/Unmapped.out.mate1.gz
-	mv SE/Log.final.out Log.final.out
+	"""
+	set -euo pipefail
+	${!meta.single_end ? ALIGNER_CMD_PE : ALIGNER_CMD_SE}
+	mv Aligned.out.bam ${SAM_NAME}
+
+	${SAMSTATS_CMD}
+	${GET_NAMES_CMD}
+	for i in ${!meta.single_end ? "{1..2}" : "1"} ; do
+		${task.ext.gzipCmd} -kcd m\${i}.fq.gz | ${FILTER_CMD} | ${task.ext.gzipCmd} -nc > Unmapped.out.mate\${i}.${SUFFIX_OK}.gz.staging
+	done
+	for file in *.gz.staging ; do mv \$file \${file/.gz.staging/.gz} ; done
 
 	cleanup="${meta.cleanup}"
 	${params.cleanupScript}

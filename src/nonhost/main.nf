@@ -133,6 +133,7 @@ include {
 	ensure_hisat2_indexes;
 } from './modules/local/step.3.hisat2.nf' params(
 	hisatUseTranscript: params.hisatUseTranscript,
+	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishHisat,
@@ -147,6 +148,7 @@ include {
 	star;
 	ensure_star_indexes;
 } from './modules/local/step.4.star.nf' params(
+	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
 	starUseSharedMem: params.starUseSharedMem,
 	starThreadsSmall: params.starThreadsSmall,
 	starThreadsLarge: params.starThreadsLarge,
@@ -162,7 +164,6 @@ include {
 )
 include {
 	bowtie2;
-	bowtie2_filter;
 	ensure_bowtie2_indexes;
 } from './modules/local/step.5.bowtie.nf' params(
 	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
@@ -191,8 +192,6 @@ include {
 )
 include {
 	gsnap;
-	gsnap_filter;
-	gsnap_skip;
 	ensure_gsnap_indexes;
 } from './modules/local/step.7.gsnap.nf' params(
 	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
@@ -325,12 +324,12 @@ workflow {
 
 			// remove ids that exist in pre-dumped fastq path from accessions list
 			// accessions = accessions
-			// 	.join(direct_fastq_ids, remainder: true, by: 0)
-			// 	.filter { key, s, v2 -> !v2 }
-			// 	.map { key, MB, _ ->
-			// 		[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
-			// 	}
-			// 	.view()
+			//	.join(direct_fastq_ids, remainder: true, by: 0)
+			//	.filter { key, s, v2 -> !v2 }
+			//	.map { key, MB, _ ->
+			//		[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
+			//	}
+			//	.view()
 		} catch (Exception e) {
 			log.error "--fastq-path $params.fastqPath is not folders of fastq?\n$e"
 			exit(1)
@@ -342,7 +341,7 @@ workflow {
 				[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
 			}
 	}
-	
+
 	// download SRAs by remaining accessions
 	download(accessions).mates
 		.map { meta, fastq, reads, sra_size, median1, median2, count, fsize ->
@@ -391,7 +390,7 @@ workflow {
 		}
 		.mix(download_result)
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out
-			ok: { meta, fastq -> 
+			ok: { meta, fastq ->
 				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
 					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
 			}(it)
@@ -418,11 +417,11 @@ workflow {
 			}
 		}
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
-			ok: { meta, fastq -> 
+			ok: { meta, fastq ->
 				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
 					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
 			}(it)
-			
+
 			dropouts: true
 		}
 		.set { fastp_result }
@@ -456,32 +455,32 @@ workflow {
 				.set { count_result }
 			htseq_count.out.countsRow
 				.map { meta, row -> row }
-				.collectFile(name: "countsTable.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/")
+				.collectFile(name: "countsTable.csv", keepHeader: true,
+							 skip: 1, storeDir: "${params.publishDir}/")
 		} else {
 			feature_count(starcounts_result, file(params.refGenomeGtf))
 			feature_count.out.counts
 				.set { count_result }
 			feature_count.out.countsRow
 				.map { meta, row -> row }
-				.collectFile(name: "countsTable.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/")
+				.collectFile(name: "countsTable.csv", keepHeader: true,
+							 skip: 1, storeDir: "${params.publishDir}/")
 		}
 	}
 
 	// step 3: hisat2
-	if (!params.skipHisat) {
-		hisat2(fastp_result.ok, hisat2_indexes)
-		hisat2.out.mates
-			.map { meta, mates ->
-				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
-				[ m, mates ]
-			}
-			.set { unmapped_reads_1 }
-	} else {
-		unmapped_reads_1 = fastp_result.ok
-	}
+	// TODO: remove skipHisat parameter
+	hisat2(fastp_result.ok, hisat2_indexes)
+	hisat2.out.mates
+		.map { meta, mates ->
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
+			[ m, mates ]
+		}
+		.set { unmapped_reads_1 }
 
 	// step 4: STAR
-	star(unmapped_reads_1, star_indexes).mates
+	star(unmapped_reads_1, star_indexes)
+	star.out.mates
 		.map { meta, mates ->
 			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
 			[ m, mates ]
@@ -496,19 +495,10 @@ workflow {
 			cleanup_branched(join_by_id(star_result, count_result))
 		}
 	}
-	
-	// step 5: bowtie2
-	bowtie2(star_result, bowtie2_indexes).sam
-		.map { meta, sam ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
-			[ m, sam ]
-		}
-		.set { bowtie2_result }
-	bowtie2_filter_input = join_by_id(bowtie2_result, star.out.mates)
-	bowtie2_filter(bowtie2_filter_input)
 
-	// step 6: deduplication
-	bowtie2_filter.out.mates
+	// step 5: bowtie2
+	bowtie2(star_result, bowtie2_indexes)
+	bowtie2.out.mates
 		.map { meta, mates ->
 			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
 			[ m, mates ]
@@ -522,33 +512,27 @@ workflow {
 		}
 		.set { bowtie2_filtered_result }
 
+	// step 6: deduplication
 	join_by_id(bowtie2_filtered_result.ok, star.out.stats)
 		.set { dedup_input }
 	dedup(dedup_input)
 	// don't add dedup to cleanup list
 
+	//snap(dedup.out.mates, snap_indexes)
 	// step 7: gsnap
 	gsnap(dedup.out.mates, gsnap_indexes)
-	gsnap.out.sam
-		.map { meta, sam ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
-			[ m, sam ]
+	gsnap.out.mates
+		.map { meta, mates ->
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = ""
+			[ m, mates ]
 		}
 		.branch {
-			ok: { meta, sam -> file(sam).size() > 0 }(it)
+			ok: { meta, mates -> !mates[0].matches("Failed") }(it)
 			fails: true
 		}
 		.set { gsnap_result }
-	gsnap_filter_input = join_by_id(gsnap_result.ok, dedup.out.mates)
-	gsnap_filter(gsnap_filter_input)
-
 	// if gsnap fails a run for any non-oom reason, keep the nonhost reads from before that.
-	dedup.out.mates
-		.join(gsnap.out.sam, by: [0], remainder: true)
-		.filter { meta, dedup_mates, gsnap -> !gsnap || file(gsnap).size() == 0 }
-		.map { meta, dedup_mates, gsnap_null -> [ meta, dedup_mates ] }
-		.set { gsnap_skips }
-	gsnap_skip(gsnap_skips)
+	gsnap_skips = gsnap_result.fails
 
 	// rekey in preparation for join
 	// questionable to use prefetch / fastq_dump stats b/c not present for direct fastq
@@ -558,15 +542,15 @@ workflow {
 	meta_stats    = filter_barcodes_result.ok.map { meta, fastq -> [ meta.id, meta ] }
 	fastp_stats   = fastp.out.stats_txt.map       { meta, stats -> [ meta.id, stats ] }
 	if (!params.skipHisat) {
-		hisat2_stats  = hisat2.out.stats.map  { meta, stats -> [ meta.id, stats ] }
+		hisat2_stats  = hisat2.out.sam_stats.map  { meta, stats -> [ meta.id, stats ] }
 	} else {
 		hisat2_stats = meta_stats.map { id, _ -> [ id, "na" ] }
 	}
 	star_stats    = star.out.stats.map    { meta, stats -> [ meta.id, stats ] }
-	bowtie2_stats = bowtie2_filter.out.stats.map { meta, stats -> [ meta.id, stats ] }
+	bowtie2_stats = bowtie2.out.stats.map { meta, stats -> [ meta.id, stats ] }
 	dedup_stats   = dedup.out.stats.map   { meta, stats -> [ meta.id, stats ] }
-	gsnap_stats   = gsnap_filter.out.stats.map { meta, stats -> [ meta.id, stats, "yes" ] }
-		.concat (gsnap_skip.out.mates.map { meta, mates -> [ meta.id, null, "no" ] })
+	gsnap_stats   = gsnap.out.stats.map { meta, stats -> [ meta.id, stats, "yes" ] }
+		.concat (gsnap_skips.map { meta, mates -> [ meta.id, null, "no" ] })
 
 	all_stats = meta_stats.join(fastp_stats)
 		.join(hisat2_stats)
@@ -577,7 +561,7 @@ workflow {
 
 	// id,single_end,starting_reads,r1_median_len,r2_median_len,
 	// fastp_reads_before,fastp_reads_after,fastp_reads_too_short,fastp_reads_trimmed,
-	// hisat2_reads_before,hisat2_unaligned,hisat2_aligned_unique,hisat2_multialign,hisat2_discordant,
+	// hisat2_reads_before,hisat2_aligned,hisat2_multialign,hisat2_aligned_unique,hisat2_unaligned,hisat2_mixed,
 	// star_reads_before,star_avg_len,star_aligned_unique,star_multialign,star_unaligned,star_too_short,
 	// bowtie2_reads_before,bowtie2_aligned,bowtie2_multialign,bowtie2_aligned_unique,bowtie2_unaligned,bowtie2_mixed,
 	// dedup_reads_before,dedup_reads_after,
