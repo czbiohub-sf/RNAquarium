@@ -26,49 +26,29 @@ include {
 	publishDir: params.publishDir,
 )
 
-process gsnap {
-	label 'gmap'
+process snap {
+	label 'snap'
 
 	input:
 	tuple val(meta), path(mategz, arity: '1..2')
 	path index_dir
 
 	output:
-	tuple val(meta), path("gsnap_out.sam"), emit: sam
+	tuple val(meta), path("snap_out.sam"), emit: sam
 
 	script:
 	def index_name = file(index_dir).getName()
 	if (!meta.single_end)
 	"""
-	${task.ext.gzipCmd} -kcd ${mategz[0]} > mate1.fastq
-	${task.ext.gzipCmd} -kcd ${mategz[1]} > mate2.fastq
-	set +e  # suppress terminate-on-error
-	${GSNAP_CMD} mate1.fastq mate2.fastq
-	set -e  # resume terminate on error, check error and clear outfile.
-	if [[ \$? > 0 ]] ; then :> gsnap_out.sam.staging ; fi
-
-	# we need pipeline to check for a blank output to skip processing still.
-	mv gsnap_out.sam.staging gsnap_out.sam
-
-	cleanup="${meta.cleanup}"
-	${params.cleanupScript}
+	snap-aligner paired ${index_dir} ${mategz[0]} ${mategz[1]} \
+		-t ${task.cpus} -o snap_out.staging.sam  -x -f -xf 2.0x
+	mv snap_out.staging.sam snap_out.sam
 	"""
 	else if (meta.single_end)
 	"""
-	${task.ext.gzipCmd} -kcd ${mategz} > mate1.fastq
-	restore_err_trap="`trap -p ERR`"
-	set +e  # suppress terminate-on-error
-	trap '' ERR
-	${GSNAP_CMD} mate1.fastq
-	set -e  # resume terminate-on-error, check error and clear outfile.
-	eval "\$restore_err_trap"
-
-	if [[ \$? > 0 ]] ; then :> gsnap_out.sam.staging ; fi
-
-	mv gsnap_out.sam.staging gsnap_out.sam
-
-	cleanup="${meta.cleanup}"
-	${params.cleanupScript}
+	snap-aligner single ${index_dir} ${mategz} \
+		-t ${task.cpus} -o snap_out.staging.sam -x -f -xf 2.0
+	mv snap_out.staging.sam snap_out.sam
 	"""
 }
 
@@ -150,6 +130,18 @@ def ensure_gsnap_indexes(ref_indexes,
 	} else {
 		indexes = gsnap_generate_indexes(file(ref_genome),
 										 file(ercc))
+	}
+	return indexes
+}
+
+def ensure_snap_indexes(ref_indexes,
+						ref_genome, ercc) {
+	if (ref_indexes
+		&& (indexes = file(ref_indexes))
+		&& indexes.exists()) {
+	} else {
+		indexes = snap_generate_indexes(file(ref_genome),
+										file(ercc))
 	}
 	return indexes
 }

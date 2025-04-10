@@ -4,3 +4,9 @@ resource_tuning/*.html
 
 work/
 reports/
+output/
+kb_test/
+bin/
+
+slurm.out/
+resource_tuning/

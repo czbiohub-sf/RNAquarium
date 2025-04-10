@@ -16,6 +16,7 @@ params.starRefIndexes = null
 params.hisatRefIndexes = null
 params.bowtieRefIndexes = null
 params.gsnapRefIndexes = null
+params.kbContamIndexes = null
 // https://ftp.ensembl.org/pub/release-108/fasta/danio_rerio/dna/
 params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
 // https://ftp.ensembl.org/pub/release-108/gtf/danio_rerio/
@@ -23,16 +24,18 @@ params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
 // https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip
 params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
+params.contamFa = null // file-path-pattern
 
 params.publishDir = "$PWD"
 params.publishIntermediate = false
-params.publishFastqs = true
-params.publishQCfiltered = true
+params.publishFastqs = false
+params.publishQCfiltered = false
 params.publishReadcounts = true
-params.publishHisat = true
-params.publishStar = true
-params.publishBowtie = true
-params.publishDedup = true
+params.publishKallisto = false
+params.publishHisat = false
+params.publishStar = false
+params.publishBowtie = false
+params.publishDedup = false
 params.publishGsnap = true
 
 params.tmp = null
@@ -205,6 +208,20 @@ include {
 	nxfUnstageHack: params.nxfUnstageHack
 )
 include {
+	kb_negative;
+	ensure_kb_indexes;
+}  from './modules/local/step.8.kallisto.nf' params(
+	genomeSize: params.genomeSize,
+	publishDir: params.publishDir,
+	publishIntermediate: params.publishIntermediate && params.publishKallisto,
+	cleanupScript: cleanupScript,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
+)
+
+include {
 	stats_csv;
 } from './modules/local/stats.nf' params(
 	skipHisat: params.skipHisat,
@@ -289,6 +306,10 @@ workflow {
 	gsnap_indexes = ensure_gsnap_indexes(params.gsnapRefIndexes,
 										 params.refGenome,
 										 params.erccFa)
+
+	// step 0: generating kallisto contaminant filter indexes
+	kb_contam_indexes = ensure_kb_indexes(params.kbContamIndexes,
+										  params.contamFa)
 
 	// step 1: download and convert to fastq
 	// find existing fastqs
@@ -468,9 +489,22 @@ workflow {
 		}
 	}
 
+	if (kb_contam_indexes) {
+		kb_negative(fastp_result.ok, kb_contam_indexes)
+		kb_negative.out.mates
+			.map { meta, mates ->
+				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
+				[ m, mates ]
+			}
+			.set { kallisto_result }
+		hisat2_in = kallisto_result
+	} else {
+		hisat2_in = fastp_result.ok
+	}
+
 	// step 3: hisat2
 	// TODO: remove skipHisat parameter
-	hisat2(fastp_result.ok, hisat2_indexes)
+	hisat2(hisat2_in, hisat2_indexes)
 	hisat2.out.mates
 		.map { meta, mates ->
 			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
@@ -518,7 +552,6 @@ workflow {
 	dedup(dedup_input)
 	// don't add dedup to cleanup list
 
-	//snap(dedup.out.mates, snap_indexes)
 	// step 7: gsnap
 	gsnap(dedup.out.mates, gsnap_indexes)
 	gsnap.out.mates
@@ -541,6 +574,11 @@ workflow {
 	//fastq_stats = fastqs.out.stats.map { meta, fastq -> [ meta.id, sra ] }
 	meta_stats    = filter_barcodes_result.ok.map { meta, fastq -> [ meta.id, meta ] }
 	fastp_stats   = fastp.out.stats_txt.map       { meta, stats -> [ meta.id, stats ] }
+	if (kb_contam_indexes) {
+		kb_stats  = kb_negative.out.stats.map     { meta, stats -> [ meta.id, stats ] }
+	} else {
+		kb_stats  = meta_stats.map     { id, _ -> [ id, "na" ] }
+	}
 	if (!params.skipHisat) {
 		hisat2_stats  = hisat2.out.sam_stats.map  { meta, stats -> [ meta.id, stats ] }
 	} else {
@@ -553,6 +591,7 @@ workflow {
 		.concat (gsnap_skips.map { meta, mates -> [ meta.id, null, "no" ] })
 
 	all_stats = meta_stats.join(fastp_stats)
+		.join(kb_stats)
 		.join(hisat2_stats)
 		.join(star_stats)
 		.join(bowtie2_stats)
@@ -561,6 +600,7 @@ workflow {
 
 	// id,single_end,starting_reads,r1_median_len,r2_median_len,
 	// fastp_reads_before,fastp_reads_after,fastp_reads_too_short,fastp_reads_trimmed,
+	// kallisto_reads_before,kallisto_aligned,kallisto_aligned_unique,kallisto_unaligned,kallisto_targets,
 	// hisat2_reads_before,hisat2_aligned,hisat2_multialign,hisat2_aligned_unique,hisat2_unaligned,hisat2_mixed,
 	// star_reads_before,star_avg_len,star_aligned_unique,star_multialign,star_unaligned,star_too_short,
 	// bowtie2_reads_before,bowtie2_aligned,bowtie2_multialign,bowtie2_aligned_unique,bowtie2_unaligned,bowtie2_mixed,
@@ -578,6 +618,7 @@ workflow {
 				starting_reads: a.starting_reads.toLong() + (b.starting_reads ? b.starting_reads.toLong() : 0L),
 				fastp_reads_after: a.fastp_reads_after.toLong() + (b.fastp_reads_after ? b.fastp_reads_after.toLong() : 0L),
 				// [not a mistake] using input to next step to determine output from previous
+				hisat2_reads_before: a.hisat2_reads_before.toLong() + (b.hisat2_reads_before ? b.hisat2_reads_before.toLong() : 0L),
 				star_reads_before: a.star_reads_before.toLong() + (b.star_reads_before ? b.star_reads_before.toLong() : 0L),
 				bowtie2_reads_before: a.bowtie2_reads_before.toLong() + (b.bowtie2_reads_before ? b.bowtie2_reads_before.toLong() : 0L),
 				dedup_reads_before: a.dedup_reads_before.toLong() + (b.dedup_reads_before ? b.dedup_reads_before.toLong() : 0L),
@@ -596,6 +637,7 @@ workflow {
 				"runs_in_unmapped\t${runs_in_unmapped}\n" +
 				"num_starting_reads\t${summary.starting_reads}\n" +
 				"fastp_reads_after\t${summary.fastp_reads_after}\n" +
+				"kallisto_reads_after\t${summary.hisat2_reads_before}\n" +
 				"hisat2_reads_after\t${summary.star_reads_before}\n" +
 				"star_reads_after\t${summary.bowtie2_reads_before}\n" +
 				"bowtie_reads_after\t${summary.dedup_reads_before}\n" +

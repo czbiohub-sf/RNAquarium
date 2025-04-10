@@ -25,6 +25,7 @@ params.starSjdbOverhang = 100
 
 params.hisatUseTranscript = true
 
+params.contamFa = null
 
 process star_generate_indexes {
 	label 'star'
@@ -139,6 +140,36 @@ process gsnap_generate_indexes {
 	"""
 }
 
+process kb_generate_indexes {
+	label 'kb'
+	cache true
+
+	// three index generation options
+	// 1. sequences with annotations
+	// 2. --workflow=custom with sequences only
+	// 3. host sequences with --d-list background sequences
+	input:
+	path("contaminants/", arity: '1..*')
+
+	output:
+	path("kb_contaminant_index.idx"), emit: indexes
+
+	// --distinguish forces our input into one target sequence, which ?prevents multimap filter?
+	// this may be very very wrong... but for now seems to improve outcome.
+	script:
+	"""
+	kb ref \
+		--kallisto kallisto \
+		--bustools bustools \
+		--workflow custom \
+		--distinguish \
+		-i kb_contaminant_index.staging.idx \
+		contaminants/*
+
+	mv kb_contaminant_index.staging.idx kb_contaminant_index.idx
+	"""
+}
+
 workflow {
 	(star_index, star_index2) = star_generate_indexes(file(params.refGenome),
 													  file(params.refGenomeGtf),
@@ -155,4 +186,6 @@ workflow {
 
 	gsnap_index = gsnap_generate_indexes(file(params.refGenome),
 										 file(params.erccFa))
+
+	kb_contam_index = kallisto_generate_indexes(files(params.contamFa))
 }
