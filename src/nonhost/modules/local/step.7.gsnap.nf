@@ -26,130 +26,101 @@ include {
 	publishDir: params.publishDir,
 )
 
-process gsnap {
-	label 'gmap'
+process snap {
+	label 'snap'
 
 	input:
 	tuple val(meta), path(mategz, arity: '1..2')
 	path index_dir
 
 	output:
-	tuple val(meta), path("gsnap_out.sam"), emit: sam
+	tuple val(meta), path("snap_out.sam"), emit: sam
 
 	script:
 	def index_name = file(index_dir).getName()
+	if (!meta.single_end)
+	"""
+	snap-aligner paired ${index_dir} ${mategz[0]} ${mategz[1]} \
+		-t ${task.cpus} -o snap_out.staging.sam  -x -f -xf 2.0x
+	mv snap_out.staging.sam snap_out.sam
+	"""
+	else if (meta.single_end)
+	"""
+	snap-aligner single ${index_dir} ${mategz} \
+		-t ${task.cpus} -o snap_out.staging.sam -x -f -xf 2.0
+	mv snap_out.staging.sam snap_out.sam
+	"""
+}
+
+process gsnap {
+	label 'gmap'
+
+	def ALIGNER = "gsnap"
+	def SUFFIX_OK = "filteredbyBT.dedup.gsnapFiltered.fastq"
+	def SUFFIX_NG = "filteredbyBT.dedup.gsnapSkipped.fastq"
+	def SAM_NAME = "${ALIGNER}_out.sam"
+
+	input:
+	tuple val(meta), path("m?.fq.gz", arity: '1..2')
+	path index_dir
+
+	output:
+	tuple val(meta), path("Unmapped.out.mate?.*.gz", arity: '1..2'), emit: mates
+	tuple val(meta), path("${SAM_NAME}"), emit: sam
+	tuple val(meta), path("${ALIGNER}.stats.txt"), emit: stats
+
+	script:
 	def gsnap_gmap_bin = params.genomeSize < 2**32 ? "gsnap" : "gmap"
-	def GSNAP_CMD = """${gsnap_gmap_bin} -A sam \
-		-N 1 `# find novel splice sites` \
-		--batch=2 \
+	def index_name = file(index_dir).getName()
+	def ALIGNER_CMD = """${gsnap_gmap_bin} -A sam \
+		--batch=4 \
 		--use-shared-memory=0 \
+		--maxsearch=128 \
 		--npaths=1 `# maximum paths to print` \
 		--ordered -t ${task.cpus} \
-		--max-mismatches $params.maxMismatch \
-		-D . -d $index_name \
-		-o gsnap_out.sam.staging """
-	if (!meta.single_end)
-	"""
-	${task.ext.gzipCmd} -kcd ${mategz[0]} > mate1.fastq
-	${task.ext.gzipCmd} -kcd ${mategz[1]} > mate2.fastq
-	set +e  # suppress terminate-on-error
-	${GSNAP_CMD} mate1.fastq mate2.fastq
-	set -e  # resume terminate on error, check error and clear outfile.
-	if [[ \$? > 0 ]] ; then :> gsnap_out.sam.staging ; fi
+		--max-mismatches ${params.maxMismatch} \
+		-D . -d ${index_name} \
+		-o ${ALIGNER}.staging.sam """
+	def ALIGNER_CMD_PE = """${ALIGNER_CMD} m1.fq m2.fq"""
+	def ALIGNER_CMD_SE = """${ALIGNER_CMD} m1.fq"""
 
-	# we need pipeline to check for a blank output to skip processing still.
-	mv gsnap_out.sam.staging gsnap_out.sam
-
-	cleanup="${meta.cleanup}"
-	${params.cleanupScript}
-	"""
-	else if (meta.single_end)
-	"""
-	${task.ext.gzipCmd} -kcd ${mategz} > mate1.fastq
-	restore_err_trap="`trap -p ERR`"
-	set +e  # suppress terminate-on-error
-	trap '' ERR
-	${GSNAP_CMD} mate1.fastq
-	set -e  # resume terminate-on-error, check error and clear outfile.
-	eval "\$restore_err_trap"
-
-	if [[ \$? > 0 ]] ; then :> gsnap_out.sam.staging ; fi
-
-	mv gsnap_out.sam.staging gsnap_out.sam
-
-	cleanup="${meta.cleanup}"
-	${params.cleanupScript}
-	"""
-}
-
-process gsnap_filter {
-	label 'samtools'
-
-	input:
-	tuple val(meta), path(gsnap_sam), path(mategz, arity: '1..2')
-
-	def SUFFIX = "filteredbyBT.dedup.gsnapFiltered.fastq"
-	output:
-	tuple val(meta), path("Unmapped.out.mate?.${SUFFIX}.gz"), emit: mates
-	tuple val(meta), path("gsnap.stats.txt"), emit: stats
-
-	script:
-	def names = "gsnap.unmapped.names.txt"
+	// filter settings
 	def cond = params.retainMixed ?
-		'flag.unmap || (flag.paired && flag.munmap)' :
-		'(!flag.paired && flag.unmap) || (flag.paired && flag.unmap && flag.munmap)'
-	//def FILTER_CMD = "LC=ALL grep -A3 --color=never -wFf ${names} | sed '/^--\$/d'"
-	def FILTER_CMD = "LC_ALL=C fastq-namefilter $names -"
-	if (!meta.single_end)
-	"""
-	samtools view -@ ${task.cpus} $gsnap_sam | cut -f2 | sort | uniq -c > gsnap.stats.txt
-	samtools view -@ ${task.cpus} -e '$cond' $gsnap_sam | cut -f1  > ${names}
+		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap || flag.munmap)') :
+		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap && flag.munmap)')
+	def NAMES = "${ALIGNER}_unmapped_names.txt"
+	def SAMSTATS_CMD = """samtools view -@ ${task.cpus} ${SAM_NAME} | cut -f2 | sort | uniq -c > ${ALIGNER}.stats.txt"""
+	def GET_NAMES_CMD = """samtools view -@ ${task.cpus} -e '${cond}' ${SAM_NAME} | cut -f1  > ${NAMES}"""
+	def FILTER_CMD = """LC_ALL=C fastq-namefilter ${NAMES} -"""
 
-	${task.ext.gzipCmd} -cd ${mategz[0]} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
-	${task.ext.gzipCmd} -cd ${mategz[1]} | $FILTER_CMD > Unmapped.out.mate2.${SUFFIX}
-	${task.ext.gzipCmd} -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
-	${task.ext.gzipCmd} -nc Unmapped.out.mate2.${SUFFIX} > Unmapped.out.mate2.${SUFFIX}.gz.staging
-	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
-	mv Unmapped.out.mate2.${SUFFIX}.gz.staging Unmapped.out.mate2.${SUFFIX}.gz
-
-	cleanup="${meta.cleanup}"
-	${params.cleanupScript}
 	"""
-	else if (meta.single_end)
-	"""
-	samtools view -@ ${task.cpus} $gsnap_sam | cut -f2 | sort | uniq -c > gsnap.stats.txt
-	samtools view -@ ${task.cpus} -e '$cond' $gsnap_sam | cut -f1  > ${names}
-
-	${task.ext.gzipCmd} -cd ${mategz} | $FILTER_CMD > Unmapped.out.mate1.${SUFFIX}
-	${task.ext.gzipCmd} -nc Unmapped.out.mate1.${SUFFIX} > Unmapped.out.mate1.${SUFFIX}.gz.staging
-	mv Unmapped.out.mate1.${SUFFIX}.gz.staging Unmapped.out.mate1.${SUFFIX}.gz
+	${!meta.single_end
+	? "${task.ext.gzipCmd} -kcd m1.fq.gz > m1.fq ; ${task.ext.gzipCmd} -kcd m2.fq.gz > m2.fq"
+	: "${task.ext.gzipCmd} -kcd m1.fq.gz > m1.fq"
+	}
+	set +e  # suppress terminate-on-error
+	${!meta.single_end ? ALIGNER_CMD_PE : ALIGNER_CMD_SE}
+	set -e  # resume terminate on error, check error and clear outfile.
+	if [[ \$? > 0 ]]; then  # gsnap failed, pass through reads unchanged...
+		:> ${SAM_NAME}
+		:> ${ALIGNER}.stats.txt
+		for i in ${!meta.single_end ? "{1..2}" : "1"} ; do
+			cp m\${i}.fq.gz Unmapped.out.mate\${i}.${SUFFIX_NG}.gz.staging
+		done
+	else
+		mv ${ALIGNER}.staging.sam ${SAM_NAME}
+		${SAMSTATS_CMD}
+		${GET_NAMES_CMD}
+		for i in ${!meta.single_end ? "{1..2}" : "1"} ; do
+			<m\${i}.fq ${FILTER_CMD} | ${task.ext.gzipCmd} -nc > Unmapped.out.mate\${i}.${SUFFIX_OK}.gz.staging
+		done
+	fi
+	for file in *.gz.staging ; do mv \$file \${file/.gz.staging/.gz} ; done
 
 	cleanup="${meta.cleanup}"
 	${params.cleanupScript}
 	"""
 }
-
-process gsnap_skip {
-	input:
-	tuple val(meta), path(mategz, arity: '1..2')
-
-	def SUFFIX = "filteredbyBT.dedup.gsnapFailed.fastq"
-	output:
-	tuple val(meta), path("Unmapped.out.mate?.${SUFFIX}.gz"), emit: mates
-
-	// move input to output, validates arity
-	script:
-	if (!meta.single_end)
-	"""
-	mv ${mategz[0]} Unmapped.out.mate1.${SUFFIX}.gz
-	mv ${mategz[1]} Unmapped.out.mate2.${SUFFIX}.gz
-	"""
-	else if (meta.single_end)
-	"""
-	mv ${mategz} Unmapped.out.mate1.${SUFFIX}.gz
-	"""
-}
-
 
 def ensure_gsnap_indexes(ref_indexes,
 						 ref_genome, ercc) {
@@ -159,6 +130,18 @@ def ensure_gsnap_indexes(ref_indexes,
 	} else {
 		indexes = gsnap_generate_indexes(file(ref_genome),
 										 file(ercc))
+	}
+	return indexes
+}
+
+def ensure_snap_indexes(ref_indexes,
+						ref_genome, ercc) {
+	if (ref_indexes
+		&& (indexes = file(ref_indexes))
+		&& indexes.exists()) {
+	} else {
+		indexes = snap_generate_indexes(file(ref_genome),
+										file(ercc))
 	}
 	return indexes
 }

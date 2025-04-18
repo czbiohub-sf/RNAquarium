@@ -16,6 +16,7 @@ params.starRefIndexes = null
 params.hisatRefIndexes = null
 params.bowtieRefIndexes = null
 params.gsnapRefIndexes = null
+params.kbContamIndexes = null
 // https://ftp.ensembl.org/pub/release-108/fasta/danio_rerio/dna/
 params.refGenome = "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa"
 // https://ftp.ensembl.org/pub/release-108/gtf/danio_rerio/
@@ -23,16 +24,18 @@ params.refGenomeGtf = "Danio_rerio.GRCz11.108.gtf"
 // https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip
 params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
+params.contamFa = null // file-path-pattern
 
 params.publishDir = "$PWD"
 params.publishIntermediate = false
-params.publishFastqs = true
-params.publishQCfiltered = true
+params.publishFastqs = false
+params.publishQCfiltered = false
 params.publishReadcounts = true
-params.publishHisat = true
-params.publishStar = true
-params.publishBowtie = true
-params.publishDedup = true
+params.publishKallisto = false
+params.publishHisat = false
+params.publishStar = false
+params.publishBowtie = false
+params.publishDedup = false
 params.publishGsnap = true
 
 params.tmp = null
@@ -40,6 +43,7 @@ params.backupTmp = null
 params.backupScratchHack = false
 params.nxfUnstageHack = false
 
+params.seed = 32854
 params.extraAdapters = "$PWD/extra-adapters.fasta"
 params.hisatUseTranscript = true
 params.starSjdbOverhang = 100
@@ -76,6 +80,7 @@ include { } from './modules/local/step.0.generate_indexes.nf' params(
 	refGenomeGtf: params.refGenomeGtf,
 	erccFa: params.erccFa,
 	erccGtf: params.erccGtf,
+	seed: params.seed,
 	starSjdbOverhang: params.starSjdbOverhang,
 	publishDir: params.publishDir,
 	hisatUseTranscript: params.hisatUseTranscript,
@@ -123,13 +128,15 @@ include {
 	tmp: params.tmp,
 	backupTmp: params.backupTmp,
 	backupScratchHack: params.backupScratchHack,
-	nxfUnstageHack: params.nxfUnstageHack
+	nxfUnstageHack: params.nxfUnstageHack,
+	seed: params.seed
 )
 include {
 	hisat2;
 	ensure_hisat2_indexes;
 } from './modules/local/step.3.hisat2.nf' params(
 	hisatUseTranscript: params.hisatUseTranscript,
+	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishHisat,
@@ -137,12 +144,14 @@ include {
 	tmp: params.tmp,
 	backupTmp: params.backupTmp,
 	backupScratchHack: params.backupScratchHack,
-	nxfUnstageHack: params.nxfUnstageHack
+	nxfUnstageHack: params.nxfUnstageHack,
+	seed: params.seed
 )
 include {
 	star;
 	ensure_star_indexes;
 } from './modules/local/step.4.star.nf' params(
+	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
 	starUseSharedMem: params.starUseSharedMem,
 	starThreadsSmall: params.starThreadsSmall,
 	starThreadsLarge: params.starThreadsLarge,
@@ -153,11 +162,11 @@ include {
 	tmp: params.tmp,
 	backupTmp: params.backupTmp,
 	backupScratchHack: params.backupScratchHack,
-	nxfUnstageHack: params.nxfUnstageHack
+	nxfUnstageHack: params.nxfUnstageHack,
+	seed: params.seed
 )
 include {
 	bowtie2;
-	bowtie2_filter;
 	ensure_bowtie2_indexes;
 } from './modules/local/step.5.bowtie.nf' params(
 	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
@@ -168,7 +177,8 @@ include {
 	tmp: params.tmp,
 	backupTmp: params.backupTmp,
 	backupScratchHack: params.backupScratchHack,
-	nxfUnstageHack: params.nxfUnstageHack
+	nxfUnstageHack: params.nxfUnstageHack,
+	seed: params.seed
 )
 include {
 	dedup;
@@ -185,8 +195,6 @@ include {
 )
 include {
 	gsnap;
-	gsnap_filter;
-	gsnap_skip;
 	ensure_gsnap_indexes;
 } from './modules/local/step.7.gsnap.nf' params(
 	retainMixed: params.retainMixed, // retain mixed (xor) mate align cases
@@ -199,6 +207,20 @@ include {
 	backupScratchHack: params.backupScratchHack,
 	nxfUnstageHack: params.nxfUnstageHack
 )
+include {
+	kb_negative;
+	ensure_kb_indexes;
+}  from './modules/local/step.8.kallisto.nf' params(
+	genomeSize: params.genomeSize,
+	publishDir: params.publishDir,
+	publishIntermediate: params.publishIntermediate && params.publishKallisto,
+	cleanupScript: cleanupScript,
+	tmp: params.tmp,
+	backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack,
+	nxfUnstageHack: params.nxfUnstageHack
+)
+
 include {
 	stats_csv;
 } from './modules/local/stats.nf' params(
@@ -285,6 +307,10 @@ workflow {
 										 params.refGenome,
 										 params.erccFa)
 
+	// step 0: generating kallisto contaminant filter indexes
+	kb_contam_indexes = ensure_kb_indexes(params.kbContamIndexes,
+										  params.contamFa)
+
 	// step 1: download and convert to fastq
 	// find existing fastqs
 	// allow RunInfo csv (Run, size_MB)
@@ -293,9 +319,11 @@ workflow {
 			? Channel.fromPath(params.accessionList, type: 'file')
 			.splitCsv( header: true )
 			.map { row -> [row.Run.trim(), row.size_MB.toLong()] }
+			.filter { acc, size -> acc != "" }
 		: Channel.fromPath(params.accessionList, type: 'file')
 			.splitText()
 			.map { acc -> [acc.trim(), null] }
+			.filter { acc, size -> acc != "" }
 	} else {
 		accessions = Channel.empty()
 	}
@@ -317,12 +345,12 @@ workflow {
 
 			// remove ids that exist in pre-dumped fastq path from accessions list
 			// accessions = accessions
-			// 	.join(direct_fastq_ids, remainder: true, by: 0)
-			// 	.filter { key, s, v2 -> !v2 }
-			// 	.map { key, MB, _ ->
-			// 		[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
-			// 	}
-			// 	.view()
+			//	.join(direct_fastq_ids, remainder: true, by: 0)
+			//	.filter { key, s, v2 -> !v2 }
+			//	.map { key, MB, _ ->
+			//		[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
+			//	}
+			//	.view()
 		} catch (Exception e) {
 			log.error "--fastq-path $params.fastqPath is not folders of fastq?\n$e"
 			exit(1)
@@ -334,7 +362,7 @@ workflow {
 				[ [id: key, size_MB: MB, cleanup: "", cleanup_later: ""], key ]
 			}
 	}
-	
+
 	// download SRAs by remaining accessions
 	download(accessions).mates
 		.map { meta, fastq, reads, sra_size, median1, median2, count, fsize ->
@@ -383,7 +411,7 @@ workflow {
 		}
 		.mix(download_result)
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out
-			ok: { meta, fastq -> 
+			ok: { meta, fastq ->
 				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
 					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
 			}(it)
@@ -410,11 +438,11 @@ workflow {
 			}
 		}
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out)
-			ok: { meta, fastq -> 
+			ok: { meta, fastq ->
 				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
 					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
 			}(it)
-			
+
 			dropouts: true
 		}
 		.set { fastp_result }
@@ -431,7 +459,9 @@ workflow {
 				[ new_meta, bam ]
 			}
 			.set { starcounts_result }
-		sort_bam(starcounts_result).bam
+
+		if (params.htseqCount) {
+			sort_bam(starcounts_result).bam
 			.map { meta, bam ->
 				def new_meta = meta.clone()
 				// cleanup didn't happen in this step
@@ -441,38 +471,50 @@ workflow {
 			}
 			.set { sortbam_result }
 
-		if (params.htseqCount) {
 			htseq_count(sortbam_result, file(params.refGenomeGtf))
 			htseq_count.out.counts
 				.set { count_result }
 			htseq_count.out.countsRow
 				.map { meta, row -> row }
-				.collectFile(name: "countsTable.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/")
+				.collectFile(name: "countsTable.csv", keepHeader: true,
+							 skip: 1, storeDir: "${params.publishDir}/")
 		} else {
-			feature_count(sortbam_result, file(params.refGenomeGtf))
+			feature_count(starcounts_result, file(params.refGenomeGtf))
 			feature_count.out.counts
 				.set { count_result }
 			feature_count.out.countsRow
 				.map { meta, row -> row }
-				.collectFile(name: "countsTable.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/")
+				.collectFile(name: "countsTable.csv", keepHeader: true,
+							 skip: 1, storeDir: "${params.publishDir}/")
 		}
 	}
 
-	// step 3: hisat2
-	if (!params.skipHisat) {
-		hisat2(fastp_result.ok, hisat2_indexes)
-		hisat2.out.mates
+	if (kb_contam_indexes) {
+		kb_negative(fastp_result.ok, kb_contam_indexes)
+		kb_negative.out.mates
 			.map { meta, mates ->
-				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
+				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
 				[ m, mates ]
 			}
-			.set { unmapped_reads_1 }
+			.set { kallisto_result }
+		hisat2_in = kallisto_result
 	} else {
-		unmapped_reads_1 = fastp_result.ok
+		hisat2_in = fastp_result.ok
 	}
 
+	// step 3: hisat2
+	// TODO: remove skipHisat parameter
+	hisat2(hisat2_in, hisat2_indexes)
+	hisat2.out.mates
+		.map { meta, mates ->
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
+			[ m, mates ]
+		}
+		.set { unmapped_reads_1 }
+
 	// step 4: STAR
-	star(unmapped_reads_1, star_indexes).mates
+	star(unmapped_reads_1, star_indexes)
+	star.out.mates
 		.map { meta, mates ->
 			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
 			[ m, mates ]
@@ -481,21 +523,16 @@ workflow {
 
 	// clean up the pre-branch checkpoint
 	if (!params.skipHostCounts) {
-		cleanup_branched(join_by_id(star_result, sortbam_result))
-	}
-	
-	// step 5: bowtie2
-	bowtie2(star_result, bowtie2_indexes).sam
-		.map { meta, sam ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
-			[ m, sam ]
+		if (params.htseqCount) {
+			cleanup_branched(join_by_id(star_result, sortbam_result))
+		} else {
+			cleanup_branched(join_by_id(star_result, count_result))
 		}
-		.set { bowtie2_result }
-	bowtie2_filter_input = join_by_id(bowtie2_result, star.out.mates)
-	bowtie2_filter(bowtie2_filter_input)
+	}
 
-	// step 6: deduplication
-	bowtie2_filter.out.mates
+	// step 5: bowtie2
+	bowtie2(star_result, bowtie2_indexes)
+	bowtie2.out.mates
 		.map { meta, mates ->
 			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
 			[ m, mates ]
@@ -509,6 +546,7 @@ workflow {
 		}
 		.set { bowtie2_filtered_result }
 
+	// step 6: deduplication
 	join_by_id(bowtie2_filtered_result.ok, star.out.stats)
 		.set { dedup_input }
 	dedup(dedup_input)
@@ -516,26 +554,18 @@ workflow {
 
 	// step 7: gsnap
 	gsnap(dedup.out.mates, gsnap_indexes)
-	gsnap.out.sam
-		.map { meta, sam ->
-			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${sam.toString()}"
-			[ m, sam ]
+	gsnap.out.mates
+		.map { meta, mates ->
+			m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = ""
+			[ m, mates ]
 		}
 		.branch {
-			ok: { meta, sam -> file(sam).size() > 0 }(it)
+			ok: { meta, mates -> !mates[0].matches("Failed") }(it)
 			fails: true
 		}
 		.set { gsnap_result }
-	gsnap_filter_input = join_by_id(gsnap_result.ok, dedup.out.mates)
-	gsnap_filter(gsnap_filter_input)
-
 	// if gsnap fails a run for any non-oom reason, keep the nonhost reads from before that.
-	dedup.out.mates
-		.join(gsnap.out.sam, by: [0], remainder: true)
-		.filter { meta, dedup_mates, gsnap -> !gsnap || file(gsnap).size() == 0 }
-		.map { meta, dedup_mates, gsnap_null -> [ meta, dedup_mates ] }
-		.set { gsnap_skips }
-	gsnap_skip(gsnap_skips)
+	gsnap_skips = gsnap_result.fails
 
 	// rekey in preparation for join
 	// questionable to use prefetch / fastq_dump stats b/c not present for direct fastq
@@ -544,18 +574,24 @@ workflow {
 	//fastq_stats = fastqs.out.stats.map { meta, fastq -> [ meta.id, sra ] }
 	meta_stats    = filter_barcodes_result.ok.map { meta, fastq -> [ meta.id, meta ] }
 	fastp_stats   = fastp.out.stats_txt.map       { meta, stats -> [ meta.id, stats ] }
+	if (kb_contam_indexes) {
+		kb_stats  = kb_negative.out.stats.map     { meta, stats -> [ meta.id, stats ] }
+	} else {
+		kb_stats  = meta_stats.map     { id, _ -> [ id, "na" ] }
+	}
 	if (!params.skipHisat) {
-		hisat2_stats  = hisat2.out.stats.map  { meta, stats -> [ meta.id, stats ] }
+		hisat2_stats  = hisat2.out.sam_stats.map  { meta, stats -> [ meta.id, stats ] }
 	} else {
 		hisat2_stats = meta_stats.map { id, _ -> [ id, "na" ] }
 	}
 	star_stats    = star.out.stats.map    { meta, stats -> [ meta.id, stats ] }
-	bowtie2_stats = bowtie2_filter.out.stats.map { meta, stats -> [ meta.id, stats ] }
+	bowtie2_stats = bowtie2.out.stats.map { meta, stats -> [ meta.id, stats ] }
 	dedup_stats   = dedup.out.stats.map   { meta, stats -> [ meta.id, stats ] }
-	gsnap_stats   = gsnap_filter.out.stats.map { meta, stats -> [ meta.id, stats, "yes" ] }
-		.concat (gsnap_skip.out.mates.map { meta, mates -> [ meta.id, null, "no" ] })
+	gsnap_stats   = gsnap.out.stats.map { meta, stats -> [ meta.id, stats, "yes" ] }
+		.concat (gsnap_skips.map { meta, mates -> [ meta.id, null, "no" ] })
 
 	all_stats = meta_stats.join(fastp_stats)
+		.join(kb_stats)
 		.join(hisat2_stats)
 		.join(star_stats)
 		.join(bowtie2_stats)
@@ -564,7 +600,8 @@ workflow {
 
 	// id,single_end,starting_reads,r1_median_len,r2_median_len,
 	// fastp_reads_before,fastp_reads_after,fastp_reads_too_short,fastp_reads_trimmed,
-	// hisat2_reads_before,hisat2_unaligned,hisat2_aligned_unique,hisat2_multialign,hisat2_discordant,
+	// kallisto_reads_before,kallisto_aligned,kallisto_aligned_unique,kallisto_unaligned,kallisto_targets,
+	// hisat2_reads_before,hisat2_aligned,hisat2_multialign,hisat2_aligned_unique,hisat2_unaligned,hisat2_mixed,
 	// star_reads_before,star_avg_len,star_aligned_unique,star_multialign,star_unaligned,star_too_short,
 	// bowtie2_reads_before,bowtie2_aligned,bowtie2_multialign,bowtie2_aligned_unique,bowtie2_unaligned,bowtie2_mixed,
 	// dedup_reads_before,dedup_reads_after,
@@ -581,6 +618,7 @@ workflow {
 				starting_reads: a.starting_reads.toLong() + (b.starting_reads ? b.starting_reads.toLong() : 0L),
 				fastp_reads_after: a.fastp_reads_after.toLong() + (b.fastp_reads_after ? b.fastp_reads_after.toLong() : 0L),
 				// [not a mistake] using input to next step to determine output from previous
+				hisat2_reads_before: a.hisat2_reads_before.toLong() + (b.hisat2_reads_before ? b.hisat2_reads_before.toLong() : 0L),
 				star_reads_before: a.star_reads_before.toLong() + (b.star_reads_before ? b.star_reads_before.toLong() : 0L),
 				bowtie2_reads_before: a.bowtie2_reads_before.toLong() + (b.bowtie2_reads_before ? b.bowtie2_reads_before.toLong() : 0L),
 				dedup_reads_before: a.dedup_reads_before.toLong() + (b.dedup_reads_before ? b.dedup_reads_before.toLong() : 0L),
@@ -599,6 +637,7 @@ workflow {
 				"runs_in_unmapped\t${runs_in_unmapped}\n" +
 				"num_starting_reads\t${summary.starting_reads}\n" +
 				"fastp_reads_after\t${summary.fastp_reads_after}\n" +
+				"kallisto_reads_after\t${summary.hisat2_reads_before}\n" +
 				"hisat2_reads_after\t${summary.star_reads_before}\n" +
 				"star_reads_after\t${summary.bowtie2_reads_before}\n" +
 				"bowtie_reads_after\t${summary.dedup_reads_before}\n" +

@@ -18,6 +18,10 @@ params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
 params.hisatUseTranscript = true
 
+params.retainMixed = true
+
+params.seed = 35854
+
 include {
 	hisat2_generate_indexes;
 } from './step.0.generate_indexes.nf' params(
@@ -43,35 +47,58 @@ include {
 process hisat2 {
 	label 'hisat2'
 
+	def ALIGNER = "hisat2"
+	def SUFFIX_OK = "hisatFiltered.fastq"
+	def SUFFIX_NG = "hisatFailed.fastq" // unused for hisat2
+	def SAM_NAME = "${ALIGNER}_out.sam"
+	def SAM_STAGING = "${ALIGNER}.staging.sam"
+
 	input:
-	tuple val(meta), path(fqgz, arity: '1..2')
+	tuple val(meta), path("m?.fq.gz", arity: '1..2')
 	tuple val(idx_basename), path("hisat2_index/*")
 
 	output:
-	tuple val(meta), path("?E/Unmapped.out.mate?.gz", arity: '1..2'), emit: mates
+	tuple val(meta), path("Unmapped.out.mate?.*.gz", arity: '1..2'), emit: mates
+	//tuple val(meta), path("${SAM_NAME}"), emit: sam
+	tuple val(meta), path("${ALIGNER}.stats.txt"), emit: sam_stats
 	tuple val(meta), path("stats.txt"), emit: stats
 	tuple val(meta), path("metrics.txt"), emit: hisat2_debug
 
 	script:
-	def HISAT2_CMD = """hisat2 --met-file metrics.txt --summary-file stats.txt -p $task.cpus -k 1 -S /dev/null \
-		-x hisat2_index/${idx_basename} --no-temp-splicesite -t """
-	if (!meta.single_end) """
-	mkdir -p PE
-	${HISAT2_CMD} \
-		-1 ${fqgz[0]} -2 ${fqgz[1]} \
-		--un-conc-gz PE/Unmapped.out.mate%.gz.staging
-	mv PE/Unmapped.out.mate1.gz.staging PE/Unmapped.out.mate1.gz
-	mv PE/Unmapped.out.mate2.gz.staging PE/Unmapped.out.mate2.gz
+	// TODO: try lower pen-noncansplice
+	// TODO: try -k 10
+	// possibly --no-unal --omit-sec-seq
+	def ALIGNER_CMD = """hisat2 --seed ${params.seed} \
+		--met-file metrics.txt --summary-file stats.txt \
+		-p ${task.cpus} -k 5 \
+		--pen-noncansplice 12 \
+		--sp 1,0 \
+		--no-temp-splicesite -t \
+		-S ${SAM_STAGING} \
+		-x hisat2_index/${idx_basename}"""
+	def ALIGNER_CMD_PE = """${ALIGNER_CMD} -1 m1.fq.gz -2 m2.fq.gz"""
+	def ALIGNER_CMD_SE = """${ALIGNER_CMD} -U m1.fq.gz"""
 
-	cleanup="${meta.cleanup}"
-	${params.cleanupScript}
+	def cond = params.retainMixed ?
+		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap || flag.munmap)') :
+		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap && flag.munmap)')
+
+	def NAMES = "${ALIGNER}_unmapped_names.txt"
+	def SAMSTATS_CMD = """samtools view -@ ${task.cpus} ${SAM_STAGING} | cut -f2 | sort | uniq -c > ${ALIGNER}.stats.txt"""
+	def GET_NAMES_CMD = """samtools view -@ ${task.cpus} -e '${cond}' ${SAM_STAGING} | cut -f1  > ${NAMES}"""
+	def FILTER_CMD = """LC_ALL=C fastq-namefilter ${NAMES} -"""
+
 	"""
-	else if (meta.single_end) """
-	mkdir -p SE
-	${HISAT2_CMD} \
-		-U ${fqgz} \
-		--un-gz SE/Unmapped.out.mate1.gz.staging
-	mv SE/Unmapped.out.mate1.gz.staging SE/Unmapped.out.mate1.gz
+	set -euo pipefail
+	${!meta.single_end ? ALIGNER_CMD_PE : ALIGNER_CMD_SE}
+
+	${SAMSTATS_CMD}
+	${GET_NAMES_CMD}
+	for i in ${!meta.single_end ? "{1..2}" : "1"} ; do
+		${task.ext.gzipCmd} -kcd m\${i}.fq.gz | ${FILTER_CMD} | ${task.ext.gzipCmd} -nc > Unmapped.out.mate\${i}.${SUFFIX_OK}.gz.staging
+	done
+	mv ${SAM_STAGING} ${SAM_NAME}
+	for file in *.gz.staging ; do mv \$file \${file/.gz.staging/.gz} ; done
 
 	cleanup="${meta.cleanup}"
 	${params.cleanupScript}

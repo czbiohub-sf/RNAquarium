@@ -19,11 +19,13 @@ params.erccFa = "ERCC92.fa"
 params.erccGtf = "ERCC92.gtf"
 
 params.genomeSize = null
+params.seed = 32854
 
 params.starSjdbOverhang = 100
 
 params.hisatUseTranscript = true
 
+params.contamFa = null
 
 process star_generate_indexes {
 	label 'star'
@@ -41,17 +43,20 @@ process star_generate_indexes {
 
 	script:
 	def genome_name = ref_genome_fa.getSimpleName()
-	def STAR_INDEXGEN_CMD = """STAR --runMode genomeGenerate --runThreadN ${task.cpus} \
+	def STAR_INDEXGEN_CMD = """STAR --runRNGseed ${params.seed} --runMode genomeGenerate --runThreadN ${task.cpus} \
 		--sjdbOverhang ${params.starSjdbOverhang} --limitGenomeGenerateRAM ${task.memory.toBytes()} """
 	"""
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
 	cat $ref_genome_gtf $ERCC_gtf > indexes_ERCC.gtf
 
 	${STAR_INDEXGEN_CMD} --genomeFastaFiles $ref_genome_fa --sjdbGTFfile $ref_genome_gtf \
-		--genomeDir	./star_${genome_name}_indexes
+		--genomeDir	./star_${genome_name}_indexes.staging
 
 	${STAR_INDEXGEN_CMD} --genomeFastaFiles dna_sm.primary_assembly_ERCC.fa \
-		--sjdbGTFfile indexes_ERCC.gtf --genomeDir ./star_${genome_name}_indexes.ERCC
+		--sjdbGTFfile indexes_ERCC.gtf --genomeDir ./star_${genome_name}_indexes.ERCC.staging
+
+	mv star_${genome_name}_indexes.staging star_${genome_name}_indexes
+	mv star_${genome_name}_indexes.ERCC.staging star_${genome_name}_indexes.ERCC
 	"""
 }
 
@@ -78,17 +83,21 @@ process hisat2_generate_indexes {
 	hisat2_extract_splice_sites.py indexes_ERCC.gtf > genome.ss
 	hisat2_extract_exons.py indexes_ERCC.gtf > genome.exon
 
-	hisat2-build -q -p $task.cpus \
+	hisat2-build -q --seed ${params.seed} -p $task.cpus \
 		--exon genome.exon --ss genome.ss \
 		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.simpleName}
+
+	sleep 2
 	"""
 	else
 	"""
 	echo '[hisat2_generate_indexes] building index without GTF exon/splice graph'
 	cat $ref_genome_fa $ERCC_fa > dna_sm.primary_assembly_ERCC.fa
 
-	hisat2-build -q -p $task.cpus \
+	hisat2-build -q --seed ${params.seed} -p $task.cpus \
 		dna_sm.primary_assembly_ERCC.fa ${ref_genome_fa.simpleName}
+
+	sleep 2
 	"""
 }
 
@@ -105,8 +114,10 @@ process bowtie2_generate_indexes {
 
 	script:
 	"""
-	bowtie2-build -f --threads $task.cpus ${ref_genome_fa},${ERCC_fa} \
+	bowtie2-build -f --seed ${params.seed} --threads $task.cpus ${ref_genome_fa},${ERCC_fa} \
 		${ref_genome_fa.simpleName}
+
+	sleep 2
 	"""
 }
 
@@ -129,6 +140,36 @@ process gsnap_generate_indexes {
 	"""
 }
 
+process kb_generate_indexes {
+	label 'kb'
+	cache true
+
+	// three index generation options
+	// 1. sequences with annotations
+	// 2. --workflow=custom with sequences only
+	// 3. host sequences with --d-list background sequences
+	input:
+	path("contaminants/", arity: '1..*')
+
+	output:
+	path("kb_contaminant_index.idx"), emit: indexes
+
+	// --distinguish forces our input into one target sequence, which ?prevents multimap filter?
+	// this may be very very wrong... but for now seems to improve outcome.
+	script:
+	"""
+	kb ref \
+		--kallisto kallisto \
+		--bustools bustools \
+		--workflow custom \
+		--distinguish \
+		-i kb_contaminant_index.staging.idx \
+		contaminants/*
+
+	mv kb_contaminant_index.staging.idx kb_contaminant_index.idx
+	"""
+}
+
 workflow {
 	(star_index, star_index2) = star_generate_indexes(file(params.refGenome),
 													  file(params.refGenomeGtf),
@@ -145,4 +186,6 @@ workflow {
 
 	gsnap_index = gsnap_generate_indexes(file(params.refGenome),
 										 file(params.erccFa))
+
+	kb_contam_index = kallisto_generate_indexes(files(params.contamFa))
 }
