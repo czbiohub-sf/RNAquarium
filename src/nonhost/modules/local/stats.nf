@@ -22,22 +22,27 @@ parse_sam() {
 	unique=0
 	while IFS=' ' read -r count sambits
 	do
-		# ignore supplementary alignments and second-in-pair
-		if [[ \$(( \$sambits & 0x80 || \$sambits & 0x800 )) -ne 0 ]]; then
+	    # ignore supplementary alignments and second-in-pair
+	    #  SECONDINPAIR || QCFAIL || SUPPLEMENTARY 
+		if [[ \$(( \$sambits & 0x80 || \$sambits & 0x200 || \$sambits & 0x800 )) -ne 0 ]]; then
 			continue
 		fi
-		total=\$(( \$total + \$count ))
 		# track secondary mappings but don't add to other counts
-		if [[ \$(( "\$sambits" & 0x100 )) -ne 0 ]]; then
+        # SECONDARY
+	    if [[ \$(( "\$sambits" & 0x100 )) -ne 0 ]]; then
 			multi=\$(( "\$multi" + \$count ))
 			continue
-		fi
+	    fi
+		total=\$(( \$total + \$count ))
+        # [SE] PAIR|UNMAP == UNMAP        || [PE] PAIR|UNMAP|MUNMAP > UNMAP [PAIR+UNMAP,PAIR+MUNMAP,PAIR+UNMAP+MUNMAP]
 		if [[ \$(( (\$sambits & 0x5)==0x4 || (\$sambits & 0xD)>0x4 )) -ne 0 ]]; then
 			unaligned=\$(( \$unaligned + \$count ))
-		fi
-		if [[ \$(( ! (\$sambits & 0x4 || \$sambits & 0x8) )) -ne 0 ]]; then
+	    fi
+	    # [CONCORDANT] ! (UNMAP || MUNMAP)
+    	if [[ \$(( ! ( (\$sambits & 0x4) || (\$sambits & 0x8) ) )) -ne 0 ]]; then
 			aligned=\$(( \$aligned + \$count ))
-		fi
+	    fi
+	    # PAIR|UNMAP|MUNMAP == PAIR|UNMAP || PAIR|UNMAP|MUNMAP == PAIR|MUNMAP
 		if [[ \$(( (\$sambits & 0xD)==0x5 || (\$sambits & 0xD)==0x9  )) -ne 0 ]]; then
 			mixed=\$(( \$mixed + \$count ))
 		fi

@@ -49,10 +49,10 @@
                 },
                 "refGenome": {
                     "type": "string",
-                    "pattern": "^.+\\.f[an](sta)?$",
+                    "pattern": "^.+\\.f[an](sta)?(.gz)$",
                     "format": "file-path",
                     "default": "Danio_rerio.GRCz11.dna_sm.primary_assembly.fa",
-                    "description": "Path to ensembl reference genome fasta"
+                    "description": "Path to ensembl reference genome fasta (must be bgzip-compressed)"
                 },
                 "refGenomeGtf": {
                     "type": "string",
@@ -250,6 +250,11 @@
                 "skipHostCounts": {
                     "type": "boolean",
                     "description": "If true, do not perform host read counting."
+                },
+                "outputCram": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, save host alignments as CRAM.  --bgzip-ref-path must be set."
                 },
                 "skipHisat": {
                     "type": "boolean",

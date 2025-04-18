@@ -121,6 +121,25 @@ process bowtie2_generate_indexes {
 	"""
 }
 
+process decompress_fasta {
+	label 'samtools'
+	cache true
+
+	input:
+	path ref_genome_fa_gz
+
+	output:
+	path("${ref_genome_fa_gz.getBaseName()}"), emit: fasta
+	val("size"), emit: size
+
+	script:
+	"""
+	bgzip -kd@ ${task.cpus} "${ref_genome_fa_gz}" -o "${ref_genome_fa_gz.getBaseName()}.staging"
+	size=\$(stat -tc "%c" "${ref_genome_fa_gz.getBaseName()}.staging")
+	mv "${ref_genome_fa_gz.getBaseName()}.staging" "${ref_genome_fa_gz.getBaseName()}"
+	"""
+}
+
 process gsnap_generate_indexes {
 	label 'gmap'
 	cache true

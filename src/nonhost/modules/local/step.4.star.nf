@@ -83,9 +83,10 @@ process star {
 	def ALIGNER_CMD_SE = """${ALIGNER_CMD} --readFilesIn m1.fq.gz"""
 
 	// filter settings
+	def PRIMARY = '!flag.secondary && !flag.supplementary'
 	def cond = params.retainMixed ?
-		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap || flag.munmap)') :
-		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap && flag.munmap)')
+		(meta.single_end ? "${PRIMARY} && flag.unmap" : "${PRIMARY} && (flag.unmap || flag.munmap)") :
+		(meta.single_end ? "${PRIMARY} && flag.unmap" : "${PRIMARY} && (flag.unmap && flag.munmap)")
 
 	def NAMES = "${ALIGNER}_unmapped_names.txt"
 	def SAMSTATS_CMD = """samtools view -@ ${task.cpus} ${SAM_NAME} | cut -f2 | sort | uniq -c > ${ALIGNER}.stats.txt"""
@@ -131,7 +132,7 @@ def ensure_star_indexes(ref_indexes, ref_indexes_ercc,
 		&& (indexes = file(ref_indexes)) && (indexes2 = file(ref_indexes_ercc))
 		&& indexes.exists() && indexes2.exists()) {
 	} else {
-		(indexes, indexes2) = star_generate_indexes(file(ref_genome),
+		(indexes, indexes2) = star_generate_indexes(ref_genome,
 													file(ref_genome_gtf),
 													file(ercc),
 													file(ercc_gtf))

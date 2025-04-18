@@ -62,7 +62,7 @@ process cleanup_branched {
 
 	script:
 	"""
-	cleanup="${meta.qc_cleanup}"
+	cleanup="${meta.branch_cleanup}"
 	${params.cleanupScript}
 	"""
 }

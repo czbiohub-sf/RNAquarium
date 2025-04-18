@@ -140,12 +140,33 @@ process feature_count {
 	<counts.txt tail -n +2 | cut -f2 | tr '\n' ',' | sed 's/,\$//' >> counts-row-staging.txt
 	printf "\n" >> counts-row-staging.txt
 	mv counts-row-staging.txt counts-row.txt
-	
+
 	mv feature-counts.staging.txt.summary feature-counts.txt.summary
 	rm feature-counts.staging.txt
-	
+
 	cleanup="${meta.cleanup}"
 	${params.cleanupScript}
+	"""
+}
+
+process host_cram {
+	label 'samtools'
+
+	input:
+	tuple val(meta), path("${meta.id}.bam")
+	val(ref_fa_gz)
+
+	output:
+	tuple val(meta), path("${meta.id}.cram"), emit: cram
+	tuple val(meta), path("${meta.id}.cram.crai"), emit: crai
+
+	script:
+	"""
+	samtools sort -@ ${task.cpus} --reference "${ref_fa_gz}" -O cram,version=3.0,small -o "${meta.id}.staging.cram" "${meta.id}.bam"
+	samtools index -@ ${task.cpus} "${meta.id}.staging.cram"
+
+	mv "${meta.id}.staging.cram" "${meta.id}.cram"
+	mv "${meta.id}.staging.cram.crai" "${meta.id}.cram.crai"
 	"""
 }
 
