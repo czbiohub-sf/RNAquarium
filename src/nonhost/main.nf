@@ -284,7 +284,7 @@ workflow {
 		if (!cram_ref.exists()) {
 			log.error "bgzipped --ref-genome with .gzi index must be provided for CRAM alignment output"
 			exit 1
-		} else if (!file(cram_ref.parent / "${cram_ref.baseName}.gzi").exists()) {
+		} else if (!file(cram_ref.parent / "${cram_ref.baseName}.gzi").exists() && !file(cram_ref.parent / "${cram_ref.name}.gzi").exists()) {
 			log.error "bgzipped --ref-genome with accompanying .gzi index must be provided for CRAM alignment output"
 			exit 1
 		}
