@@ -16,8 +16,10 @@ WORK_DIR="/hpc/scratch/group.swe/rnaquarium/work"
 PUB_DIR="./output_2024_07_25/"
 NT_DIR="/hpc/scratch/group.swe/db/nt_clustered"
 NT_DB_NAME="nt_compressed_shuffled.fa"
-NR_DIR="/hpc/scratch/group.data.science/eric_temp/databases/nr_clustered"
-TAXONOMY_DB="/hpc/scratch/group.data.science/eric_temp/mmseqs_out/taxonomizr/nameNode.sqlite"
+NTFULL_DIR="/hpc/scratch/group.data.science/eric_temp/databases/2025/core_nt"
+NTFULL_DB_NAME="core_nt"
+NR_DIR="/hpc/scratch/group.data.science/eric_temp/databases/2025/nr_clustered"
+TAXONOMY_DB="/hpc/scratch/group.data.science/eric_temp/mmseqs_out/taxonomizr/feb2025taxonomy/nameNode.sqlite"
 
 mkdir -p $PUB_DIR
 
