@@ -64,14 +64,17 @@ provide the following parameters:
 
 2. reference genome assembly and spike-in sequences (the required indexes will be generated for you)
 provide the following command line parameters:
- - `--ref-genome <primary_assembly.fa>`
+ - `--ref-genome <primary_assembly.fa.gz>`
  - `--ref-genome-gtf <reference.gtf>`
  - `--ercc <ERCC.fa>`
  - `--ercc-gtf <ERCC.gtf>`
 
+the host reference genome, and *only* the host reference, must be `bgzip` compressed and indexed
+with `samtools faidx`.
+
 for example, for ensembl release 108 of the *Danio rerio* genome:
 ```
---ref-genome Danio_rerio.GRCz11.dna_sm.primary_assembly.fa
+--ref-genome Danio_rerio.GRCz11.dna_sm.primary_assembly.fa.gz
 --ref-genome-gtf Danio_rerio.GRCz11.108.gtf
 --ercc ERCC92.fa
 --ercc-gtf ERCC92.gtf
@@ -80,7 +83,7 @@ for example, for ensembl release 108 of the *Danio rerio* genome:
 
 ### Running the main pipeline
 ```
-PATH=$PATH:$PWD/bin nextflow run main.nf --ref-genome Danio_rerio.GRCz11.dna_sm.primary_assembly.fa \
+PATH=$PATH:$PWD/bin nextflow run main.nf --ref-genome Danio_rerio.GRCz11.dna_sm.primary_assembly.fa.gz \
 --ref-genome-gtf Danio_rerio.GRCz11.108.gtf \
 --ercc ERCC92.fa --ercc-gtf ERCC92.gtf \
 --accession-list SRA_accession_list.test.txt

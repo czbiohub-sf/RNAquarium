@@ -42,6 +42,7 @@ process kb_negative {
 
 	// for discard-mixed: default behavior
 	// for keep-mixed: must run independently on paired, intersect nums
+	// note: kallisto returns an error (1) exit code on 0 reads aligned.
 	script:
 	def ALIGNER_CMD = """kallisto bus -i "${kb_contam_index}" \
 		-x bulk -t ${task.cpus} --num -o . """
@@ -52,7 +53,8 @@ process kb_negative {
 	if (meta.single_end || !params.kbRetainMixed)
 	"""
 	set -euo pipefail
-	${!meta.single_end ? ALIGNER_CMD_PE : ALIGNER_CMD_SE}
+	# kallisto exit code is 1 when 0 reads aligned, too.
+	${!meta.single_end ? ALIGNER_CMD_PE : ALIGNER_CMD_SE} || [ \$? -eq 1 ]
 
 	# grab number of input reads
 	total_reads=\$(grep -m1 "n_processed" run_info.json | grep -om1 "[0-9]\\+")
@@ -70,9 +72,10 @@ process kb_negative {
 	else
 	"""
 	set -euo pipefail
-	${ALIGNER_CMD} m1.fq.gz
+	# kallisto exit code is 1 when 0 reads aligned, too.
+	${ALIGNER_CMD} m1.fq.gz || [ \$? -eq 1 ]
 	bustools text -f -p output.bus | cut -f5 > nums1.idx	
-	${ALIGNER_CMD} m2.fq.gz
+	${ALIGNER_CMD} m2.fq.gz || [ \$? -eq 1 ]
 	bustools text -f -p output.bus | cut -f5 | sort nums1.idx - | uniq -d > nums.idx
 	total_reads=\$(grep -m1 "n_processed" run_info.json | grep -om1 "[0-9]\\+")
 

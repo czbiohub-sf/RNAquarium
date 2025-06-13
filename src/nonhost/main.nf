@@ -72,10 +72,15 @@ fi
 done""" : ""
 
 include { validateParameters; paramsHelp; paramsSummaryLog } from 'plugin/nf-validation'
-include { cleanup_branched; } from './modules/local/utils.nf' params(cleanupScript: cleanupScript,
-																	 tmp: params.tmp, backupTmp: params.backupTmp,
-																	 backupScratchHack: params.backupScratchHack)
-include { } from './modules/local/step.0.generate_indexes.nf' params(
+include {
+	cleanup_branched;
+	cleanup_branched as cleanup_bam
+} from './modules/local/utils.nf' params(
+	cleanupScript: cleanupScript,
+	tmp: params.tmp, backupTmp: params.backupTmp,
+	backupScratchHack: params.backupScratchHack
+)
+include { decompress_fasta } from './modules/local/step.0.generate_indexes.nf' params(
 	refGenome: params.refGenome,
 	refGenomeGtf: params.refGenomeGtf,
 	erccFa: params.erccFa,
@@ -120,6 +125,7 @@ include {
 	sort_bam;
 	htseq_count;
 	feature_count;
+	host_cram;
 } from './modules/local/step.readcounts.nf' params(
 	genomeSize: params.genomeSize,
 	publishDir: params.publishDir,
@@ -256,8 +262,8 @@ workflow {
 	// parallelDownloads MUST be >= 1
 	// refGenomeGtf MUST be specified if skipHostCounts is NOT specified
 	// starRefIdx, starRefIdxErcc, MUST be present IF:
-	//    refGenome, refGenomeGtf, erccFa, OR erccGtf are not
-	// if hisatUse  hisatRefIdx
+	//	  refGenome, refGenomeGtf, erccFa, OR erccGtf are not
+	// if hisatUse	hisatRefIdx
 	if (params.help || !(params.accessionList || params.fastqPath)) {
 		log.info paramsHelp("""PATH=\$PATH:\$PWD/bin nextflow run main.nf
 	--accession-list sras.txt --ref-genome Danio_rerio.GRCz11.dna_sm.primary_assembly.fa
@@ -273,6 +279,15 @@ workflow {
 	} else if (!params.skipHostCounts && !file(params.refGenomeGtf).exists()) {
 		log.error "--ref-genome-gtf annotations are required for host read counts"
 		exit 1
+	} else if (params.outputCram) {
+		cram_ref = file(params.refGenome)
+		if (!cram_ref.exists()) {
+			log.error "bgzipped --ref-genome with .gzi index must be provided for CRAM alignment output"
+			exit 1
+		} else if (!file(cram_ref.parent / "${cram_ref.baseName}.gzi").exists() && !file(cram_ref.parent / "${cram_ref.name}.gzi").exists()) {
+			log.error "bgzipped --ref-genome with accompanying .gzi index must be provided for CRAM alignment output"
+			exit 1
+		}
 	}
 	// possibly check if container profiles are not active and we can't find a binary here
 	validateParameters()
@@ -285,26 +300,31 @@ workflow {
 	if (!params.tmp) log.warn "--tmp=<path> not specified. using /tmp/\n(choose a scratch space appropriate for many very large files)"
 
 	main:
+	// step 0: decompressed reference genome for some indexing
+	decompress_fasta(file(params.refGenome))
+	refGenome = decompress_fasta.out.fasta
+	refSize = decompress_fasta.out.size
+
 	// step 0: generating hisat2 indexes
 	hisat2_indexes = ensure_hisat2_indexes(params.hisatRefIndexes,
-										   params.refGenome,
+										   refGenome,
 										   params.refGenomeGtf,
 										   params.erccFa,
 										   params.erccGtf)
 	// step 0: generating STAR indexes
 	(star_indexes, star_indexes2) = ensure_star_indexes(params.starRefIndexes,
 														params.starRefIndexesErcc,
-														params.refGenome,
+														refGenome,
 														params.refGenomeGtf,
 														params.erccFa,
 														params.erccGtf)
 	// step 0: generating bowtie2 indexes
 	bowtie2_indexes = ensure_bowtie2_indexes(params.bowtieRefIndexes,
-											 params.refGenome,
+											 refGenome,
 											 params.erccFa)
 	// step 0: generating gsnap indexes
 	gsnap_indexes = ensure_gsnap_indexes(params.gsnapRefIndexes,
-										 params.refGenome,
+										 refGenome,
 										 params.erccFa)
 
 	// step 0: generating kallisto contaminant filter indexes
@@ -428,10 +448,10 @@ workflow {
 				new_meta.cleanup = meta.cleanup_later
 				if (!params.skipHostCounts) {
 					new_meta.cleanup_later = "" // fastp is before branch so needs special cleanup
-					new_meta.qc_cleanup = "${fastq.join(' ')}"
+					new_meta.branch_cleanup = "${fastq.join(' ')}"
 				} else {
 					new_meta.cleanup_later = "${fastq.join(' ')}"
-					new_meta.qc_cleanup = ""
+					new_meta.branch_cleanup = ""
 				}
 				new_meta.fastp_reads_after = fastp_reads_after.toLong()
 				[ new_meta, fastq ]
@@ -455,24 +475,30 @@ workflow {
 				def new_meta = meta.clone()
 				// cleanup didn't happen in this step
 				new_meta.cleanup = "${meta.cleanup} ${meta.cleanup_later}"
-				new_meta.cleanup_later = "${bam.toString()}"
+				// fork bam cleanup if making CRAM
+				if (params.outputCram) {
+					new_meta.branch_cleanup = "${bam.toString()}"
+				} else {
+					new_meta.cleanup_later = "${bam.toString()}"
+				}
 				[ new_meta, bam ]
 			}
 			.set { starcounts_result }
 
 		if (params.htseqCount) {
 			sort_bam(starcounts_result).bam
-			.map { meta, bam ->
-				def new_meta = meta.clone()
-				// cleanup didn't happen in this step
-				new_meta.cleanup = "${meta.cleanup} ${meta.cleanup_later}"
-				new_meta.cleanup_later = "${bam.toString()}"
-				[ new_meta, bam ]
-			}
-			.set { sortbam_result }
+				.map { meta, bam ->
+					def new_meta = meta.clone()
+					// cleanup didn't happen in this step
+					new_meta.cleanup = "${meta.cleanup} ${meta.cleanup_later}"
+					new_meta.cleanup_later = "${bam.toString()}"
+					[ new_meta, bam ]
+				}
+				.set { sortbam_result }
 
 			htseq_count(sortbam_result, file(params.refGenomeGtf))
 			htseq_count.out.counts
+				.map { meta, counts -> new_meta = meta.clone(); [ new_meta, counts ] }
 				.set { count_result }
 			htseq_count.out.countsRow
 				.map { meta, row -> row }
@@ -481,14 +507,33 @@ workflow {
 		} else {
 			feature_count(starcounts_result, file(params.refGenomeGtf))
 			feature_count.out.counts
+				.map { meta, counts -> new_meta = meta.clone(); [ new_meta, counts ] }
 				.set { count_result }
 			feature_count.out.countsRow
 				.map { meta, row -> row }
 				.collectFile(name: "countsTable.csv", keepHeader: true,
 							 skip: 1, storeDir: "${params.publishDir}/")
 		}
+
+		if (params.outputCram) {
+			// cleanup does not happen in this branch
+			absRef = file(params.refGenome).toAbsolutePath().toString()
+			host_cram(starcounts_result, absRef)
+			host_cram.out.cram
+				.map { meta, cram ->
+					def new_meta = meta.clone()
+					// cram output is final
+					[ new_meta, cram ]
+				}
+				.set { host_cram_result }
+
+			// clean up STAR bam
+			// barrier dependency is different depending on quantification method
+			cleanup_bam(join_by_id(count_result, host_cram_result))
+		}
 	}
 
+	// step ?: kallisto
 	if (kb_contam_indexes) {
 		kb_negative(fastp_result.ok, kb_contam_indexes)
 		kb_negative.out.mates

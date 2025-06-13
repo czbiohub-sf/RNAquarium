@@ -26,32 +26,6 @@ include {
 	publishDir: params.publishDir,
 )
 
-process snap {
-	label 'snap'
-
-	input:
-	tuple val(meta), path(mategz, arity: '1..2')
-	path index_dir
-
-	output:
-	tuple val(meta), path("snap_out.sam"), emit: sam
-
-	script:
-	def index_name = file(index_dir).getName()
-	if (!meta.single_end)
-	"""
-	snap-aligner paired ${index_dir} ${mategz[0]} ${mategz[1]} \
-		-t ${task.cpus} -o snap_out.staging.sam  -x -f -xf 2.0x
-	mv snap_out.staging.sam snap_out.sam
-	"""
-	else if (meta.single_end)
-	"""
-	snap-aligner single ${index_dir} ${mategz} \
-		-t ${task.cpus} -o snap_out.staging.sam -x -f -xf 2.0
-	mv snap_out.staging.sam snap_out.sam
-	"""
-}
-
 process gsnap {
 	label 'gmap'
 
@@ -85,9 +59,10 @@ process gsnap {
 	def ALIGNER_CMD_SE = """${ALIGNER_CMD} m1.fq"""
 
 	// filter settings
+	def PRIMARY = '!flag.secondary && !flag.supplementary'
 	def cond = params.retainMixed ?
-		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap || flag.munmap)') :
-		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap && flag.munmap)')
+		(meta.single_end ? "${PRIMARY} && flag.unmap" : "${PRIMARY} && (flag.unmap || flag.munmap)") :
+		(meta.single_end ? "${PRIMARY} && flag.unmap" : "${PRIMARY} && (flag.unmap && flag.munmap)")
 	def NAMES = "${ALIGNER}_unmapped_names.txt"
 	def SAMSTATS_CMD = """samtools view -@ ${task.cpus} ${SAM_NAME} | cut -f2 | sort | uniq -c > ${ALIGNER}.stats.txt"""
 	def GET_NAMES_CMD = """samtools view -@ ${task.cpus} -e '${cond}' ${SAM_NAME} | cut -f1  > ${NAMES}"""
@@ -128,20 +103,8 @@ def ensure_gsnap_indexes(ref_indexes,
 		&& (indexes = file(ref_indexes))
 		&& indexes.exists()) {
 	} else {
-		indexes = gsnap_generate_indexes(file(ref_genome),
+		indexes = gsnap_generate_indexes(ref_genome,
 										 file(ercc))
-	}
-	return indexes
-}
-
-def ensure_snap_indexes(ref_indexes,
-						ref_genome, ercc) {
-	if (ref_indexes
-		&& (indexes = file(ref_indexes))
-		&& indexes.exists()) {
-	} else {
-		indexes = snap_generate_indexes(file(ref_genome),
-										file(ercc))
 	}
 	return indexes
 }

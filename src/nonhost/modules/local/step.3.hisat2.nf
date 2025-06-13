@@ -79,9 +79,10 @@ process hisat2 {
 	def ALIGNER_CMD_PE = """${ALIGNER_CMD} -1 m1.fq.gz -2 m2.fq.gz"""
 	def ALIGNER_CMD_SE = """${ALIGNER_CMD} -U m1.fq.gz"""
 
+	def PRIMARY = '!flag.secondary && !flag.supplementary'
 	def cond = params.retainMixed ?
-		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap || flag.munmap)') :
-		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap && flag.munmap)')
+		(meta.single_end ? "${PRIMARY} && flag.unmap" : "${PRIMARY} && (flag.unmap || flag.munmap)") :
+		(meta.single_end ? "${PRIMARY} && flag.unmap" : "${PRIMARY} && (flag.unmap && flag.munmap)")
 
 	def NAMES = "${ALIGNER}_unmapped_names.txt"
 	def SAMSTATS_CMD = """samtools view -@ ${task.cpus} ${SAM_STAGING} | cut -f2 | sort | uniq -c > ${ALIGNER}.stats.txt"""
@@ -112,7 +113,7 @@ def ensure_hisat2_indexes(ref_indexes,
 		&& indexes.exists()) {
 		return [indexes.listFiles()[0].getSimpleName(), file(indexes.resolve("*.{ht2,ht2l}")) ]
 	} else {
-		indexes = hisat2_generate_indexes(file(ref_genome),
+		indexes = hisat2_generate_indexes(ref_genome,
 										  file(ref_genome_gtf),
 										  file(ercc),
 										  file(ercc_gtf))

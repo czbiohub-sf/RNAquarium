@@ -68,9 +68,10 @@ process bowtie2 {
 	def ALIGNER_CMD_SE = """${ALIGNER_CMD} -U m1.fq.gz -S ${ALIGNER}.staging.sam"""
 
 	// filter settings
+	def PRIMARY = '!flag.secondary && !flag.supplementary'
 	def cond = params.retainMixed ?
-		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap || flag.munmap)') :
-		(meta.single_end ? '!flag.secondary && flag.unmap' : '!flag.secondary && (flag.unmap && flag.munmap)')
+		(meta.single_end ? "${PRIMARY} && flag.unmap" : "${PRIMARY} && (flag.unmap || flag.munmap)") :
+		(meta.single_end ? "${PRIMARY} && flag.unmap" : "${PRIMARY} && (flag.unmap && flag.munmap)")
 	def NAMES = "${ALIGNER}_unmapped_names.txt"
 	def SAMSTATS_CMD = """samtools view -@ ${task.cpus} ${SAM_NAME} | cut -f2 | sort | uniq -c > ${ALIGNER}.stats.txt"""
 	def GET_NAMES_CMD = """samtools view -@ ${task.cpus} -e '${cond}' ${SAM_NAME} | cut -f1  > ${NAMES}"""
@@ -99,7 +100,7 @@ def ensure_bowtie2_indexes(ref_indexes,
 		&& indexes.exists()) {
 		return [indexes.listFiles()[0].getSimpleName(), file(indexes.resolve("*.{bt2,bt2l}"))]
 	} else {
-		indexes = bowtie2_generate_indexes(file(ref_genome),
+		indexes = bowtie2_generate_indexes(ref_genome,
 										   file(ercc))
 	}
 	return indexes
