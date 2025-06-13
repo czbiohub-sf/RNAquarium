@@ -106,7 +106,7 @@ process install_gsnap {
 
 	script:
 	def SIMD=simd_level ? "--with-simd-level=$simd_level" : ""
-	def VER="2021-12-17" // 2024-02-22
+	def VER="2025-04-18" // "2021-12-17" // 2024-02-22
 	def URL="http://research-pub.gene.com/gmap/src/gmap-gsnap-${VER}.tar.gz"
 	"""
 mkdir -p pubbin

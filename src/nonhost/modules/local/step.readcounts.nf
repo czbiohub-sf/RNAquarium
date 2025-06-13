@@ -162,7 +162,9 @@ process host_cram {
 
 	script:
 	"""
-	samtools sort -@ ${task.cpus} --reference "${ref_fa_gz}" -O cram,version=3.0,small -o "${meta.id}.staging.cram" "${meta.id}.bam"
+	# exclude SECONDARY, omit PAIR+UNMAP+MUNMAP, require MAPQ>0, omit no reference name, output uncompressed BAM
+	samtools view -@ ${task.cpus} -F '0x100' -G '0xD' -q 0 -e 'rname != "*"' -b -u "${meta.id}.bam" | \
+	samtools sort -@ ${task.cpus} --reference "${ref_fa_gz}" -O cram,version=3.0,small -o "${meta.id}.staging.cram"
 	samtools index -@ ${task.cpus} "${meta.id}.staging.cram"
 
 	mv "${meta.id}.staging.cram" "${meta.id}.cram"
