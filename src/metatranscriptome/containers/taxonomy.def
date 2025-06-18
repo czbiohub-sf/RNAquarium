@@ -16,3 +16,4 @@ From: bioconductor/bioconductor_docker:RELEASE_3_17
         libssl-dev \
         libfontconfig1-dev
     R -e "install.packages(c('argparse', 'scales', 'taxonomizr', 'tidyverse'), dependencies=TRUE)"
+    R -e "install.packages(c('ggalluvial', 'treemapify'), dependencies=TRUE)"
