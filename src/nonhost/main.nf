@@ -45,6 +45,7 @@ params.nxfUnstageHack = false
 
 params.seed = 32854
 params.extraAdapters = "$PWD/extra-adapters.fasta"
+params.sdFilterMates = true
 params.hisatUseTranscript = true
 params.starSjdbOverhang = 100
 params.starUseSharedMem = false
@@ -398,6 +399,13 @@ workflow {
 							cleanup_later: "${fastq.join(' ')}"]
 			[ new_meta, fastq ]
 		}
+		.branch { // runs with empty file tombstone from filtering should drop out
+			ok: { meta, fastq ->
+				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
+					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
+			}(it)
+			dropouts: true
+		}
 		.view()
 		.set { download_result }
 
@@ -429,7 +437,7 @@ workflow {
 			new_meta.cleanup_later = "${fastq.join(' ')}"
 			[ new_meta, fastq ]
 		}
-		.mix(download_result)
+		.mix(download_result.ok)
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out
 			ok: { meta, fastq ->
 				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&

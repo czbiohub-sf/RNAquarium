@@ -12,6 +12,8 @@ params.backupTmp = null
 params.backupScratchHack = false
 params.nxfUnstageHack = false
 
+params.sdFilterMates = true
+
 params.metaOut = 'step_1_sheet.csv'
 include {
 	SAVE_METASHEET;
@@ -24,11 +26,15 @@ process download {
 
 	input:
 	tuple val(meta), val(sra_id)
+	tuple val(idx_basename), path("hisat2_index/*")
+	path ref_genome_gtf
 
 	output:
 	tuple val(meta), path("fastq/${sra_id}/*.fastq.gz", arity: '1..2'), env(reads), env(sra_size), env(median1), env(median2), env(count1), env(size1), emit: mates
 	tuple val(meta), path("info.txt"), emit: srastats
 	tuple val(meta), path("stats.txt"), emit: dumpstats
+	tuple val(meta), path("seq-detective-judgement.txt"), emit: sdstats
+	tuple val(meta), path("seq-detective-stats.txt"), emit: sdjudgement
 
 	beforeScript = {"""${task.ext.extraBeforeScript ?: ""}
 					sleep \$((1 + RANDOM % 30))s"""}
@@ -70,6 +76,9 @@ process download {
 		--defline-seq '@\$ac.\$si \$ri' --defline-qual '+' \
 		--outdir fastq/${sra_id}.staging 2>stats.txt
 	"""
+	def ex_adp = file(params.extraAdapters).exists() ? "--adapter_fasta ${params.extraAdapters}" : ""
+	def FASTP_PARAMS = "-q 17 -u 15 -n 50 --length_required 2 ${ex_adp}"
+	def FILT_RM_FN = params.sdFilterMates ? "rm" : "# filtering disabled, not removing "
 	"""
 	${PROLOGUE}
 	${PREFETCH}
@@ -80,30 +89,63 @@ process download {
 	f=fastq/${sra_id}.staging/${sra_id}.fastq
 	f1=fastq/${sra_id}.staging/${sra_id}_1.fastq
 	f2=fastq/${sra_id}.staging/${sra_id}_2.fastq
-	if [[ ! ( -e \${f1} && -e \${f2} ) ]]; then  # single read file
-		IFS=\$'\\t' read -rd \$'\\n' median1 differing1 count1 size1 <<<"\$(fastq-lengths summary \${f})"
-		echo $meta.id SE
-		rm -f \${f1} \${f2}
-	else # possibly paired, but may be scRNAseq barcodes
-		IFS=\$'\\t' read -rd \$'\\n' median1 differing1 count1 size1 <<< "\$(fastq-lengths summary 2000000 \${f1})"
-		IFS=\$'\\t' read -rd \$'\\n' median2 differing2 count2 size2 <<< "\$(fastq-lengths summary 2000000 \${f2})"
-		if [ \$median1 -lt 32 ] && [ \$median2 -gt 80 ]; then
-			echo $meta.id scRNAseq
-			rm \${f1} # discard read 1 (cell barcode)
-			rm -f \${f}
-			mv \${f2} \${f}
-			size1=\$size2
-		elif [ \$median1 -gt 80 ] && [ \$median2 -lt 32 ]; then
-			echo $meta.id scRNAseq
-			rm \${f2} # discard read 2 (cell barcode)
-			rm -f \${f}
-			mv \${f1} \${f}
-		else
-			echo $meta.id PE
-			rm -f \${f}
-			size1=\$(bc<<<"\$size2+\$size1")
+
+	# if all three exist, use paired-end reads -- check first 200k reads
+	frac=\$(echo "scale=6; f=200000/3781; if(f < 1){ f } else { 200000 }" | bc)
+	if [[ -e \${f1} && -e \${f2} && -e \${f} ]]; then
+		rm -f \${f}
+		seqtk sample -s 499 \${f1} \${frac} > ${sra_id}_subsample_1.fastq
+		seqtk sample -s 499 \${f2} \${frac} > ${sra_id}_subsample_2.fastq
+	else
+		seqtk sample -s 499 \${f} \${frac} > ${sra_id}_subsample.fastq
+	fi
+	# run seq-detective core logic to check for technical/low quality mate
+	seq-detective core fastq/${sra_id}.staging/${sra_id} \
+		hisat2_index/${idx_basename} \
+		${ref_genome_gtf} \
+		/dev/stdout \
+		${task.cpus} \
+		1 \
+		0 \
+		"${FASTP_PARAMS}" > seq-detective-stats.json
+	seq-detective judge seq-detective-stats.json --per-acc -b -H > seq-detective-judgement.txt
+
+	# parse judgement
+	m1_judgement=\$(cut -f4 seq-detective-judgement.txt)
+	m2_judgement=\$(cut -f5 seq-detective-judgement.txt)
+	if [[ -n "\${m2_judgement}" ]]; then
+		# 2 mates
+		# remove temporary files
+		rm ${sra_id}_subsample_1.fastq ${sra_id}_subsample_2.fastq
+		size1=\$(stat --printf="%s" \${f1})
+		size2=\$(stat --printf="%s" \${f2})
+		if [[ ("\${m1_judgement}" == "T" && "\${m2_judgement}" == "T" ]]; then
+			${FILT_RM_FN} \${f1}
+			${FILT_RM_FN} \${f2}
+		elif [[ "\${m1_judgement}" == "T" ]]; then
+			${FILT_RM_FN} \${f1} && mv \${f2} \${f}
+		elif [[ "\${m2_judgement}" == "T"  ]]; then
+			${FILT_RM_FN} \${f1} && mv \${f1} \${f}
+		fi
+	else
+		# single mate
+		rm ${sra_id}_subsample.fastq
+		size1=\$(stat --printf="%s" \${f})
+		if [[ "\${m1_judgement}" == "T" && ${params.sdFilterMates} ]]; then
+			${FILT_RM_FN} \${f}
 		fi
 	fi
+	# may have *no* read files now
+	if [[ ! ( -e \${f} || -e \${f1} || -e \${f2} ) ]]; then
+		echo $meta.id "no reads after seq-detective filter"
+		:> "fastq/${sra_id}.staging/FILTEREDRUN.fastq"
+		exit 0
+	fi
+
+	# collect some stats for pipeline	
+	median1=\$(jq -r '.readfiles[0].mapping.fastp.summary.before_filtering.read1_mean_length' seq-detective-stats.json)
+	# "read 1" is not a typo
+	median2=\$(jq -r '.readfiles[1].mapping.fastp.summary.before_filtering.read1_mean_length' seq-detective-stats.json)
 	count1=\$reads
 	count2=\$reads
 	
