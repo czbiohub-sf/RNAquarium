@@ -100,6 +100,7 @@ include {
 	check_direct_fastqs;
 	filter_barcodes;
 } from './modules/local/step.1.nf' params(
+	extraAdapters: params.extraAdapters,
 	parallelDownloads: params.parallelDownloads,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishFastqs,
@@ -385,7 +386,7 @@ workflow {
 	}
 
 	// download SRAs by remaining accessions
-	download(accessions).mates
+	download(accessions, hisat2_indexes, file(params.refGenomeGtf)).mates
 		.map { meta, fastq, reads, sra_size, median1, median2, count, fsize ->
 			def new_meta = [id: meta.id,
 							reads: count.toLong(),
@@ -406,8 +407,8 @@ workflow {
 			}(it)
 			dropouts: true
 		}
-		.view()
 		.set { download_result }
+	download_result.dropouts.view()
 
 	direct_fastqs.view()
 	n_direct_fastqs = check_direct_fastqs(direct_fastqs) // , merging any existing fastqs

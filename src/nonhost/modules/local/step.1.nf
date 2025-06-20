@@ -13,6 +13,7 @@ params.backupScratchHack = false
 params.nxfUnstageHack = false
 
 params.sdFilterMates = true
+params.extraAdapters = "extra-adapters.fasta"
 
 params.metaOut = 'step_1_sheet.csv'
 include {
@@ -33,8 +34,8 @@ process download {
 	tuple val(meta), path("fastq/${sra_id}/*.fastq.gz", arity: '1..2'), env(reads), env(sra_size), env(median1), env(median2), env(count1), env(size1), emit: mates
 	tuple val(meta), path("info.txt"), emit: srastats
 	tuple val(meta), path("stats.txt"), emit: dumpstats
-	tuple val(meta), path("seq-detective-judgement.txt"), emit: sdstats
-	tuple val(meta), path("seq-detective-stats.txt"), emit: sdjudgement
+	tuple val(meta), path("seq-detective-judgement.txt"), emit: sdjudgement
+	tuple val(meta), path("seq-detective-stats.json"), emit: sdstats
 
 	beforeScript = {"""${task.ext.extraBeforeScript ?: ""}
 					sleep \$((1 + RANDOM % 30))s"""}
@@ -94,13 +95,15 @@ process download {
 	frac=\$(echo "scale=6; f=200000/3781; if(f < 1){ f } else { 200000 }" | bc)
 	if [[ -e \${f1} && -e \${f2} && -e \${f} ]]; then
 		rm -f \${f}
+	fi
+	if [[ -e \${f1} && -e \${f2} ]]; then
 		seqtk sample -s 499 \${f1} \${frac} > ${sra_id}_subsample_1.fastq
 		seqtk sample -s 499 \${f2} \${frac} > ${sra_id}_subsample_2.fastq
 	else
 		seqtk sample -s 499 \${f} \${frac} > ${sra_id}_subsample.fastq
 	fi
 	# run seq-detective core logic to check for technical/low quality mate
-	seq-detective core fastq/${sra_id}.staging/${sra_id} \
+	seq-detective core ${sra_id}_subsample \
 		hisat2_index/${idx_basename} \
 		${ref_genome_gtf} \
 		/dev/stdout \
@@ -119,13 +122,13 @@ process download {
 		rm ${sra_id}_subsample_1.fastq ${sra_id}_subsample_2.fastq
 		size1=\$(stat --printf="%s" \${f1})
 		size2=\$(stat --printf="%s" \${f2})
-		if [[ ("\${m1_judgement}" == "T" && "\${m2_judgement}" == "T" ]]; then
+		if [[ "\${m1_judgement}" == "T" && "\${m2_judgement}" == "T" ]]; then
 			${FILT_RM_FN} \${f1}
 			${FILT_RM_FN} \${f2}
 		elif [[ "\${m1_judgement}" == "T" ]]; then
 			${FILT_RM_FN} \${f1} && mv \${f2} \${f}
 		elif [[ "\${m2_judgement}" == "T"  ]]; then
-			${FILT_RM_FN} \${f1} && mv \${f1} \${f}
+			${FILT_RM_FN} \${f2} && mv \${f1} \${f}
 		fi
 	else
 		# single mate
@@ -139,13 +142,16 @@ process download {
 	if [[ ! ( -e \${f} || -e \${f1} || -e \${f2} ) ]]; then
 		echo $meta.id "no reads after seq-detective filter"
 		:> "fastq/${sra_id}.staging/FILTEREDRUN.fastq"
-		exit 0
 	fi
 
 	# collect some stats for pipeline	
 	median1=\$(jq -r '.readfiles[0].mapping.fastp.summary.before_filtering.read1_mean_length' seq-detective-stats.json)
 	# "read 1" is not a typo
-	median2=\$(jq -r '.readfiles[1].mapping.fastp.summary.before_filtering.read1_mean_length' seq-detective-stats.json)
+	if [[ -n "\${m2_judgement}" ]]; then
+		median2=\$(jq -r '.readfiles[1].mapping.fastp.summary.before_filtering.read1_mean_length' seq-detective-stats.json)
+	else
+		median2=""
+	fi
 	count1=\$reads
 	count2=\$reads
 	
