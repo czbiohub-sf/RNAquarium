@@ -511,8 +511,8 @@ workflow {
 				.set { count_result }
 			htseq_count.out.countsRow
 				.map { meta, row -> row }
-				.collectFile(name: "countsTable.csv", keepHeader: true,
-							 skip: 1, storeDir: "${params.publishDir}/")
+				.collectFile(name: "counts.csv", keepHeader: true,
+							 skip: 1, storeDir: "${params.publishDir}/host_counts/")
 		} else {
 			feature_count(starcounts_result, file(params.refGenomeGtf))
 			feature_count.out.counts
@@ -520,8 +520,8 @@ workflow {
 				.set { count_result }
 			feature_count.out.countsRow
 				.map { meta, row -> row }
-				.collectFile(name: "countsTable.csv", keepHeader: true,
-							 skip: 1, storeDir: "${params.publishDir}/")
+				.collectFile(name: "counts.csv", keepHeader: true,
+							 skip: 1, storeDir: "${params.publishDir}/host_counts/")
 		}
 
 		if (params.outputCram) {
@@ -663,7 +663,7 @@ workflow {
 	// final_reads
 	stats_csv(all_stats)
 	stats_csv.out
-		.collectFile(name: "stats-${params.timestamp}.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/stats/")
+		.collectFile(name: "stats-${params.timestamp}.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/reports/")
 
 	stats_csv.out
 		.splitCsv( header: true, skip: 0, strip: true, limit: 1 )
