@@ -45,6 +45,7 @@ params.nxfUnstageHack = false
 
 params.seed = 32854
 params.extraAdapters = "$PWD/extra-adapters.fasta"
+params.sdFilterMates = true
 params.hisatUseTranscript = true
 params.starSjdbOverhang = 100
 params.starUseSharedMem = false
@@ -99,6 +100,7 @@ include {
 	check_direct_fastqs;
 	filter_barcodes;
 } from './modules/local/step.1.nf' params(
+	extraAdapters: params.extraAdapters,
 	parallelDownloads: params.parallelDownloads,
 	publishDir: params.publishDir,
 	publishIntermediate: params.publishIntermediate && params.publishFastqs,
@@ -384,7 +386,7 @@ workflow {
 	}
 
 	// download SRAs by remaining accessions
-	download(accessions).mates
+	download(accessions, hisat2_indexes, file(params.refGenomeGtf)).mates
 		.map { meta, fastq, reads, sra_size, median1, median2, count, fsize ->
 			def new_meta = [id: meta.id,
 							reads: count.toLong(),
@@ -398,8 +400,15 @@ workflow {
 							cleanup_later: "${fastq.join(' ')}"]
 			[ new_meta, fastq ]
 		}
-		.view()
+		.branch { // runs with empty file tombstone from filtering should drop out
+			ok: { meta, fastq ->
+				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
+					file(fastq[0]).size() > 132 && file(fastq[1]).size() > 132
+			}(it)
+			dropouts: true
+		}
 		.set { download_result }
+	download_result.dropouts.view()
 
 	direct_fastqs.view()
 	n_direct_fastqs = check_direct_fastqs(direct_fastqs) // , merging any existing fastqs
@@ -429,7 +438,7 @@ workflow {
 			new_meta.cleanup_later = "${fastq.join(' ')}"
 			[ new_meta, fastq ]
 		}
-		.mix(download_result)
+		.mix(download_result.ok)
 		.branch { // empty/insignificant runs (by trimming, qc, or host mapping) should drop out
 			ok: { meta, fastq ->
 				meta.single_end ? file(fastq[0]).size() > 132 : (fastq.size() == 2) &&
@@ -502,8 +511,8 @@ workflow {
 				.set { count_result }
 			htseq_count.out.countsRow
 				.map { meta, row -> row }
-				.collectFile(name: "countsTable.csv", keepHeader: true,
-							 skip: 1, storeDir: "${params.publishDir}/")
+				.collectFile(name: "counts.csv", keepHeader: true,
+							 skip: 1, storeDir: "${params.publishDir}/host_counts/")
 		} else {
 			feature_count(starcounts_result, file(params.refGenomeGtf))
 			feature_count.out.counts
@@ -511,8 +520,8 @@ workflow {
 				.set { count_result }
 			feature_count.out.countsRow
 				.map { meta, row -> row }
-				.collectFile(name: "countsTable.csv", keepHeader: true,
-							 skip: 1, storeDir: "${params.publishDir}/")
+				.collectFile(name: "counts.csv", keepHeader: true,
+							 skip: 1, storeDir: "${params.publishDir}/host_counts/")
 		}
 
 		if (params.outputCram) {
@@ -654,7 +663,7 @@ workflow {
 	// final_reads
 	stats_csv(all_stats)
 	stats_csv.out
-		.collectFile(name: "stats-${params.timestamp}.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/stats/")
+		.collectFile(name: "stats-${params.timestamp}.csv", keepHeader: true, skip: 1, storeDir: "${params.publishDir}/reports/")
 
 	stats_csv.out
 		.splitCsv( header: true, skip: 0, strip: true, limit: 1 )

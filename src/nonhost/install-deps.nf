@@ -5,11 +5,37 @@ params.myExecutor = 'slurm'
 params.prefix = 'bin/'
 
 workflow {
+	install_seq_detective()
 	install_fastq_lengths()
 	install_fastq_namefilter()
 	//install_priceseqfilter(Channel.fromPath( 'pricesource.patch' ))
 	install_czid_dedup()
 	install_gsnap(Channel.fromList( ["", "sse42", "avx2"]) )
+}
+
+process install_seq_detective {
+	executor params.myExecutor
+	cpus 1
+	memory '2GB'
+	time '10min'
+	output: file("seq-detective")
+	publishDir params.prefix, mode: 'move'
+
+	script:
+	def BINNAME="seq-detective"
+	def URL="git@github.com:czbiohub-sf/seq-tech-detective.git"
+	"""
+git clone $URL seq-tech-detective-core -b JUDGEMENT --depth 1
+cd seq-tech-detective-core
+mamba env create -f environment.yml -n seq-detective
+mamba activate seq-detective
+make -j${task.cpus} && \
+mv -u build/seq-detective/bin/* ../bin/ && \
+mv -u build/seq-detective/libexec/ ../ && \
+mv -u build/seq-detective/share/ ../ && \
+cd ..
+rm -rf seq-tech-detective-core/
+	"""
 }
 
 process install_fastq_lengths {
@@ -106,7 +132,7 @@ process install_gsnap {
 
 	script:
 	def SIMD=simd_level ? "--with-simd-level=$simd_level" : ""
-	def VER="2025-04-18" // "2021-12-17" // 2024-02-22
+	def VER="2025-04-19" // "2021-12-17" // 2024-02-22
 	def URL="http://research-pub.gene.com/gmap/src/gmap-gsnap-${VER}.tar.gz"
 	"""
 mkdir -p pubbin

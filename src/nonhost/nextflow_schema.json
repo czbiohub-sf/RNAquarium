@@ -134,13 +134,13 @@
                 "seed": {
                     "type": "number",
                     "default": 32854,
-                    "description": "prng seed for aligners (etc.)",
+                    "description": "prng seed for aligners (etc.)"
                 },
                 "minSafeMemory": {
                     "type": "string",
                     "default": "1 GB",
                     "description": "minimum safe memory to request (used internally for HPC profile quirks)",
-                    "hidden": true,
+                    "hidden": true
                 },
                 "tmp": {
                     "type": "string",
@@ -289,6 +289,11 @@
                     "type": "number",
                     "default": 20,
                     "description": "minimum allowed sequence length in dedup"
+                },
+                "sdFilterMates": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "if true, use seq-detective to filter out technical reads.  note that low-quality/blank runs will also drop out."
                 }
             },
             "fa_icon": "fas fa-project-diagram"
