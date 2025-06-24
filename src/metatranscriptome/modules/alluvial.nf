@@ -32,8 +32,20 @@ process ALLUVIAL_PLOT {
     path 'taxonomy_hits_nonhost_treemap_counts.tsv'
     path 'allchunks_blastn_hits_nonhost.tsv.gz'
     path 'allchunks_diamond_hits_nonhost.tsv.gz'
-    path 'taxonomy_hits_nonhost_fullcols_mostrecent.tsv.gz'
     path 'taxonomy_hits_nonhost_mostrecent.tsv.gz'
+    path 'taxonomy_hits_viruses_list.txt'
+    path 'taxonomy_hits_bacteria_list.txt'
+    path 'taxonomy_hits_arthropoda_list.txt'
+    path 'taxonomy_hits_plants_list.txt'
+    path 'taxonomy_hits_chordates_list.txt'
+    path 'taxonomy_hits_fungi_list.txt'
+    path 'taxonomy_hits_otherEukaryota_list.txt'
+    path 'taxonomy_hits_SAReukaryotes_list.txt'
+    path 'taxonomy_hits_archaea_list.txt'
+    path 'taxonomy_hits_mollusca_list.txt'
+    path 'taxonomy_hits_annelida_list.txt'
+    path 'taxonomy_hits_nematoda_list.txt'
+    path 'taxonomy_hits_platyhelminthes_list.txt'
 
     script:
     """
