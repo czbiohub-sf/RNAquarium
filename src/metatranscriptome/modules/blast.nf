@@ -63,7 +63,7 @@ process BLAST_FULL_NT {
     # Seems like we need to be in the DB directory?
     cd /db
     blastn \
-        -db /db/${params.nt_db_name} \
+        -db /db/${params.ntfull_db_name} \
         -query \$INPUT \
         -outfmt "${params.full_nt_outfmt}" \
         -num_threads ${task.cpus} \
