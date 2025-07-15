@@ -92,7 +92,7 @@ process download {
 	f2=fastq/${sra_id}.staging/${sra_id}_2.fastq
 
 	# if all three exist, use paired-end reads -- check first 200k reads
-	frac=\$(echo "scale=6; f=200000/3781; if(f < 1){ f } else { 200000 }" | bc)
+	frac=\$(echo "scale=6; f=200000/\$reads; if(f < 1){ f } else { 200000 }" | bc)
 	if [[ -e \${f1} && -e \${f2} && -e \${f} ]]; then
 		rm -f \${f}
 	fi
