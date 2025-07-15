@@ -1,5 +1,4 @@
 #!/usr/bin/env nextflow
-
 nextflow.enable.dsl=2
 
 params.accessionList = ""
@@ -396,8 +395,8 @@ workflow {
 							fastq_size: fsize.toLong(),
 							single_end: fastq.size() != 2,
 							size_MB: meta.size_MB,
-							cleanup: "",
-							cleanup_later: "${fastq.join(' ')}"]
+							cleanup: "${fastq.join(' ')}", // clean early
+							cleanup_later: ""]
 			[ new_meta, fastq ]
 		}
 		.branch { // runs with empty file tombstone from filtering should drop out
@@ -454,12 +453,12 @@ workflow {
 	fastp.out.mates
 		.map { meta, fastq, fastp_reads_after -> {
 				def new_meta = meta.clone()
-				new_meta.cleanup = meta.cleanup_later
+				//new_meta.cleanup = meta.cleanup_later
 				if (!params.skipHostCounts) {
 					new_meta.cleanup_later = "" // fastp is before branch so needs special cleanup
-					new_meta.branch_cleanup = "${fastq.join(' ')}"
+					new_meta.branch_cleanup = "${fastq.join(' ')} ${meta.cleanup_later}"
 				} else {
-					new_meta.cleanup_later = "${fastq.join(' ')}"
+					new_meta.cleanup_later = "${fastq.join(' ')} ${meta.cleanup_later}"
 					new_meta.branch_cleanup = ""
 				}
 				new_meta.fastp_reads_after = fastp_reads_after.toLong()
@@ -547,7 +546,7 @@ workflow {
 		kb_negative(fastp_result.ok, kb_contam_indexes)
 		kb_negative.out.mates
 			.map { meta, mates ->
-				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.toString()}"
+				m = meta.clone(); m.cleanup = m.cleanup_later; m.cleanup_later = "${mates.join(' ')}"
 				[ m, mates ]
 			}
 			.set { kallisto_result }

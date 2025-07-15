@@ -129,7 +129,7 @@ def ensure_genome_size(explicit_size, ref_genome_fa) {
 def ensure_star_indexes(ref_indexes, ref_indexes_ercc,
 						ref_genome, ref_genome_gtf, ercc, ercc_gtf) {
 	if (ref_indexes && ref_indexes_ercc
-		&& (indexes = file(ref_indexes)) && (indexes2 = file(ref_indexes_ercc))
+		&& (indexes = file(ref_indexes_ercc)) && (indexes2 = file(ref_indexes))
 		&& indexes.exists() && indexes2.exists()) {
 	} else {
 		(indexes, indexes2) = star_generate_indexes(ref_genome,

@@ -5,7 +5,7 @@ params.myExecutor = 'slurm'
 params.prefix = 'bin/'
 
 workflow {
-	install_seq_detective()
+	//install_seq_detective()
 	install_fastq_lengths()
 	install_fastq_namefilter()
 	//install_priceseqfilter(Channel.fromPath( 'pricesource.patch' ))
