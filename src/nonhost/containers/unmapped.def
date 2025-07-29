@@ -7,6 +7,9 @@ From: ubuntu:25.04
 %help
     This container contains the dependencies to retrieve the unmapped reads.
 
+%environment
+    export PATH=$PATH:/hisat2-2.2.1
+
 %post
     apt-get -y update
     apt-get -y install \
@@ -19,7 +22,18 @@ From: ubuntu:25.04
         libbz2-dev \
         make
 
+    # HISAT2
+    cd /
+    wget -O HISAT2.tar.gz https://github.com/DaehwanKimLab/hisat2/archive/refs/tags/v2.2.1.tar.gz
+    tar -xzvf HISAT2.tar.gz
+    cd hisat2-2.2.1
+    make
+
     # BCFTools
+    cd /
+    pwd
+    echo "BCFTools"
+    echo $(pwd)
     git clone --recurse-submodules https://github.com/samtools/htslib.git
     git clone https://github.com/samtools/bcftools.git
 
@@ -28,6 +42,7 @@ From: ubuntu:25.04
     make install
 
     # STAR
+    cd /
     wget -O STAR.tar.gz https://github.com/alexdobin/STAR/archive/refs/tags/STAR_2.7.10b_alpha_23-06-09.tar.gz
     tar -xzvf STAR.tar.gz
     cd STAR-STAR_2.7.10b_alpha_23-06-09/source
