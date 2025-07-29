@@ -11,12 +11,23 @@ From: ubuntu:25.04
     apt-get -y update
     apt-get -y install \
         wget \
+        g++ \
+        git \
+        libcurl4-gnutls-dev \
+        libz-dev \
+        liblzma-dev \
+        libbz2-dev \
         make
 
+    # BCFTools
+    git clone --recurse-submodules https://github.com/samtools/htslib.git
+    git clone https://github.com/samtools/bcftools.git
+
+    cd htslib
+    make
+    make install
+
     # STAR
-    apt-get -y install \
-        g++ \
-        libz-dev
     wget -O STAR.tar.gz https://github.com/alexdobin/STAR/archive/refs/tags/STAR_2.7.10b_alpha_23-06-09.tar.gz
     tar -xzvf STAR.tar.gz
     cd STAR-STAR_2.7.10b_alpha_23-06-09/source
@@ -27,6 +38,12 @@ From: ubuntu:25.04
     STAR_OUTPUT=$(command -v STAR)
     if [ -z $STAR_OUTPUT ]; then
         echo "No STAR binary found"
+        exit 1
+    fi
+
+    BGZIP_OUTPUT=$(command -v bgzip)
+    if [ -z $BGZIP_OUTPUT ]; then
+        echo "No bgzip binary found"
         exit 1
     fi
 
