@@ -62,4 +62,13 @@ From: ubuntu:25.04
         exit 1
     fi
 
+    # Sentinel for full suite of hisat2 commands.
+    # For some reason was unable to create an array of hisat2 commands
+    #     to iteratively test.
+    HISAT2_OUTPUT=$(command -v hisat2)
+    if [ -z $HISAT2_OUTPUT ]; then
+        echo "No hisat2 binary found"
+        exit 1
+    fi
+
     echo "All binaries present"
