@@ -1,0 +1,33 @@
+Bootstrap: docker
+From: ubuntu:25.04
+
+%labels
+    Author Yttria Aniseia & Gibraan Rahman
+
+%help
+    This container contains the dependencies to retrieve the unmapped reads.
+
+%post
+    apt-get -y update
+    apt-get -y install \
+        wget \
+        make
+
+    # STAR
+    apt-get -y install \
+        g++ \
+        libz-dev
+    wget -O STAR.tar.gz https://github.com/alexdobin/STAR/archive/refs/tags/STAR_2.7.10b_alpha_23-06-09.tar.gz
+    tar -xzvf STAR.tar.gz
+    cd STAR-STAR_2.7.10b_alpha_23-06-09/source
+    make STAR
+    cp STAR /usr/bin
+
+%test
+    STAR_OUTPUT=$(command -v STAR)
+    if [ -z $STAR_OUTPUT ]; then
+        echo "No STAR binary found"
+        exit 1
+    fi
+
+    echo "All binaries present"
