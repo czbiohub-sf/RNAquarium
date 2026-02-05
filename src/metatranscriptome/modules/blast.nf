@@ -16,6 +16,7 @@ process BLAST {
     blastn \
         -db /db/${params.nt_db_name} \
         -query \$INPUT \
+        -taxids "${params.taxids}" \
         -outfmt "${params.outfmt}" \
         -num_threads ${task.cpus} \
         -evalue ${params.evalue} \
