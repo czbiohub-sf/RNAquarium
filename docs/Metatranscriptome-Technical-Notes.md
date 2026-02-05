@@ -28,7 +28,7 @@ Part II of the RNAquarium pipeline ("metatranscriptome") consumes **unmapped rea
 
 ## Pipeline Architecture: Nextflow vs SLURM Scripts
 
-**Important:** The Nextflow pipeline only covers the initial phases of the metatranscriptome workflow. All downstream processing is handled by standalone SLURM/R scripts located in `<PIPELINE_ROOT>/src/metatranscriptome/scripts/`.
+**Important:** The Nextflow pipeline only covers the initial phases of the metatranscriptome workflow. All downstream processing is handled by standalone SLURM/R scripts located in `src/metatranscriptome/scripts/`. These should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders.
 
 ### What Nextflow Handles
 
@@ -59,7 +59,7 @@ All unmapped reads from Part I were symlinked into a single directory combining 
 <PIPELINE_ROOT>/src/metatranscriptome/all_unmapped_links
 ```
 
-Original locations (for reference):
+Original locations (for reference) are in the output folder of the Host Mapping (Part I) pipeline portion:
 
 ```
 # Single-end
@@ -378,12 +378,14 @@ Based on logs, Diamond NR searches did **not** benefit noticeably from moving DB
 
 ## Post-Nextflow Processing
 
-Once the Nextflow runs are finished (up to full nt BLAST and Diamond), run the SLURM scripts in `<PIPELINE_ROOT>/src/metatranscriptome/scripts/` for post-processing.
+Once the Nextflow runs are finished (up to full nt BLAST and Diamond), run the SLURM scripts currently in `src/metatranscriptome/scripts/` for post-processing.
 
-Main working directory for outputs:
+These should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders:
 
 ```
-<OUTPUT_ROOT>/metatranscriptome_all
+<PUB_DIR>/
+<PUB_DIR>/nt_blast
+<PUB_DIR>/nr_diamond
 ```
 
 ### Step 0a / 0b: Parse BLASTn and Diamond Outputs with Taxonomizr
@@ -457,9 +459,9 @@ blastdbcmd -db nr_cluster_seq -entry "WP_197412162.1" -outfmt "%a %T %S"
 
 Scripts:
 
-- Main updater: `<OUTPUT_ROOT>/metatranscriptome_all/nr_diamond/diamond_taxid_update_blastdbcmd.py`
-- Renamer/mover: `<OUTPUT_ROOT>/metatranscriptome_all/nr_diamond/diamond_taxid_moveold_andrename.py`
-- SLURM wrapper: `slurm_diamond_taxid_update_blastdbcmd.sh`
+- Main updater: `<PUB_DIR>/nr_diamond/diamond_taxid_update_blastdbcmd.py`
+- Renamer/mover: `<PUB_DIR>/nr_diamond/diamond_taxid_moveold_andrename.py`
+- SLURM wrapper: `<PUB_DIR>/nr_diamond/slurm_diamond_taxid_update_blastdbcmd.sh`
   - Runs `diamond_taxid_update_blastdbcmd.py` to fill taxids.
   - Moves original raw Diamond outputs to a subfolder and renames the updated files to the original naming scheme.
 
@@ -603,7 +605,7 @@ Virus steps then operate on this BBDuk-filtered non-host set.
 
 ## Pipeline Sequence Summary
 
-All SLURM scripts are located in `<PIPELINE_ROOT>/src/metatranscriptome/scripts/`.
+The SLURM scripts are currently located in `/src/metatranscriptome/scripts/`, and should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders.
 
 ### With Post-Search BBDuk (Used for 75k Release)
 
