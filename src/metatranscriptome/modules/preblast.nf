@@ -16,5 +16,11 @@ process CHUNK_ASSEMBLED_FASTAS {
     do
         cat *.split/*part_\$chunk.fasta > chunk_\$chunk.fasta
     done
+    
+    # Replace lines that start with >NA_ with >PRJXX_
+    for fasta in chunk_*.fasta
+    do
+        sed -i 's/^>NA_/>PRJXX_/g' \$fasta
+    done
     """
 }
