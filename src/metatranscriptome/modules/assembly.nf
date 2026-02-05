@@ -16,7 +16,7 @@ process SPADES_SINGLE_END {
         mv transcripts.fasta ${bioproj_id}_S.transcripts.fasta
     else
         echo 'No transcripts.fasta file found!'
-        exit 9
+        exit 100
     fi
     """
 }
@@ -39,7 +39,7 @@ process SPADES_PAIRED_END {
         mv transcripts.fasta ${bioproj_id}_P.transcripts.fasta
     else
         echo 'No transcripts.fasta file found!'
-        exit 9
+        exit 100
     fi
     """
 }
