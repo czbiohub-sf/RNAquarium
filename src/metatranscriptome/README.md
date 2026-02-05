@@ -95,8 +95,8 @@ After Nextflow completes, run the post-processing scripts sequentially. See the 
 
 ## Documentation
 
-* **Metatranscriptome-Technical-Notes.md** – full pipeline documentation, workarounds, and step-by-step SLURM script sequence
-* **Metatranscriptome_virus-steps-Technical-Notes.md** – virus-specific curation and Salmon quantification
+* **docs/Metatranscriptome-Technical-Notes.md** – full pipeline documentation, workarounds, and step-by-step SLURM script sequence
+* **docs/Metatranscriptome_virus-steps-Technical-Notes.md** – virus-specific curation and Salmon quantification
 
 ## Outputs
 
@@ -115,4 +115,4 @@ After Nextflow completes, run the post-processing scripts sequentially. See the 
 * **Taxonomy updates**: Use Taxonomizr DB from August 2025+ for proper viral realm support
 * **Diamond NA taxids**: Run `slurm_diamond_taxid_update_blastdbcmd.sh` if NA taxids detected
 
-See **Metatranscriptome-Technical-Notes.md** for complete details.
+See **docs/Metatranscriptome-Technical-Notes.md** for complete details.
