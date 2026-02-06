@@ -28,7 +28,7 @@ Part II of the RNAquarium pipeline ("metatranscriptome") consumes **unmapped rea
 
 ## Pipeline Architecture: Nextflow vs SLURM Scripts
 
-**Important:** The Nextflow pipeline only covers the initial phases of the metatranscriptome workflow. All downstream processing is handled by standalone SLURM/R scripts located in `src/metatranscriptome/scripts/`. These should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders.
+**Important:** The Nextflow pipeline only covers the initial phases of the metatranscriptome workflow. All downstream processing is handled by standalone SLURM/R scripts located in `src/metatranscriptome/scripts/post-processing/`. These should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders.
 
 ### What Nextflow Handles
 
@@ -407,7 +407,7 @@ Based on logs, Diamond NR searches did **not** benefit noticeably from moving DB
 
 ## Post-Nextflow Processing
 
-Once the Nextflow runs are finished (up to full nt BLAST and Diamond), run the SLURM scripts currently in `src/metatranscriptome/scripts/` for post-processing.
+Once the Nextflow runs are finished (up to full nt BLAST and Diamond), run the SLURM scripts currently in `src/metatranscriptome/scripts/post-processing/` for post-processing.
 
 These should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders:
 
@@ -632,7 +632,7 @@ Virus steps then operate on this BBDuk-filtered non-host set.
 
 ## Pipeline Sequence Summary
 
-The SLURM scripts are currently located in `src/metatranscriptome/scripts/`, and should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders.
+The SLURM scripts are currently located in `src/metatranscriptome/scripts/post-processing/`, and should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders.
 
 ### With Post-Search BBDuk (Used for 75k Release)
 
