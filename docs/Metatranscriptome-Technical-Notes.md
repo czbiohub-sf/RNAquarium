@@ -39,11 +39,41 @@ Part II of the RNAquarium pipeline ("metatranscriptome") consumes **unmapped rea
 
 ### What SLURM Scripts Handle (Post-Nextflow)
 
-- Steps 0a/0b: Taxonomy parsing of BLAST and Diamond outputs
-- Steps 1–4: Contig combining, filtering, and taxonomy tables
-- Steps 2b/1b: BBDuk adapter masking (if using post-search BBDuk workflow)
-- Steps 5A, v5–v10: Virus-specific curation (see **Metatranscriptome_virus-steps-Technical-Notes.md**)
-- Salmon quantification scripts
+| Step | SLURM Script | R Script(s) | Description |
+|------|--------------|-------------|-------------|
+| 0a | `slurm_0a_nt_blast_Rcommands.sh` | `nt_blast/nt_blast_processing.r` | Parse BLASTn outputs with Taxonomizr |
+| 0b | `slurm_0b_nr_diamond_Rcommands.sh` | `nr_diamond/nr_diamond_processing.r` | Parse Diamond outputs with Taxonomizr |
+| 1 | `slurm_1_combinecontigs.sh` | `1_combinecontigs_alluvial_treemap.r` | Combine NT + NR results, LCA calculations |
+| 1b | `slurm_1b_combinecontigs.sh` | `1_combinecontigs_alluvial_treemap_bbdukfilter.r` | Combine with BBDuk filtering; also calls `taxname_to_taxid_*.sh` |
+| 2 | `slurm_2_createfastas.sh` | `3_addsequence.r` | Create FASTAs for each broad group |
+| 2 | `slurm_2_createfastas_separate.sh` | `3_addsequence_separatefastas.r` | Variant: separate FASTAs |
+| 2b | `slurm_2b_bbdukflag.sh` | — | BBDuk adapter masking on contigs |
+| 3 | `slurm_3_combinecontigsandsequence.sh` | `3_addsequence.r` | Add sequences to taxonomy tables |
+| 4 | `slurm_4_counting_anddarkmatter.sh` | `4_alluvial_withdarkmatter.r` | Counting and dark matter analysis |
+| 4b | `slurm_4b_counting_anddarkmatter.sh` | `4b_alluvial_withdarkmatter.r` | Counting and dark matter with BBDuk filter |
+| 4t | `slurm_4t_general_metacoder_trees.sh` | `general_metacoder_trees.r` | General metacoder trees (fungi, etc.) |
+
+Helper scripts called by step 1b:
+- `taxname_to_taxid_nonhost_twoparts.sh` – adds `taxid_lca_NTorNR` for all non-host contigs
+- `taxname_to_taxid_viruses0_twoparts.sh` – adds `taxid_lca_NTorNR` for virus contigs
+
+Virus-specific scripts (see **Metatranscriptome_virus-steps-Technical-Notes.md**):
+
+| Step | SLURM Script | R Script(s) | Description |
+|------|--------------|-------------|-------------|
+| v5A | `slurm_virus_5A_curation.sh` | `virus_curation_plots_addsequenceA.r` | Add realm taxonomy (if needed) |
+| v5 | `slurm_virus_5_curation.sh` | `virus_curation_plots_addsequence.r` | Virus filtering and annotation |
+| v6 | `slurm_virus_6_metacodertrees.sh` | `virus_metacoder_trees.r` | Virus metacoder trees |
+| v7 | `slurm_virus_7_clustering.sh` | `virus_clustering_curation.r` | Virus clustering |
+| v7b | `slurm_virus_7b_clustering_afterbbduktrim.sh` | `virus_clustering_curation.r` | Clustering with BBDuk filter |
+| v8 | `slurm_virus_8_clusteringII.sh` | `virus_clustering_curation.r` | Clustering phase II |
+| v9 | `slurm_virus_9_clustering_creatingfastas.sh` | `virus_clustering2_outputingmanyfastaclusters.r` | Create cluster FASTAs |
+| v10 | `slurm_virus_10_clustering_minimap.sh` | — | Minimap clustering |
+
+Scripts in `nr_diamond/` subfolder:
+- `slurm_diamond_taxid_update_blastdbcmd.sh` – recover missing Diamond taxids
+- `diamond_taxid_update_blastdbcmd.py` – Python script for taxid lookup
+- `diamond_taxid_moveold_andrename.py` – rename updated files
 
 Even with no errors, users should expect to run SLURM scripts sequentially after Nextflow completes.
 
@@ -339,7 +369,7 @@ Example skeleton for one-off BLAST SLURM scripts:
 
 ```bash
 DB_SRC="<SHARED_DB_PATH>/2025/core_nt"
-DB_DEST="//local/scratch/core_nt"
+DB_DEST="/local/scratch/core_nt"
 
 # Only copy if DB doesn't already exist
 if [ ! -d "$DB_DEST/core_nt" ]; then
@@ -350,7 +380,7 @@ else
     echo "Database already exists on local disk."
 fi
 
-# Run BLAST - one too many core_nt! blastn -db "$DB_DEST/core_nt"
+# Run BLAST
 <BLASTN_BIN_PATH>/blastn \
   -db "$DB_DEST/core_nt" \
   -query <NEXTFLOW_WORK_DIR>/chunk_004_nonzfhum.fasta \
@@ -358,9 +388,9 @@ fi
   -num_threads 4 \
   -evalue 0.05 \
   -max_target_seqs 100 \
-  -out //local/scratch/chunk_004_nonzfhum.blast.txt
+  -out /local/scratch/chunk_004_nonzfhum.blast.txt
 
-cp //local/scratch/chunk_004_nonzfhum.blast.txt <NEXTFLOW_WORK_DIR>/chunk_004_nonzfhum.blast.txt
+cp /local/scratch/chunk_004_nonzfhum.blast.txt <NEXTFLOW_WORK_DIR>/chunk_004_nonzfhum.blast.txt
 ```
 
 ### Observed Speed-Up
@@ -372,7 +402,6 @@ cp //local/scratch/chunk_004_nonzfhum.blast.txt <NEXTFLOW_WORK_DIR>/chunk_004_no
 ### Diamond Performance Note
 
 Based on logs, Diamond NR searches did **not** benefit noticeably from moving DBs to `/local/scratch`. We left Diamond jobs running on shared storage.
-
 
 ---
 
@@ -457,13 +486,11 @@ blastdbcmd -db nr_cluster_seq -entry "WP_197412162.1" -outfmt "%a %T %S"
 # WP_197412162.1 1712383 Rheinheimera sp. EpRS3
 ```
 
-Scripts:
+Scripts in `<PUB_DIR>/nr_diamond/`:
 
-- Main updater: `<PUB_DIR>/nr_diamond/diamond_taxid_update_blastdbcmd.py`
-- Renamer/mover: `<PUB_DIR>/nr_diamond/diamond_taxid_moveold_andrename.py`
-- SLURM wrapper: `<PUB_DIR>/nr_diamond/slurm_diamond_taxid_update_blastdbcmd.sh`
-  - Runs `diamond_taxid_update_blastdbcmd.py` to fill taxids.
-  - Moves original raw Diamond outputs to a subfolder and renames the updated files to the original naming scheme.
+- `slurm_diamond_taxid_update_blastdbcmd.sh` – SLURM wrapper
+- `diamond_taxid_update_blastdbcmd.py` – fills missing taxids
+- `diamond_taxid_moveold_andrename.py` – moves originals and renames updated files
 
 ### Guardrail in Step 0b
 
@@ -578,7 +605,7 @@ This text file is then used downstream to filter all joins with contig IDs.
 
 ### Integration into R Scripts (Step 1b)
 
-In the R script that combines nt and nr hits (modified `1_combinecontigs_alluvial_treemap_bbdukfilter.r`):
+In the R script that combines nt and nr hits (`1_combinecontigs_alluvial_treemap_bbdukfilter.r`):
 
 ```r
 # Before BBDuk filter
@@ -605,21 +632,21 @@ Virus steps then operate on this BBDuk-filtered non-host set.
 
 ## Pipeline Sequence Summary
 
-The SLURM scripts are currently located in `/src/metatranscriptome/scripts/`, and should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders.
+The SLURM scripts are currently located in `src/metatranscriptome/scripts/`, and should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders.
 
 ### With Post-Search BBDuk (Used for 75k Release)
 
 1. **Nextflow:** SPAdes → Host-filter BLAST → Full nt BLAST → Diamond nr
 2. **SLURM scripts:** 0a, 0b, 1, 2
 3. **BBDuk filtering:** 2b (creates exclusion list), then 1b (re-combine with filter)
-4. **Downstream:** 3, 4b
+4. **Adding sequence & Optional Dark Matter accounting and Metacoder Trees :** 3, 4b, 4t
 5. **Virus steps:** v5A (if needed), v5, v6, v7b, v8, v9, v10 (see **Metatranscriptome_virus-steps-Technical-Notes.md**)
 6. **Salmon quantification**
 
 ### Without BBDuk (see Future Plans)
 
 1. **Nextflow:** SPAdes → Host-filter BLAST → Full nt BLAST → Diamond nr
-2. **SLURM scripts:** 0a, 0b, 1, 2, 3, optional 4
+2. **SLURM scripts:** 0a, 0b, 1, 2, 3, optional 4, 4t
 3. **Virus steps:** v5A (if needed), v5, v6, v7, v8, v9, v10
 4. **Salmon quantification**
 
