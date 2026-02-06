@@ -23,7 +23,7 @@ Taxonomic classification and viral discovery from non-host reads.
 | Virus Curation | SLURM scripts | Realm taxonomy, clustering, metacoder trees |
 | Quantification | SLURM scripts | Salmon viral contig quantification |
 
-All post-Nextflow scripts are located in `src/metatranscriptome/scripts/`.
+All post-Nextflow scripts are located in `src/metatranscriptome/scripts/post_processing/`.
 
 ## Usage
 
