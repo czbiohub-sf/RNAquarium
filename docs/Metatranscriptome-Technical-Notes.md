@@ -43,8 +43,8 @@ Part II of the RNAquarium pipeline ("metatranscriptome") consumes **unmapped rea
 |------|--------------|-------------|-------------|
 | 0a | `slurm_0a_nt_blast_Rcommands.sh` | `nt_blast/nt_blast_processing.r` | Parse BLASTn outputs with Taxonomizr |
 | 0b | `slurm_0b_nr_diamond_Rcommands.sh` | `nr_diamond/nr_diamond_processing.r` | Parse Diamond outputs with Taxonomizr |
-| 1 | `slurm_1_combinecontigs.sh` | `1_combinecontigs_alluvial_treemap.r` & Rscript 1_combinecontigs_alluvial_treemap_withtaxid.r | Combine NT + NR results, LCA calculations; also calls `taxname_to_taxid_*.sh` scripts then final r commands in second R script |
-| 1b | `slurm_1b_combinecontigs.sh` | `1_combinecontigs_alluvial_treemap_bbdukfilter.r` & Rscript 1_combinecontigs_alluvial_treemap_withtaxid_bbdukfilter.r | Combine NT + NR results, LCA calculations after BBDuk filtering; also calls `taxname_to_taxid_*.sh` scripts then final r commands in second R script |
+| 1 | `slurm_1_combinecontigs.sh` | `1_combinecontigs_alluvial_treemap.r` & `1_combinecontigs_alluvial_treemap_withtaxid.r` | Combine NT + NR results, LCA calculations; also calls `taxname_to_taxid_*.sh` scripts then final r commands in second R script |
+| 1b | `slurm_1b_combinecontigs.sh` | `1_combinecontigs_alluvial_treemap_bbdukfilter.r` & `1_combinecontigs_alluvial_treemap_withtaxid_bbdukfilter.r` | Combine NT + NR results, LCA calculations after BBDuk filtering; also calls `taxname_to_taxid_*.sh` scripts then final r withtaxid commands in second R script |
 | 2 | `slurm_2_createfastas.sh` | — | Create FASTAs for each broad group |
 | 2b | `slurm_2b_bbdukflag.sh` | — | BBDuk adapter masking on contigs |
 | 3 | `slurm_3_combinecontigsandsequence.sh` | `3_addsequence.r` | Add sequences to taxonomy tables |
