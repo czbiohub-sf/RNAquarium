@@ -247,7 +247,7 @@ contig_barplot <- ggplot(used_category_totals11, aes(x = used_NTorNR, y = n, fil
   labs(
     x = "Taxonomic category",
     y = "Count",
-    title = "Contig distribution across taxonomic categories"
+    title = "Distribution of non-host transcripts across taxonomic categories"
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
