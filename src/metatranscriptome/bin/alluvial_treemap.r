@@ -418,10 +418,10 @@ data_heatmap2 <- data_heatmap2 %>% mutate(label = str_replace_all(label, c("Root
 library(treemapify)
 ## 
 # Plotting TreeMap Graph 
-# NTNRcontigs_treemap <- ggplot2::ggplot(data_heatmap2,aes(area=count,fill=taxoncategorysimple_NTorNR,label=label,subgroup=taxoncategorysimple_NTorNR)) + 
+# NTNRtranscripts_treemap <- ggplot2::ggplot(data_heatmap2,aes(area=count,fill=taxoncategorysimple_NTorNR,label=label,subgroup=taxoncategorysimple_NTorNR)) + 
 #   treemapify::geom_treemap(layout="squarified") + 
 #   geom_treemap_text(place = "centre", size = 18, fontface = "italic") + 
-#   labs(title="Treemap of contigs found by NT + NR searches", fill="Taxon")
+#   labs(title="Treemap of transcripts found by NT + NR searches", fill="Taxon")
 
 ## updating to get commas in numbers & italics
 data_heatmap2 <- data_heatmap2 %>%
@@ -434,14 +434,14 @@ data_heatmap2 <- data_heatmap2 %>%
 data_heatmap2$taxoncategorysimple_NTorNR <- factor(data_heatmap2$taxoncategorysimple_NTorNR, levels = alluvialorder11, ordered = TRUE)
 
 
-NTNRcontigs_treemap <- ggplot2::ggplot(data_heatmap2,aes(area=count,fill=taxoncategorysimple_NTorNR,label=formatted_label,subgroup=taxoncategorysimple_NTorNR)) + 
+NTNRtranscripts_treemap <- ggplot2::ggplot(data_heatmap2,aes(area=count,fill=taxoncategorysimple_NTorNR,label=formatted_label,subgroup=taxoncategorysimple_NTorNR)) + 
   treemapify::geom_treemap(layout="squarified") + 
   geom_treemap_text(place = "centre", size = 18, fontface = "italic") + 
   scale_fill_manual(values = lightcl) +
   theme_minimal(base_size = 14) +
-  labs(title="Treemap of contigs found by NT + NR searches by taxonomic category", fill="Taxon")
+  labs(title="Treemap of transcripts found by NT + NR searches by taxonomic category", fill="Taxon")
 
-#NTNRcontigs_treemap
+#NTNRtranscripts_treemap
 
 ### changing heatmaps to match alluvial colors:
 # #cl = c("#00BFC4", "#7CAE00" ,"#F8766D","#C77CFF")
@@ -478,8 +478,8 @@ NTNRcontigs_treemap <- ggplot2::ggplot(data_heatmap2,aes(area=count,fill=taxonca
 
 
 ### moving saving of plots and table to very end
-# ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".png", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
-# ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".pdf", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
+# ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".png", sep=""), NTNRtranscripts_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
+# ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".pdf", sep=""), NTNRtranscripts_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
 
 
 ####################################################################################
@@ -680,8 +680,8 @@ write.table(allchunks_diamondnr_andblastntclustered_q, file = paste0("taxonomy_h
 #ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all_",Sys.Date(),".png", sep=""), alluvial_plotall, width = 18, height = 9, units = "in", limitsize = FALSE)
 #ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all_",Sys.Date(),".pdf", sep=""), alluvial_plotall, width = 18, height = 9, units = "in", limitsize = FALSE)
 #write.table(data_alluviala, file = paste0("taxonomy_hits_nonhost_alluvialplot_counts_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-#ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".png", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
-#ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".pdf", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
+#ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".png", sep=""), NTNRtranscripts_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
+#ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".pdf", sep=""), NTNRtranscripts_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
 #write.table(data_heatmap, file = paste0("taxonomy_hits_nonhost_treemap_counts_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
 
 ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all.png", sep=""), alluvial_plotall, width = 18, height = 9, units = "in", limitsize = FALSE)
@@ -689,7 +689,7 @@ ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all.pdf", sep=""), a
 
 write.table(data_alluviala, file = paste0("taxonomy_hits_nonhost_alluvialplot_counts.tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
 
-ggsave(filename = paste("taxonomy_hits_nonhost_treemap.png", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
-ggsave(filename = paste("taxonomy_hits_nonhost_treemap.pdf", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
+ggsave(filename = paste("taxonomy_hits_nonhost_treemap.png", sep=""), NTNRtranscripts_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
+ggsave(filename = paste("taxonomy_hits_nonhost_treemap.pdf", sep=""), NTNRtranscripts_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
 
 write.table(data_heatmap, file = paste0("taxonomy_hits_nonhost_treemap_counts.tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
