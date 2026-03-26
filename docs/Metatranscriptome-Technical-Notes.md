@@ -28,7 +28,7 @@ Part II of the RNAquarium pipeline ("metatranscriptome") consumes **unmapped rea
 
 ## Pipeline Architecture: Nextflow vs SLURM Scripts
 
-**Important:** The Nextflow pipeline only covers the initial phases of the metatranscriptome workflow. All downstream processing is handled by standalone SLURM/R scripts located in `src/metatranscriptome/scripts/post-processing/`. These should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders.
+**Important:** The Nextflow pipeline only covers the initial phases of the metatranscriptome workflow, due to the intense computational requirements of the full BLAST and Diamond steps (also see https://github.com/czbiohub-sf/RNAquarium/blob/sept2025-75k-version/docs/Metatranscriptome-Technical-Notes.md#critical-configuration-changes-required-for-75k-run). All downstream processing is handled by standalone SLURM/R scripts located in `src/metatranscriptome/scripts/post-processing/`. These should be moved into your working output folder (the PUB_DIR in run_xxx.sh file), with a subset inside output subfolders.
 
 ### What Nextflow Handles
 
