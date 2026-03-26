@@ -25,11 +25,6 @@ setwd(outpath)
 
 
 ## here would be a good place to run blastdbdmd command in slurm script then pick back up and run last parts as _lastbit.R script?
-#allchunks_diamondnr_andblastntclustered <- read_tsv("taxonomy_hits_nonhost_mostrecent.tsv.gz")
-
-#gzip -k taxonomy_hits_viruses0_fullcols_mostrecent.tsv
-## then rename OG to _without_taxids and _with_taxids back to regular name
-## then reload nonhost
 
 allchunks_diamondnr_andblastntclustered <- read_tsv("taxonomy_hits_nonhost_mostrecent.tsv.gz")
 
@@ -72,7 +67,6 @@ write.table(allchunks_diamondnr_andblastntclustered_platyhelminthes, file = past
 
 
 ## save lists for fasta pulling
-#allchunks_diamondnr_andblastntclustered_viruses0 <- allchunks_diamondnr_andblastntclustered %>% dplyr::filter(taxoncategorysimple_NTorNR == "Viruses")
 allchunks_diamondnr_andblastntclustered_viruses_q <- allchunks_diamondnr_andblastntclustered_viruses %>% select(query)
 allchunks_diamondnr_andblastntclustered_bacteria_q <- allchunks_diamondnr_andblastntclustered_bacteria %>% select(query)
 allchunks_diamondnr_andblastntclustered_arthropoda_q <- allchunks_diamondnr_andblastntclustered_arthropoda %>% select(query)
@@ -107,7 +101,6 @@ allchunks_diamondnr_andblastntclustered_q <- allchunks_diamondnr_andblastntclust
 write.table(allchunks_diamondnr_andblastntclustered_q, file = paste0("taxonomy_hits_nonhost_list.txt"), sep = "\t", row.names = FALSE, quote = FALSE)
 
 ## full list but without chordates
-#allchunks_diamondnr_andblastntclustered <- read_tsv("taxonomy_hits_nonhost_mostrecent.tsv.gz")
 
 allchunks_diamondnr_andblastntclustered_allbutchordates <- allchunks_diamondnr_andblastntclustered %>% dplyr::filter(taxoncategorysimple_NTorNR != "Chordata")
 
@@ -118,26 +111,3 @@ write.table(allchunks_diamondnr_andblastntclustered_allbutchordates_q, file = pa
 
 
 # ## seqtk commands will be in a separate script
-
-# ####################################################################################
-# ###### all curated virus code separated, will remove for pipeline
-# ####################################################################################
-
-
-# #######################################################################################
-# #### outputing plots and table last
-
-# ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all_",Sys.Date(),".png", sep=""), alluvial_plotall, width = 18, height = 9, units = "in", limitsize = FALSE)
-# #ggsave(filename = paste("allchunks_alluvialplot_all0_",Sys.Date(),".png", sep=""), alluvial_plotall, width = 5.6, height = 3.4, units = "in", limitsize = FALSE)
-# ggsave(filename = paste("taxonomy_hits_nonhost_alluvialplot_all_",Sys.Date(),".pdf", sep=""), alluvial_plotall, width = 18, height = 9, units = "in", limitsize = FALSE)
-
-# write.table(data_alluviala, file = paste0("taxonomy_hits_nonhost_alluvialplot_counts_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-
-# ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".png", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
-# ggsave(filename = paste("taxonomy_hits_nonhost_treemap_",Sys.Date(),".pdf", sep=""), NTNRcontigs_treemap, width = 18, height = 9, units = "in", limitsize = FALSE)
-
-# ggsave(filename = paste("taxonomy_hits_nonhost_treemap14categories_",Sys.Date(),".png", sep=""), NTNRcontigs_treemap14, width = 18, height = 9, units = "in", limitsize = FALSE)
-# ggsave(filename = paste("taxonomy_hits_nonhost_treemap14categories_",Sys.Date(),".pdf", sep=""), NTNRcontigs_treemap14, width = 18, height = 9, units = "in", limitsize = FALSE)
-
-
-# write.table(data_heatmap, file = paste0("taxonomy_hits_nonhost_treemap_counts_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
