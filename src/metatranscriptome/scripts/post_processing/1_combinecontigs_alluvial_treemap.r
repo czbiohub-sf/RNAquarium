@@ -55,19 +55,21 @@ if (length(blastoutputsNTcomplete) == 1 & length(blastoutputsNRcomplete) == 1) {
   write_tsv(thresholded_hit_nofishnomammalsNR, file = paste0("allchunks_diamond_hits_nonhost_",Sys.Date(),".tsv.gz"))
 }
 
+
 ########### ADD FULL JOIN TO ALL NOFISHNOMAMMALS, NOT JUST VIRUSES
-allchunks_diamondnr_andblastntclustered0 <- full_join(thresholded_hit_nofishnomammalsNT,thresholded_hit_nofishnomammalsNR)
-
-
-### SEPT 2025 - ADDING BBDUK FILTER
-toremove <- read_tsv("taxonomy_hits_nonhost_sequences_to_exclude.txt", col_names = FALSE)
-toremove <- toremove %>% rename("query" = "X1")
-allchunks_diamondnr_andblastntclustered <- anti_join(allchunks_diamondnr_andblastntclustered0,toremove)
+allchunks_diamondnr_andblastntclustered <- full_join(thresholded_hit_nofishnomammalsNT,thresholded_hit_nofishnomammalsNR)
 
 
 ## first rename!!
 allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntclustered %>% rename(taxoncategory_NR = taxoncategory2_NR)
 allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntclustered %>% rename(taxoncategory_NTclustered = taxoncategory2_NTclustered)
+
+
+
+
+
+
+
 
 
 
@@ -105,8 +107,7 @@ allchunks_diamondnr_andblastntclustered$taxoncategorysimple_NR <- ifelse((grepl(
 
 
 
-
-### adding analysis_used, then finally update lowcoverageflag depending on this
+## adding analysis_used, then finally update lowcoverageflag depending on this
 allchunks_diamondnr_andblastntclustered <-  allchunks_diamondnr_andblastntclustered %>%
   mutate(
     analysis_used = case_when(
@@ -133,14 +134,13 @@ allchunks_diamondnr_andblastntclustered <-  allchunks_diamondnr_andblastntcluste
 
 allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntclustered %>% relocate(lowcoverage_flag, .before = target_NTclustered)
 
+
 ## MOVE ALL NTORNR FIELDS HERE SO THEY ARE SAVED FOR NEW TAXID_NTORNR SCRIPT
 ## ALSO FIX MISSPELLING
 allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntclustered %>%
   mutate(across(where(is.character), ~ str_replace_all(.x, "Japanease", "Japanese")))
 allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntclustered %>%
   mutate(across(where(is.character), ~ str_replace_all(.x, "Helianthus annus", "Helianthus annuus")))
-
-
 
 ## MOVE ALL NTORNR FIELDS HERE SO THEY ARE SAVED FOR NEW TAXID_NTORNR SCRIPT
 allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntclustered %>%
@@ -263,7 +263,7 @@ allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntcluster
 # get mismatches...
 allchunks_diamondnr_andblastntclustered_NRbetter <- allchunks_diamondnr_andblastntclustered %>% filter(bits_NR >= bits_NTclustered)
 allchunks_diamondnr_andblastntclustered_taxonmismatch <- allchunks_diamondnr_andblastntclustered %>% filter(taxoncategorysimple_NR != taxoncategorysimple_NTclustered)
-
+## then save - NOTE BEFORE REMOVING COLUMNS WE ARE SAVING ONLY THESE 3
 ## saving full file at at end!!
 write_tsv(allchunks_diamondnr_andblastntclustered, file = paste0("taxonomy_hits_nonhost_fullcols_mostrecent.tsv.gz"))
 
@@ -417,6 +417,7 @@ data_heatmap <- allchunks_diamondnr_andblastntclustered_lists %>%
 data_heatmap <- data_heatmap %>% arrange(desc(count))
 data_heatmap2 <- data_heatmap %>% arrange(desc(count)) %>% slice_head(n = 11)
 
+
 ## new column combining text & numbers, also rewording unite & str_
 data_heatmap2 <- data_heatmap2 %>% unite(label, taxoncategorysimple_NTorNR, count, sep = "\n", remove = FALSE)
 data_heatmap2 <- data_heatmap2 %>% mutate(label = str_replace_all(label, c("other_Eukaryota" = "other Eukaryota")))
@@ -441,6 +442,7 @@ NTNRcontigs_treemap <- ggplot2::ggplot(data_heatmap2,aes(area=count,fill=taxonca
   theme_minimal(base_size = 14) +
   labs(title="Treemap of contigs found by NT + NR searches by taxonomic category", fill="Taxon")
 
+
 ## full 14 version
 data_heatmap14 <- data_heatmap %>% arrange(desc(count))
 
@@ -464,6 +466,7 @@ NTNRcontigs_treemap14 <- ggplot2::ggplot(data_heatmap14,aes(area=count,fill=taxo
   scale_fill_manual(values = lightcl14) +
   theme_minimal(base_size = 14) +
   labs(title="Treemap of contigs found by NT + NR searches by taxonomic category", fill="Taxon")
+
 
 ####################################################################################
 ####################################################################################
