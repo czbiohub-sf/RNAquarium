@@ -35,16 +35,10 @@ allchunks_diamondnr_andblastntclustered_interesting <- read_tsv("taxonomy_hits_v
 
 
 ## subset to remove phage, then sort by evalue to limit Metacoder tree to 400 unique taxon names...
-# comparisons_viruses <- comparisons_viruses %>% dplyr::filter(!grepl('phage|Phage', taxname_lca))
-# comparisons_viruses <- comparisons_viruses %>% dplyr::filter(!grepl('Caudoviricetes', tax_class))
-
 allchunks_diamondnr_andblastntclustered_interesting <- allchunks_diamondnr_andblastntclustered_interesting %>% dplyr::filter(viruscategorysimple_NTorNR != "Phage")
 
 
 ## note we are already pulling max bitscore, so this is okay to use instead of e-value cutoff!
-#allchunks_diamondnr_andblastntclustered_interesting <- allchunks_diamondnr_andblastntclustered_interesting %>% arrange(desc(evalue_NTorNR))
-
-
 
 thresholded_hit_virusesabundanttop400 <- allchunks_diamondnr_andblastntclustered_interesting %>% group_by(taxname_lca_NTorNR) %>% summarize(maxrelabundance = max(bits_NTorNR))
 
@@ -85,52 +79,9 @@ unique(thresholded_hit_virusesabundantfewcols$taxname_lca_NTorNR)
 
 ## now actual Metacoder code...
 
-#obj_viraltopabundance3 <- lookup_tax_data(thresholded_hit_virusesabundantfewcols, type = "taxon_name", column = "taxname_lca_NTorNR", ask = FALSE)
-## getting Error: Bad Request (HTTP 400)
-# Error in curl::curl_fetch_memory(x$url$url, handle = x$url$handle) : 
-#   Timeout was reached: [eutils.ncbi.nlm.nih.gov] Connection timed out after 10001 milliseconds
-
 ## put this into a try loop per https://forum.posit.co/t/trycatch-with-loop/86749/3
 library(taxize)
 
-# # Set up a retry mechanism
-# max_retries <- 5  # Maximum number of retries
-# retry_count <- 0  # Initialize retry counter
-# success <- FALSE  # Flag to indicate success
-# 
-# while (!success && retry_count < max_retries) {
-#   tryCatch(
-#     {
-#       retry_count <- retry_count + 1  # Increment retry count before the attempt
-#       message(paste("Attempt", retry_count, "of", max_retries, "..."))
-#       
-#       # Attempt to run the command
-#       obj_viraltopabundance3 <- lookup_tax_data(
-#         thresholded_hit_virusesabundantfewcols,
-#         type = "taxon_name",
-#         column = "taxname_lca_NTorNR",
-#         ask = FALSE
-#       )
-#       
-#       # If successful
-#       success <- TRUE
-#       message("lookup_tax_data executed successfully.")
-#     },
-#     error = function(e) {
-#       # Handle errors
-#       message(paste("Attempt", retry_count, "failed."))
-#       
-#       # Check if retries remain
-#       if (retry_count < max_retries) {
-#         message("Retrying in 5 seconds...")
-#         Sys.sleep(5)  # Wait before retrying
-#       } else {
-#         message("Maximum retries reached. Exiting...")
-#         stop("An unexpected error occurred: ", conditionMessage(e))
-#       }
-#     }
-#   )
-# }
 
 ##########################################
 ### 3 sets of tries
@@ -204,7 +155,6 @@ save(obj_viraltopabundance3o, file = "obj_taxonomy_hits_viruses_nophage.Rdata")
 obj_viraltopabundance3$data <- calc_taxon_abund(obj_viraltopabundance3, "query_data")
 save(obj_viraltopabundance3, file = "obj_taxonomy_hits_viruses_withlengthandbitscore.Rdata")
 
-#metatree <- heat_tree(obj_virusestest21, node_label = taxon_names, node_size = n_obs, node_color = n_obs)
 
 ## instead of abundance, both by bitscore & by length
 set.seed(11) # This makes the plot appear the same each time it is run 
@@ -277,4 +227,3 @@ metatree323 <- heat_tree(obj_viraltopabundance3,
                          initial_layout = "reingold-tilford") # The layout algorithm that initializes node locations
 ggsave(filename = paste("taxonomy_hits_viruses_nophage_metacodertree_contiglength_",Sys.Date(),".png", sep=""), metatree323, width = 44, height = 34, units = "in", limitsize = FALSE)
 ggsave(filename = paste("taxonomy_hits_viruses_nophage_metacodertree_contiglength_",Sys.Date(),".pdf", sep=""), metatree323, width = 44, height = 34, units = "in", limitsize = FALSE)
-
