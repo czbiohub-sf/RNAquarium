@@ -26,8 +26,6 @@ setwd(outpath)
 ### read in all files first, then set output path to virus subfolder...
 allchunks_diamondnr_andblastntclustered <- read_tsv("taxonomy_hits_viruses0_fullcols_mostrecent.tsv")
 
-#fasta_viruses <- read.fasta("taxonomy_hits_viruses_list.fasta")
-
 ## add another if else to check for nonhost_masked.fasta
 # Check if masked file exists and load appropriate fasta
 if (file.exists("taxonomy_hits_nonhost_list_masked.fasta")) {
@@ -45,9 +43,6 @@ dir.create(file.path(outpath,"virus_outputs"))
 outpathvirus <- str_c(outpath, "/virus_outputs")
 setwd(outpathvirus)
 
-
-# allchunks_diamondnr_andblastntclustered500 <- allchunks_diamondnr_andblastntclustered %>%
-#   slice_sample(n = 500)
 
 ### AS PART OF VIRUS TAXONOMY - NEED TO FIND TAX_REALM AND REPLACE TAX_CLADE WHICH IS ALL NA FOR VIRUSES...
 
@@ -85,9 +80,9 @@ taxonomy_lookup_NTclustered <- map_dfr(unique_taxids_NTclustered, function(taxid
     return(tax_df)
   } else {
     return(data.frame(taxid_NTclustered = taxid, 
-                     `acellular root` = NA, 
-                     realm = NA, 
-                     check.names = FALSE))
+                      `acellular root` = NA, 
+                      realm = NA, 
+                      check.names = FALSE))
   }
 }) %>%
   select(taxid_NTclustered, realm) %>%
@@ -107,9 +102,9 @@ taxonomy_lookup_NR <- map_dfr(unique_taxids_NR, function(taxid) {
     return(tax_df)
   } else {
     return(data.frame(taxid_NR = taxid, 
-                     `acellular root` = NA, 
-                     realm = NA, 
-                     check.names = FALSE))
+                      `acellular root` = NA, 
+                      realm = NA, 
+                      check.names = FALSE))
   }
 }) %>%
   select(taxid_NR, realm) %>%
@@ -148,33 +143,5 @@ allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntcluster
 ## relocate after tax_superkingdom_NTorNR
 allchunks_diamondnr_andblastntclustered <- allchunks_diamondnr_andblastntclustered %>% relocate(tax_clade_NTorNR, .after = tax_superkingdom_NTorNR)
 
-# # Optional: Check the results
-# cat("\nSummary of tax_clade_NTclustered after update:\n")
-# allchunks_diamondnr_andblastntclustered %>%
-#   count(tax_clade_NTclustered, sort = TRUE) %>%
-#   head(10) %>%
-#   print()
-
-# cat("\nSummary of tax_clade_NR after update:\n")
-# allchunks_diamondnr_andblastntclustered %>%
-#   count(tax_clade_NR, sort = TRUE) %>%
-#   head(10) %>%
-#   print()
-
-# cat("\nNumber of rows where realm values were used:\n")
-# cat("NTclustered:", 
-#     allchunks_diamondnr_andblastntclustered %>%
-#       filter(!is.na(tax_realm_NTclustered) & tax_clade_NTclustered == tax_realm_NTclustered) %>%
-#       nrow(), "\n")
-# cat("NR:", 
-#     allchunks_diamondnr_andblastntclustered %>%
-#       filter(!is.na(tax_realm_NR) & tax_clade_NR == tax_realm_NR) %>%
-#       nrow(), "\n")
-# write.table(allchunks_diamondnr_andblastntclustered, file = paste0("taxonomy_hits_test00_",Sys.Date(),".tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-#
-
-
 ## then save only files before removing columns here, then rest at end
-
 write.table(allchunks_diamondnr_andblastntclustered, file = paste0("taxonomy_hits_viruses0_fullcols_mostrecent2.tsv"), sep = "\t", row.names = FALSE, quote = FALSE)
-
