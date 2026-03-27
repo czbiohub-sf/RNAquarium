@@ -47,7 +47,6 @@ outpathvirus <- str_c(outpath, "/virus_outputs")
 setwd(outpathvirus)
 
 ## for clustering, we want to create new cluster directories for final steps
-#clusters_dir_name <- paste0("clusters_", format(Sys.Date(), "%m%d%y"))
 clusters_dir_name <- paste0("clusters_forminimap")
 dir.create(clusters_dir_name)
 outpath2 <- str_c(outpathvirus, "/clusters_forminimap")
@@ -58,43 +57,16 @@ dir.create(phage_dir_name)
 outpath2phage <- str_c(outpathvirus, "/clusters_forminimap_phage")
 
 ####################################
-## after mmseqs2 easy-cluster R commands to curate the results
-
-
-# clusters_viruses_fasta <- read_tsv("taxonomy_hits_viruses_withsequenceandclusters_mostrecent.tsv")
-# 
-# clusters_viruses_fasta <- clusters_viruses_fasta %>% select(contig_withLCA_withcluster,seq.text,shortclustername,clustersize)
-# clusters_viruses_fasta <- clusters_viruses_fasta %>% rename(read = contig_withLCA_withcluster) %>% rename(cluster = shortclustername) %>% rename(n = clustersize)
-# 
-# clusters_viruses_fasta_smaller <- clusters_viruses_fasta %>% dplyr::filter(n > 9)
-# 
-# clusters_viruses_fasta_smaller2 <- clusters_viruses_fasta %>% dplyr::filter(n < 10)
-# clusters_viruses_fasta_smaller2 <- clusters_viruses_fasta_smaller2 %>% dplyr::filter(n > 1)
-# 
-# clusters_viruses_fasta_singletons <- clusters_viruses_fasta %>% dplyr::filter(n == 1)
-# 
-# 
-# ### some summaries then save for combining with allchunks_blastnanddiamond_hits_viruses_withsequence_mostrecent.tsv
-# n_distinct(clusters_viruses_fasta_smaller$cluster)
-# n_distinct(clusters_viruses_fasta_smaller2$cluster)
-# n_distinct(clusters_viruses_fasta_singletons$cluster)
-
-## new split - for all non-singletons, divide into phage & non-phage, save phage in subfolder!
 
 clusters_viruses_fasta <- read_tsv("taxonomy_hits_viruses_withsequenceandclusters_mostrecent.tsv")
 
 clusters_viruses_fasta <- clusters_viruses_fasta %>% select(contig_withLCA_withcluster,seq.text,shortclustername,clustersize,viruscategorysimple_NTorNR,cluster,clusterLCA)
 clusters_viruses_fasta <- clusters_viruses_fasta %>% rename(cluster0 = cluster)
-#clusters_viruses_fasta <- clusters_viruses_fasta %>% select(contig_withLCA_withcluster,seq.text,shortclustername,clustersize,viruscategorysimple_NTorNR)
 clusters_viruses_fasta <- clusters_viruses_fasta %>% rename(read = contig_withLCA_withcluster) %>% rename(cluster = shortclustername) %>% rename(n = clustersize)
 
 clusters_viruses_fasta_singletons <- clusters_viruses_fasta %>% dplyr::filter(n == 1)
 clusters_viruses_fasta <- clusters_viruses_fasta %>% dplyr::filter(n > 1)
 
-## smaller to non-phage
-## smaller2 to phage
-# clusters_viruses_fasta_smaller2 <- clusters_viruses_fasta %>% dplyr::filter(viruscategorysimple_NTorNR != "Non-phage")
-# clusters_viruses_fasta_smaller <- clusters_viruses_fasta %>% dplyr::filter(viruscategorysimple_NTorNR == "Non-phage")
 
 # instead of splitting this way, going back to earlier steps to classify these into "Phage" - but we need to include because this script starts with full set, and last greps are not in categorysimple
 df_split <- clusters_viruses_fasta %>%
@@ -123,18 +95,8 @@ n_distinct(clusters_viruses_fasta_singletons$cluster)
 
 ### BELOW ARE SUBSETTING FOR CREATING MANY FASTAS, ONE PER CLUSTER
 ## AT THIS POINT USE NEW OUTPUT FOLDER TO SAVE ALL OF THESE...
-#setwd(clusters_dir_name)
 setwd(outpath2)
 
-## for first batch use new folder - save all in a single folder, makes next minimap2 step easier
-## see better solution above
-#outpath1 <- str_c(workingpath, "/RNAquarium_outputs/virusclusters")
-#setwd(outpath1)
-
-
-# clusters_viruses_smaller <- inner_join(clusters_viruses, clusters_viruses_tally)
-# ## now rename & another inner join
-# clusters_viruses_fasta_smaller <- inner_join(clusters_viruses_fasta,clusters_viruses_smaller)
 
 ## also remove wonky characters (, ), \ replace all with dashes - no to underscores!
 ## from both cluster & read gsub
@@ -151,7 +113,6 @@ clusters_viruses_fasta_smaller$read <- gsub("/", "_", clusters_viruses_fasta_sma
 clusters_viruses_fasta_smaller <- clusters_viruses_fasta_smaller %>% mutate(read = substr(read, 1, 240))
 clusters_viruses_fasta_smaller <- clusters_viruses_fasta_smaller %>% mutate(cluster = substr(cluster, 1, 240))
 ## now after trimming long names, remove trailing _ or trailing |NA. grepl("pattern$", taxname_lca_NTorNR):
-#clusters_viruses_fasta_smaller$read <- gsub('\\|NA$','',clusters_viruses_fasta_smaller$read)
 clusters_viruses_fasta_smaller$read <- gsub('NA$','',clusters_viruses_fasta_smaller$read)
 clusters_viruses_fasta_smaller$cluster <- gsub('NA$','',clusters_viruses_fasta_smaller$cluster)
 clusters_viruses_fasta_smaller$read <- gsub('_$','',clusters_viruses_fasta_smaller$read)
@@ -163,17 +124,13 @@ clusters_viruses_fasta_smaller$length <- nchar(clusters_viruses_fasta_smaller$se
 clusters_viruses_fasta_smaller <- clusters_viruses_fasta_smaller %>% arrange(desc(n),cluster,desc(length)) %>% group_by(cluster)
 clusters_viruses_fasta_smaller$name_length <- nchar(clusters_viruses_fasta_smaller$read)
 clusters_viruses_fasta_smaller$cluster_length <- nchar(clusters_viruses_fasta_smaller$cluster)
-# clusters_viruses_fasta_smaller <- clusters_viruses_fasta_smaller %>% dplyr::filter(name_length >= 240)
-# clusters_viruses_fasta_smaller <- clusters_viruses_fasta_smaller %>% dplyr::filter(n >= 2500)
 
 
 ## we want to make cluster a factor, descending by n then name
 clusterorder <- clusters_viruses_fasta_smaller %>% arrange(desc(n),cluster,desc(length))
 clusterorder2 <- unique(clusterorder$cluster)
-#clusterorder <- clusterorder[["cluster"]]
 
 clusters_viruses_fasta_smaller$cluster <- factor(clusters_viruses_fasta_smaller$cluster, levels = clusterorder2, ordered = TRUE)
-#clusters_viruses_fasta_smaller %>% group_by(cluster) %>% slice_head(n = 1) %>% select(cluster,n,length)
 
 ## will have to shorten very long names
 
@@ -185,12 +142,6 @@ clusters_viruses_fasta_smaller %>%
 
 
 ######### REPEAT FOR 2-9 clusters
-
-# 
-# clusters_viruses_smaller2 <- inner_join(clusters_viruses, clusters_viruses_tally2)
-# ## now rename & another inner join
-# clusters_viruses_fasta_smaller2 <- inner_join(clusters_viruses_fasta,clusters_viruses_smaller2)
-
 ## also remove wonky characters (, ), \ replace all with dashes - no to underscores!
 ## from both cluster & read gsub
 clusters_viruses_fasta_smaller2$cluster <- gsub("\\(", "_", clusters_viruses_fasta_smaller2$cluster)
@@ -206,7 +157,6 @@ clusters_viruses_fasta_smaller2$read <- gsub("/", "_", clusters_viruses_fasta_sm
 clusters_viruses_fasta_smaller2 <- clusters_viruses_fasta_smaller2 %>% mutate(read = substr(read, 1, 240))
 clusters_viruses_fasta_smaller2 <- clusters_viruses_fasta_smaller2 %>% mutate(cluster = substr(cluster, 1, 240))
 ## now after trimming long names, remove trailing _ or trailing |NA. grepl("pattern$", taxname_lca_NTorNR):
-#clusters_viruses_fasta_smaller2$read <- gsub('\\|NA$','',clusters_viruses_fasta_smaller2$read)
 clusters_viruses_fasta_smaller2$read <- gsub('NA$','',clusters_viruses_fasta_smaller2$read)
 clusters_viruses_fasta_smaller2$cluster <- gsub('NA$','',clusters_viruses_fasta_smaller2$cluster)
 clusters_viruses_fasta_smaller2$read <- gsub('_$','',clusters_viruses_fasta_smaller2$read)
@@ -222,7 +172,6 @@ clusters_viruses_fasta_smaller2$cluster_length <- nchar(clusters_viruses_fasta_s
 ## we want to make cluster a factor, descending by n then name
 clusterorder <- clusters_viruses_fasta_smaller2 %>% arrange(desc(n),cluster,desc(length))
 clusterorder2 <- unique(clusterorder$cluster)
-#clusterorder <- clusterorder[["cluster"]]
 
 clusters_viruses_fasta_smaller2$cluster <- factor(clusters_viruses_fasta_smaller2$cluster, levels = clusterorder2, ordered = TRUE)
 
@@ -238,9 +187,6 @@ clusters_viruses_fasta_smaller2 %>%
 
 
 ## finally repeat for singletons
-# clusters_viruses_singletons <- inner_join(clusters_viruses, clusters_viruses_singletons)
-# ## now rename & another inner join
-# clusters_viruses_fasta_singletons <- inner_join(clusters_viruses_fasta,clusters_viruses_singletons)
 
 ## also remove wonky characters (, ), \ replace all with dashes - no to underscores!
 ## from both cluster & read gsub
@@ -256,15 +202,9 @@ clusters_viruses_fasta_singletons$read <- gsub("/", "_", clusters_viruses_fasta_
 
 
 
-## first remove the targets from list of singletons... - filter to only include _NODE  %>% dplyr::filter(grepl('_NODE', read)) OR S_NODE
-#clusters_viruses_fasta_singletons <- clusters_viruses_fasta_singletons %>% dplyr::filter(grepl('_NODE_', read))
-
 ## just save as a large fasta...
 ## for the one singleton fasta - change working directory:
 setwd(outpathvirus)
-#writetoFastafaster(clusters_viruses_fasta_singletons,"RNaquarium_allchunks_blastnanddiamond_hits_viruses_interestinglist_withsequence2024-08-27_dedupedrenamed_singletons.fasta")
 writetoFastafaster(clusters_viruses_fasta_singletons, paste0("taxonomy_hits_viruses_clustered_singletons_",Sys.Date(),".fasta"))
 
-## then finally minimap2 will be yet separate...
-#module load minimap2/2.26
-
+## then finally minimap2 step will be yet separate...
