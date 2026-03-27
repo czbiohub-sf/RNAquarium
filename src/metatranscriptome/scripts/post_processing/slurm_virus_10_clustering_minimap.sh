@@ -25,24 +25,22 @@ module load minimap2/2.26
 ### then loops to pull first sequence & run minimap
 ## start in usual folder
 
-#mv ./RNAquarium_outputs/virus_outputs/clusters_forminimap/taxonomy_hits_viruses_clustered_singletons* ./RNAquarium_outputs/virus_outputs
-
 
 for file in ./RNAquarium_outputs/virus_outputs/clusters_forminimap/*.fasta; do
-    base_name=$(basename "$file" .fasta)
-    output_dir="./RNAquarium_outputs/virus_outputs/clusters_forminimap"  # Using the same base path dynamically
-    mkdir -p "$output_dir"  # Ensure the output directory exists
-    head -n 2 "$file" > "$output_dir/${base_name}.fa"
+base_name=$(basename "$file" .fasta)
+output_dir="./RNAquarium_outputs/virus_outputs/clusters_forminimap"  # Using the same base path dynamically
+mkdir -p "$output_dir"  # Ensure the output directory exists
+head -n 2 "$file" > "$output_dir/${base_name}.fa"
 done
 
 
 ## now minimap2 command for each
 
 for file in ./RNAquarium_outputs/virus_outputs/clusters_forminimap/*.fasta; do
-    base_name=$(basename "$file" .fasta)
-    output_dir="./RNAquarium_outputs/virus_outputs/clusters_forminimap"  # Using the same base path dynamically
-    mkdir -p "$output_dir"  # Ensure the output directory exists
-    minimap2 -ax map-ont "$output_dir/${base_name}.fa" "$file" > "$output_dir/${base_name}.sam"
+base_name=$(basename "$file" .fasta)
+output_dir="./RNAquarium_outputs/virus_outputs/clusters_forminimap"  # Using the same base path dynamically
+mkdir -p "$output_dir"  # Ensure the output directory exists
+minimap2 -ax map-ont "$output_dir/${base_name}.fa" "$file" > "$output_dir/${base_name}.sam"
 done
 
 
@@ -51,22 +49,24 @@ done
 ## need to repeat for phage subfolder
 
 for file in ./RNAquarium_outputs/virus_outputs/clusters_forminimap_phage/*.fasta; do
-    base_name=$(basename "$file" .fasta)
-    output_dir="./RNAquarium_outputs/virus_outputs/clusters_forminimap_phage"  # Using the same base path dynamically
-    mkdir -p "$output_dir"  # Ensure the output directory exists
-    head -n 2 "$file" > "$output_dir/${base_name}.fa"
+base_name=$(basename "$file" .fasta)
+output_dir="./RNAquarium_outputs/virus_outputs/clusters_forminimap_phage"  # Using the same base path dynamically
+mkdir -p "$output_dir"  # Ensure the output directory exists
+head -n 2 "$file" > "$output_dir/${base_name}.fa"
 done
 
 
 ## now minimap2 command for each
 
 for file in ./RNAquarium_outputs/virus_outputs/clusters_forminimap_phage/*.fasta; do
-    base_name=$(basename "$file" .fasta)
-    output_dir="./RNAquarium_outputs/virus_outputs/clusters_forminimap_phage"  # Using the same base path dynamically
-    mkdir -p "$output_dir"  # Ensure the output directory exists
-    minimap2 -ax map-ont "$output_dir/${base_name}.fa" "$file" > "$output_dir/${base_name}.sam"
+base_name=$(basename "$file" .fasta)
+output_dir="./RNAquarium_outputs/virus_outputs/clusters_forminimap_phage"  # Using the same base path dynamically
+mkdir -p "$output_dir"  # Ensure the output directory exists
+minimap2 -ax map-ont "$output_dir/${base_name}.fa" "$file" > "$output_dir/${base_name}.sam"
 done
 
+
+## BELOW ARE BESPOKE COMMANDS FOR MOVING VIRUS SUBSETS INTO SUBFOLDERS...
 
 ## moving some clusters into a phage subset folder - now done in step 8
 #cd RNAquarium_outputs/virus_outputs/clusters_forminimap
@@ -96,7 +96,7 @@ done
 ## new tack - use sets from poster code
 ## then also separately make a SARS subfolder & also any Picorna subfolder
 
-                                    
+
 # mkdir clusters_forminimap_fishassoc
 # cd clusters_forminimap
 
@@ -146,11 +146,10 @@ done
 
 # cd ..
 # mkdir clusters_forminimap_sarscov2
-  
+
 # cd clusters_forminimap
 
 # mv *respiratory* ../clusters_forminimap_sarscov2/
-
 
 # mkdir clusters_forminimap_picornas
 # cd clusters_forminimap
@@ -207,34 +206,4 @@ done
 # mv *n* ../clusters_forminimap_moren/
 
 
-# scp -r eric.waltari@login01.czbiohub.org://hpc/projects/balla_group/sra_experiments/versioned_zf_output/75k_unstable/metatranscriptome_all/RNAquarium_outputs/virus_outputs/clusters_forminimap_fishassoc clusters_oct2025_fishassoc
-# #downloaded
-# #moved
-
-# scp -r eric.waltari@login01.czbiohub.org://hpc/projects/balla_group/sra_experiments/versioned_zf_output/75k_unstable/metatranscriptome_all/RNAquarium_outputs/virus_outputs/clusters_forminimap_more clusters_oct2025_more
-# #downloaded
-# #moved
-
-# scp -r eric.waltari@login01.czbiohub.org://hpc/projects/balla_group/sra_experiments/versioned_zf_output/75k_unstable/metatranscriptome_all/RNAquarium_outputs/virus_outputs/clusters_forminimap clusters_oct2025_many
-# #downloaded
-# #moved
-
-# scp -r eric.waltari@login01.czbiohub.org://hpc/projects/balla_group/sra_experiments/versioned_zf_output/75k_unstable/metatranscriptome_all/RNAquarium_outputs/virus_outputs/clusters_forminimap_moren clusters_oct2025_many2
-# #downloaded
-# #moved
-
-# clusters_forminimap_other
-# clusters_forminimap_picornas
-# clusters_forminimap_sarscov2
-
-# scp -r eric.waltari@login01.czbiohub.org://hpc/projects/balla_group/sra_experiments/versioned_zf_output/75k_unstable/metatranscriptome_all/RNAquarium_outputs/virus_outputs/clusters_forminimap_other clusters_oct2025_other
-# #downloaded
-# #moved
-# scp -r eric.waltari@login01.czbiohub.org://hpc/projects/balla_group/sra_experiments/versioned_zf_output/75k_unstable/metatranscriptome_all/RNAquarium_outputs/virus_outputs/clusters_forminimap_sarscov2 clusters_oct2025_sarscov2
-# #downloaded
-# #moved
-
-# scp -r eric.waltari@login01.czbiohub.org://hpc/projects/balla_group/sra_experiments/versioned_zf_output/75k_unstable/metatranscriptome_all/RNAquarium_outputs/virus_outputs/clusters_forminimap_picornas clusters_oct2025_picornas
-# #downloaded
-# #moved
 
