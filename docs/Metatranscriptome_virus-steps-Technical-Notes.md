@@ -83,7 +83,7 @@ For Salmon quantification, we use a virus-only FASTA with adapters masked and re
 Virus sequences and clusters (no nt targets), from 09-17 analysis
 
 ```
-taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11.fasta
+taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17.fasta
 ```
 
 Also removing all Sprivivirus contigs and replacing with 2 reference genomes:
