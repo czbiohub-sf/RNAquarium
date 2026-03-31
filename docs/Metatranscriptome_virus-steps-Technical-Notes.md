@@ -80,10 +80,16 @@ For Salmon quantification, we use a virus-only FASTA with adapters masked and re
 
 ### Starting Points
 
-Virus sequences and clusters (no nt targets) in:
+Virus sequences and clusters (no nt targets), from 09-17 analysis
 
 ```
 taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11.fasta
+```
+
+Also removing all Sprivivirus contigs and replacing with 2 reference genomes:
+
+```
+taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_sprivireplacediwth2genomes.fasta
 ```
 
 ### BBDuk Mask and Hard Removal of Ns
@@ -94,20 +100,20 @@ module load anaconda
 conda activate bbmap
 
 bbduk.sh -Xmx2g threads=auto \
-  in=taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11.fasta \
-  out=taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11_masked.fa \
+  in=taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_sprivireplacediwth2genomes.fasta \
+  out=taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_sprivireplacediwth2genomes_masked.fa \
   ref=adapters,artifacts,phix,lambda,pjet,kapa,fastp_adapters_with9added.fasta \
   k=21 mink=10 hdist=1 \
   maskmiddle=f kmask=N fastawrap=0 \
-  stats=taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11_masking_stats.txt
+  stats=taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_masking_stats.txt
 ```
 
 Then remove Ns:
 
 ```bash
 sed '/^>/!s/N//g' \
-  taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11_masked.fa \
-  > taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11_masked_trimmed0.fa
+  taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_sprivireplacediwth2genomes_masked.fa \
+  > taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_sprivireplacediwth2genomes_masked_trimmed0.fa
 ```
 
 ### Re-ordering, Phage/Non-Phage Grouping, Min Length
@@ -120,11 +126,11 @@ conda activate SeqKit
 
 # Split phage/prokaryote vs non-phage
 seqkit grep -r -i -p "phage|Caudovi|prokaryote" -w 0 \
-  taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11_masked_trimmed0.fa \
+  taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_sprivireplacediwth2genomes_masked_trimmed0.fa \
   > phage.fa
 
 seqkit grep -v -r -i -p "phage|Caudovi|prokaryote" -w 0 \
-  taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11_masked_trimmed0.fa \
+  taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_sprivireplacediwth2genomes_masked_trimmed0.fa \
   > nonphage.tmp.fa
 
 # Separate "special" contaminated groups
@@ -141,28 +147,29 @@ seqkit sort -n -w 0 phage.fa > phage.sorted.fa
 
 # Concatenate in desired order
 cat nonphage_regular.sorted.fa nonphage_special.sorted.fa phage.sorted.fa \
-  > taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11_masked_trimmed1.fa
+  > taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_sprivireplacediwth2genomes_masked_trimmed1.fa
 
 # Enforce min length 150 bp
 seqkit seq -m 150 -w 0 \
-  taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11_masked_trimmed1.fa \
+  taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_sprivireplacediwth2genomes_masked_trimmed1.fa \
   > reordered_trimmed_min150.fa
 
 # Final cleanup of Ns (should be none)
 sed '/^>/!s/N//g' reordered_trimmed_min150.fa \
-  > taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11_masked_trimmed.fa
+  > taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_sprivireplacediwth2genomes_masked_trimmed.fa
 ```
 
 This final FASTA is what we feed into Salmon:
 
 ```
-<OUTPUT_ROOT>/host_mapping/unmapped_reads/nonhost_viruscounts_salmon/taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-11_masked_trimmed.fa
+<OUTPUT_ROOT>/salmon_steps/nonhost_viruscounts_salmon/taxonomy_hits_viruses_withsequenceandclusters_notargetsforsalmon_2025-09-17_sprivireplacediwth2genomes_masked_trimmed.fa
 ```
 
-Companion TSV (without sequence, no nt targets) for annotations:
+Companion TSV (without sequence, no nt targets) for annotations, with updates using h5ad:
 
 ```
-<OUTPUT_ROOT>/host_mapping/unmapped_reads/nonhost_viruscounts_salmon/taxonomy_hits_viruses_withsequenceandclusters_notargetsnosequenceforsalmon_2025-09-11.tsv
+<OUTPUT_ROOT>/salmon_steps/nonhost_viruscounts_salmon/taxonomy_hits_viruses_withclusters_nosequencenotargetsforsalmon_sprivireplacediwth2genomes_fishassociated_2025-09-17.tsv
+<OUTPUT_ROOT>/adata_obj/75k_unstable_anndata_zfin_aliases_metadata.h5ad
 ```
 
 ---
@@ -177,16 +184,16 @@ Working directory:
 
 We used the following SLURM scripts:
 
-- `slurm_salmonpreSEPE_sept11.sh`
-- `slurm_salmonPE_sept11.sh`
-- `slurm_salmonSE_sept11.sh`
-- `slurm_salmonSEb_sept11.sh` (split SE into two batches)
-- `slurm_salmonSEPEpost_sept11.sh` (post-processing & aggregation)
+- `slurm_salmonpreSEPE_sept24.sh`
+- `slurm_salmonPE_sept24.sh`
+- `slurm_salmonSE_sept24.sh`
+- `slurm_salmonSEb_sept24.sh` (split SE into two batches)
+- `slurm_salmonSEPEpost_sept24.sh` (post-processing & aggregation)
 
-Final Salmon count matrix (~75k SRA runs × ~190k virus contigs):
+Final Salmon count matrix (~75k SRA runs × ~182k virus contigs):
 
 ```
-<OUTPUT_ROOT>/host_mapping/unmapped_reads/all.quantt_sept11.tsv.gz
+<OUTPUT_ROOT>/host_mapping/unmapped_reads/all.quantt_sept24.tsv.gz
 ```
 
 This is the file passed to downstream ML work.
