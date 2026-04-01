@@ -1,0 +1,416 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Metatranscriptome Pipeline (Part II) &mdash; RNAquarium Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+
+  
+      <script src="_static/jquery.js"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+      <script src="_static/doctools.js"></script>
+      <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="RNAquarium 75k Metatranscriptome – Technical Notes" href="Metatranscriptome-Technical-Notes.html" />
+    <link rel="prev" title="Technical Notes" href="technical-notes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            RNAquarium
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Part I: Host Mapping</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="nonhost-readme.html">Non-zebrafish reads from  datasets in SRA</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#features">Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#usage">Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="nonhost-readme.html#clone-the-repository">Clone the repository</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nonhost-readme.html#install-dependencies">Install dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nonhost-readme.html#create-a-working-directory-and-input-list">Create a working directory and input list</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nonhost-readme.html#generating-reference-indexes">Generating reference indexes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nonhost-readme.html#running-the-main-pipeline">Running the main pipeline</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#running-the-pipeline">Running the pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#on-failed-tasks">On ‘failed’ Tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">RNAquarium pipeline parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#reference-genome-options">Reference genome options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#input-output-options">Input/output options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#generic-options">Generic options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#pipeline-options">Pipeline options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#tool-extra-parameters">Tool extra parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline-explanation.html">Pipeline overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-0-index-generation">Step 0: Index generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-1-sra-prefetch-and-pre-processing">Step 1: SRA prefetch and pre-processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-filtering-and-adapter-trimming">Step 2: Filtering and adapter trimming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-3-hisat2">Step 3: HISAT2</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Reference index directory names</a></li>
+<li class="toctree-l1"><a class="reference internal" href="technical-notes.html">Technical Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="technical-notes.html#nextflow-unstaging-hack">Nextflow Unstaging Hack</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="technical-notes.html#manifestation">Manifestation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="technical-notes.html#solution">Solution</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="technical-notes.html#dependencies">Dependencies</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Part II: Metatranscriptomics</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Metatranscriptome Pipeline (Part II)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline-architecture">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#clone-the-repository">Clone the repository</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install-dependencies">Install dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prepare-inputs">Prepare inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database-requirements">Database requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-the-pipeline">Running the pipeline</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#outputs">Outputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#key-considerations">Key considerations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html">RNAquarium 75k Metatranscriptome – Technical Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#pipeline-architecture-nextflow-vs-slurm-scripts">Pipeline Architecture: Nextflow vs SLURM Scripts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#what-nextflow-handles">What Nextflow Handles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#what-slurm-scripts-handle-post-nextflow">What SLURM Scripts Handle (Post-Nextflow)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#inputs-basic-setup">Inputs &amp; Basic Setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#unmapped-read-inputs">Unmapped Read Inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#sra-metadata-runbioproject-mapping">SRA Metadata &amp; Run→Bioproject Mapping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#containers">Containers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#general-environment">General Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#nextflow-pipeline-specifics">Nextflow Pipeline Specifics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#main-run-script">Main Run Script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#key-config-and-module-files">Key Config and Module Files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#critical-configuration-changes-required-for-75k-run">Critical Configuration Changes (Required for 75k Run)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#nextflow-version-override-fix">Nextflow Version Override Fix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#spades-retry-exit-code-handling">SPAdes Retry / Exit-Code Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#global-nextflow-retries">Global Nextflow Retries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#first-blast-taxid-setting">First BLAST Taxid Setting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#full-blast-variable-wiring">Full BLAST Variable Wiring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#host-only-blast-vs-full-blast">Host-Only BLAST vs Full BLAST</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#handling-the-9-largest-bioprojects-last9-run">Handling the 9 Largest Bioprojects (“last9” Run)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#motivation">Motivation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#approach">Approach</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#safely-stopping-and-resuming-nextflow-on-hpc">Safely Stopping and Resuming Nextflow on HPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#full-nt-blast-performance-local-scratch-strategy">Full nt BLAST Performance: <code class="docutils literal notranslate"><span class="pre">/local/scratch</span></code> Strategy</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#problem">Problem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#observations">Observations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#manual-workaround">Manual Workaround</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#observed-speed-up">Observed Speed-Up</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#diamond-performance-note">Diamond Performance Note</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#post-nextflow-processing">Post-Nextflow Processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#step-0a-0b-parse-blastn-and-diamond-outputs-with-taxonomizr">Step 0a / 0b: Parse BLASTn and Diamond Outputs with Taxonomizr</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#updated-ncbi-taxonomy-taxonomizr-and-na-handling">Updated NCBI Taxonomy (Taxonomizr) and NA Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#taxonomizr-db-updates">Taxonomizr DB Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#new-ncbi-taxonomy-ranks-and-superkingdom-reconstruction">New NCBI Taxonomy Ranks and “Superkingdom” Reconstruction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#na-taxonomy-handling">NA Taxonomy Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#removing-early-vector-synthetic-filters">Removing Early “Vector” / “Synthetic” Filters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#diamond-nr-taxid-recovery-via-local-nr-database">Diamond NR Taxid Recovery via Local NR Database</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#id1">Problem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#solution">Solution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#guardrail-in-step-0b">Guardrail in Step 0b</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#bbduk-contamination-masking-post-search-filter">BBDuk Contamination Masking (Post-Search Filter)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#id2">Motivation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#strategy">Strategy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#high-level-plan">High-Level Plan</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#bbduk-on-non-host-contigs-global-filter">BBDuk on Non-Host Contigs (Global Filter)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#flagging-contigs-to-exclude-150bp-after-masking">Flagging Contigs to Exclude (&lt;150bp After Masking)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#integration-into-r-scripts-step-1b">Integration into R Scripts (Step 1b)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#pipeline-sequence-summary">Pipeline Sequence Summary</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#with-post-search-bbduk-used-for-75k-release">With Post-Search BBDuk (Used for 75k Release)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#without-bbduk-see-future-plans">Without BBDuk (see Future Plans)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome-Technical-Notes.html#future-plans">Future Plans</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Metatranscriptome_virus-steps-Technical-Notes.html">Virus-Specific Curation &amp; Salmon Quantification</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome_virus-steps-Technical-Notes.html#virus-lca-and-taxonomy">Virus LCA and Taxonomy</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome_virus-steps-Technical-Notes.html#virus-slurm-r-pipeline-sequence">Virus SLURM/R Pipeline Sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome_virus-steps-Technical-Notes.html#guardrail-in-step-v5-viral-realm-taxonomy-check">Guardrail in Step v5: Viral Realm Taxonomy Check</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome_virus-steps-Technical-Notes.html#bbduk-on-virus-contigs-for-salmon">BBDuk on Virus Contigs for Salmon</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome_virus-steps-Technical-Notes.html#starting-points">Starting Points</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome_virus-steps-Technical-Notes.html#bbduk-mask-and-hard-removal-of-ns">BBDuk Mask and Hard Removal of Ns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Metatranscriptome_virus-steps-Technical-Notes.html#re-ordering-phage-non-phage-grouping-min-length">Re-ordering, Phage/Non-Phage Grouping, Min Length</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome_virus-steps-Technical-Notes.html#salmon-commands">Salmon Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome_virus-steps-Technical-Notes.html#data-portal-specific-fields">Data Portal-Specific Fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Metatranscriptome_virus-steps-Technical-Notes.html#future-plan-clean-nextflow-run">Future Plan (Clean Nextflow Run)</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">RNAquarium</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Metatranscriptome Pipeline (Part II)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/metatranscriptome-readme.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="metatranscriptome-pipeline-part-ii">
+<h1>Metatranscriptome Pipeline (Part II)<a class="headerlink" href="#metatranscriptome-pipeline-part-ii" title="Permalink to this heading"></a></h1>
+<p>Taxonomic classification and viral discovery from non-host reads.</p>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>Input: non-host reads from Part I (host mapping pipeline)</p></li>
+<li><p>Assembles contigs with SPAdes</p></li>
+<li><p>BLASTn against nt and Diamond against nr for taxonomic classification</p></li>
+<li><p>BBDuk-based adapter/contaminant filtering</p></li>
+<li><p>Virus-specific curation with realm taxonomy support</p></li>
+<li><p>Salmon quantification of viral contigs</p></li>
+<li><p>Distributed computing on HPC environments (Slurm job scheduler)</p></li>
+</ul>
+</section>
+<section id="pipeline-architecture">
+<h2>Pipeline Architecture<a class="headerlink" href="#pipeline-architecture" title="Permalink to this heading"></a></h2>
+<p><strong>Important:</strong> The Nextflow pipeline only handles assembly and database searches. All downstream processing is performed by standalone SLURM/R scripts.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Phase</p></th>
+<th class="head"><p>Tool</p></th>
+<th class="head"><p>Steps</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Assembly &amp; Search</p></td>
+<td><p>Nextflow</p></td>
+<td><p>SPAdes assembly → Host-filter BLAST → Full nt BLAST → Diamond nr</p></td>
+</tr>
+<tr class="row-odd"><td><p>Taxonomy &amp; Filtering</p></td>
+<td><p>SLURM scripts</p></td>
+<td><p>Taxonomy parsing, contig filtering, BBDuk masking</p></td>
+</tr>
+<tr class="row-even"><td><p>Virus Curation</p></td>
+<td><p>SLURM scripts</p></td>
+<td><p>Realm taxonomy, clustering, metacoder trees</p></td>
+</tr>
+<tr class="row-odd"><td><p>Quantification</p></td>
+<td><p>SLURM scripts</p></td>
+<td><p>Salmon viral contig quantification</p></td>
+</tr>
+</tbody>
+</table>
+<p>All post-Nextflow scripts are located in <code class="docutils literal notranslate"><span class="pre">src/metatranscriptome/scripts/post_processing/</span></code>.</p>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
+<section id="clone-the-repository">
+<h3>Clone the repository<a class="headerlink" href="#clone-the-repository" title="Permalink to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/czbiohub-sf/Zebrafish-RNAquarium
+</pre></div>
+</div>
+</section>
+<section id="install-dependencies">
+<h3>Install dependencies<a class="headerlink" href="#install-dependencies" title="Permalink to this heading"></a></h3>
+<p>The metatranscriptome pipeline requires the following dependencies in <code class="docutils literal notranslate"><span class="pre">PATH</span></code>:</p>
+<ul class="simple">
+<li><p>SPAdes ( <strong>https://github.com/ablab/spades</strong> )</p></li>
+<li><p>BLAST+ ( <strong>https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/</strong> )</p></li>
+<li><p>Diamond ( <strong>https://github.com/bbuchfink/diamond</strong> )</p></li>
+<li><p>BBTools/BBDuk ( <strong>https://jgi.doe.gov/data-and-tools/software-tools/bbtools/</strong> )</p></li>
+<li><p>Salmon ( <strong>https://combine-lab.github.io/salmon/</strong> )</p></li>
+<li><p>SeqKit ( <strong>https://bioinf.shenwei.me/seqkit/</strong> )</p></li>
+<li><p>samtools ( <strong>https://www.htslib.org/download/</strong> )</p></li>
+<li><p>Taxonomizr R package ( <strong>https://github.com/sherrillmix/taxonomizr</strong> )</p></li>
+</ul>
+<p>Alternatively, run the Nextflow pipeline with <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">conda</span></code>, <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">mamba</span></code>, <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">docker</span></code>, or <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">singularity</span></code> to automatically pull containers or environments for most steps.</p>
+</section>
+<section id="prepare-inputs">
+<h3>Prepare inputs<a class="headerlink" href="#prepare-inputs" title="Permalink to this heading"></a></h3>
+<p>The metatranscriptome pipeline consumes unmapped reads from Part I. Ensure all unmapped reads (single-end and paired-end) are symlinked into a single directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="nb">cd</span><span class="w"> </span>Zebrafish-RNAquarium/src/metatranscriptome
+<span class="linenos">2</span>mkdir<span class="w"> </span>-p<span class="w"> </span>all_unmapped_links
+<span class="linenos">3</span><span class="c1"># Symlink your unmapped reads here</span>
+</pre></div>
+</div>
+<p>Create a run-to-bioproject mapping file (<code class="docutils literal notranslate"><span class="pre">RNaquarium_run_to_bioproject_mapping.tsv</span></code>) and generate the JSON mapping:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>python<span class="w"> </span>scripts/create_json_from_mapping.py
+</pre></div>
+</div>
+</section>
+<section id="database-requirements">
+<h3>Database requirements<a class="headerlink" href="#database-requirements" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>NCBI nt database</strong> (core_nt) for BLASTn searches</p></li>
+<li><p><strong>NCBI nr database</strong> for Diamond searches</p></li>
+<li><p><strong>Taxonomizr database</strong> (recommend August 2025 or later for realm support)</p></li>
+</ul>
+</section>
+<section id="running-the-pipeline">
+<h3>Running the pipeline<a class="headerlink" href="#running-the-pipeline" title="Permalink to this heading"></a></h3>
+<p><strong>Phase 1: Nextflow (assembly &amp; searches)</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>sbatch<span class="w"> </span>run_75k.sh
+</pre></div>
+</div>
+<p>Or with Nextflow directly:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>nextflow<span class="w"> </span>run<span class="w"> </span>main.nf<span class="w"> </span><span class="se">\</span>
+<span class="linenos">2</span><span class="w">  </span>--input_dir<span class="w"> </span>all_unmapped_links<span class="w"> </span><span class="se">\</span>
+<span class="linenos">3</span><span class="w">  </span>--mapping_json<span class="w"> </span>bioproject_mapping.json<span class="w"> </span><span class="se">\</span>
+<span class="linenos">4</span><span class="w">  </span>--nt_db<span class="w"> </span>/path/to/core_nt<span class="w"> </span><span class="se">\</span>
+<span class="linenos">5</span><span class="w">  </span>--nr_db<span class="w"> </span>/path/to/nr<span class="w"> </span><span class="se">\</span>
+<span class="linenos">6</span><span class="w">  </span>-profile<span class="w"> </span>slurm
+</pre></div>
+</div>
+<p><strong>Phase 2: SLURM scripts (taxonomy &amp; downstream)</strong></p>
+<p>After Nextflow completes, run the post-processing scripts sequentially. See the technical notes for the complete pipeline sequence.</p>
+</section>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>docs/Metatranscriptome-Technical-Notes.md</strong> – full pipeline documentation, workarounds, and step-by-step SLURM script sequence</p></li>
+<li><p><strong>docs/Metatranscriptome_virus-steps-Technical-Notes.md</strong> – virus-specific curation and Salmon quantification</p></li>
+</ul>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Permalink to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Output</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Non-host contigs</p></td>
+<td><p>SPAdes-assembled contigs after host filtering</p></td>
+</tr>
+<tr class="row-odd"><td><p>Taxonomy tables</p></td>
+<td><p>BLASTn (nt) and Diamond (nr) results with full taxonomy</p></td>
+</tr>
+<tr class="row-even"><td><p>BBDuk-filtered contigs</p></td>
+<td><p>Adapter-masked contigs with contamination removed (post-search BBDuk, used for 75k release)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Virus tables</p></td>
+<td><p>Curated viral contigs with realm taxonomy</p></td>
+</tr>
+<tr class="row-even"><td><p>Salmon counts</p></td>
+<td><p>Quantification matrix (~75k runs × ~190k viral contigs)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="key-considerations">
+<h2>Key considerations<a class="headerlink" href="#key-considerations" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Large bioprojects</strong>: May need to be subdivided; see technical notes for “last9” strategy</p></li>
+<li><p><strong>BLAST performance</strong>: Place nt database on <code class="docutils literal notranslate"><span class="pre">/local/scratch</span></code> for 3×+ speedup</p></li>
+<li><p><strong>Taxonomy updates</strong>: Use Taxonomizr DB from August 2025+ for proper viral realm support</p></li>
+<li><p><strong>Diamond NA taxids</strong>: Run <code class="docutils literal notranslate"><span class="pre">slurm_diamond_taxid_update_blastdbcmd.sh</span></code> if NA taxids detected</p></li>
+</ul>
+<p>See <strong>docs/Metatranscriptome-Technical-Notes.md</strong> for complete details.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="technical-notes.html" class="btn btn-neutral float-left" title="Technical Notes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Metatranscriptome-Technical-Notes.html" class="btn btn-neutral float-right" title="RNAquarium 75k Metatranscriptome – Technical Notes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Biohub.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
