@@ -1,24 +1,40 @@
-.. Zebrafish RNAquarium Nonhost Read Pipeline documentation master file, created by
-   sphinx-quickstart on Sat Oct 21 13:53:07 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+# RNAquarium
 
-# Welcome to Zebrafish RNAquarium Nonhost Read Pipeline's documentation!
+## Pre-processing pipeline for Species-scale RNAseq from the [NCBI Sequence Read Archive (SRA)](https://www.ncbi.nlm.nih.gov/sra)
+
+Produce the following for each RNAseq dataset:
+
+- Gene counts table
+- Non-zebrafish reads
+
+The RNAquarium pre-processing pipeline filters, by repeated alignment to host genome, the majority of host
+reads retrieved. For Zebrafish, starting from 77,188 runs this means retaining approximately
+11 billion out of 1.64 trillion input reads (~0.7%) as unmapped "possible nonhost" — this initial filtering is
+necessary to make more computationally expensive downstream searches and taxonomy calling feasible.
+
+## Overview of the workflow
+
+![RNAquarium pipeline overview illustration](_images/RNAquarium-Pipeline-for-Repo_v3.svg)
+
+---
 
 ```{toctree}
-:caption: Contents
+:caption: Part I: Host Mapping
 :maxdepth: 2
-gettingstarted.md
-parameters.md
-tips.md
-pipeline-explanation.md
-technical-notes.md
+
+nonhost-readme
+gettingstarted
+parameters
+pipeline-explanation
+tips
+technical-notes
 ```
 
+```{toctree}
+:caption: Part II: Metatranscriptomics
+:maxdepth: 2
 
-
-# Indices and tables
-
-* {ref}`genindex`
-* {ref}`modindex`
-* {ref}`search`
+metatranscriptome-readme
+Metatranscriptome-Technical-Notes
+Metatranscriptome_virus-steps-Technical-Notes
+```
