@@ -138,7 +138,7 @@ update_blastdb.pl --decompress core_nt
 
 BLAST parameters for this step: evalue `0.05`, max_target_seqs `100`.
 
-**Performance note:** Placing the NT database on local scratch storage (`/local/scratch`) provides ~3x speedup over network-mounted filesystems.
+**Performance note:** Placing the NT database on local scratch storage (`/local/scratch`) provides ~3x speedup over network-mounted filesystems, but then requires manual processing outside of Nextflow.
 
 ### NCBI NR database (required)
 
@@ -202,9 +202,9 @@ Located at: `src/metatranscriptome/fastp_adapters_with9added.fasta` (included in
 |----------|--------------|-------------|------------------|----------|
 | Host genome + GTF | Part I | ~1.5 GB | Per assembly release | Yes |
 | ERCC spike-ins | Part I | < 1 MB | Rarely | Yes |
-| NT (clustered subset) | Part II | ~250 GB | Quarterly | Yes |
-| NT (full core_nt) | Part II | ~1.1 TB | Quarterly | Yes |
-| NR (Diamond-formatted) | Part II | ~300 GB | Quarterly | Yes |
+| NT (clustered subset) | Part II | ~250 GB | As needed | Yes |
+| NT (full core_nt) | Part II | ~1.1 TB | As needed | Yes |
+| NR (Diamond-formatted) | Part II | ~300 GB | As needed | Yes |
 | Taxonomizr (SQLite) | Part II | ~75 GB | As needed | Yes |
 | BLAST taxdb files | Part II | < 1 GB | With NT/NR updates | Yes |
 | Contaminant FASTA | Part I | < 10 MB | Rarely | Optional |
@@ -220,4 +220,4 @@ A full RNAquarium deployment requires substantial storage:
 - **Aligner indexes (Part I):** ~50-100 GB for all five mapper indexes
 - **Working space (Part I):** Depends on number of SRA runs; the 75k run required multiple TB of scratch space
 - **Working space (Part II):** Assembly and BLAST results scale with the number of non-host contigs; the 75k run produced outputs in the TB range
-- **Local scratch:** Strongly recommended for BLAST databases to improve I/O performance
+- **Local scratch:** Recommended for BLAST databases to improve I/O performance for large (e.g. 75k) analyses, but then requires manual processing outside of Nextflow.
