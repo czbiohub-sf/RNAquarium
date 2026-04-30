@@ -1,26 +1,26 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Non-zebrafish reads from datasets in SRA &mdash; RNAquarium Documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+  <title>Non-host reads from datasets in SRA &mdash; RNAquarium Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
-      <script src="_static/jquery.js"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-      <script src="_static/doctools.js"></script>
-      <script src="_static/sphinx_highlight.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Getting Started" href="gettingstarted.html" />
-    <link rel="prev" title="RNAquarium" href="index.html" /> 
+    <link rel="prev" title="Inputs &amp; Database Requirements" href="inputs-and-databases.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -43,9 +43,34 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Part I: Host Mapping</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Part I: Transcriptomic + Filtering</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Non-zebrafish reads from  datasets in SRA</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="inputs-and-databases.html">Inputs &amp; Database Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-i-transcriptomic-filtering">Part I: Transcriptomic + Filtering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#host-reference-genome-required">Host reference genome (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#gtf-annotation-file-required">GTF annotation file (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ercc-spike-in-sequences-required">ERCC spike-in sequences (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#sra-accession-list-required">SRA accession list (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#contaminant-sequences-optional">Contaminant sequences (optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#aligner-indexes-optional-auto-generated">Aligner indexes (optional, auto-generated)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-ii-metatranscriptomics">Part II: Metatranscriptomics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#unmapped-reads-from-part-i-required">Unmapped reads from Part I (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#run-to-bioproject-mapping-required">Run-to-bioproject mapping (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-host-only-subset-required">NCBI NT database — host-only subset (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-full-core-nt-required">NCBI NT database — full core_nt (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nr-database-required">NCBI NR database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#taxonomizr-database-required">Taxonomizr database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#blast-taxonomy-files-required-for-host-filter-step">BLAST taxonomy files (required for host-filter step)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#bbduk-adapter-contaminant-sequences-used-in-post-processing">BBDuk adapter/contaminant sequences (used in post-processing)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#database-summary-table">Database Summary Table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#disk-space-planning">Disk Space Planning</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Non-host reads from datasets in SRA</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#clone-the-repository">Clone the repository</a></li>
@@ -64,19 +89,30 @@
 <li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="parameters.html">RNAquarium pipeline parameters</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="parameters.html#reference-genome-options">Reference genome options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#pre-built-index-options">Pre-built index options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parameters.html#input-output-options">Input/output options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#generic-options">Generic options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#pipeline-options">Pipeline options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#tool-extra-parameters">Tool extra parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#pipeline-flow-control">Pipeline flow control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#resource-and-performance-options">Resource and performance options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#filtering-options">Filtering options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#publishing-options">Publishing options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#advanced-options">Advanced options</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline-explanation.html">Pipeline overview</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="pipeline-explanation.html">Pipeline Overview (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-0-index-generation">Step 0: Index generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-1-sra-prefetch-and-pre-processing">Step 1: SRA prefetch and pre-processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-filtering-and-adapter-trimming">Step 2: Filtering and adapter trimming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-1-sra-download-and-pre-processing">Step 1: SRA download and pre-processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-adapter-trimming-and-quality-filtering">Step 2: Adapter trimming and quality filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-5-kallisto-contamination-filter-optional">Step 2.5: Kallisto contamination filter (optional)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-3-hisat2">Step 3: HISAT2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-3b-host-read-counting-parallel-branch">Step 3b: Host read counting (parallel branch)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-4-star">Step 4: STAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-5-bowtie2">Step 5: Bowtie2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-6-deduplication">Step 6: Deduplication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-7-gsnap">Step 7: GSNAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#summary-statistics">Summary statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#output-structure">Output structure</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tips.html">Reference index directory names</a></li>
@@ -217,7 +253,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Non-zebrafish reads from  datasets in SRA</li>
+      <li class="breadcrumb-item active">Non-host reads from datasets in SRA</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/nonhost-readme.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -227,69 +263,137 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="non-zebrafish-reads-from-datasets-in-sra">
-<h1>Non-zebrafish reads from  datasets in SRA<a class="headerlink" href="#non-zebrafish-reads-from-datasets-in-sra" title="Permalink to this heading"></a></h1>
+  <section id="non-host-reads-from-datasets-in-sra">
+<h1>Non-host reads from datasets in SRA<a class="headerlink" href="#non-host-reads-from-datasets-in-sra" title="Link to this heading"></a></h1>
 <section id="features">
-<h2>Features<a class="headerlink" href="#features" title="Permalink to this heading"></a></h2>
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Input a list of SRA run accessions</p></li>
-<li><p>Output non-zebrafish reads as compressed fastq files</p></li>
-<li><p>QC reads and use three aligners to map/remove zebrafish reads</p></li>
-<li><p>Distributed computing on HPC environments (Slurm job scheduler)</p></li>
-<li><p>Highly automated</p></li>
+<li><p>Output non-host reads as compressed FASTQ files</p></li>
+<li><p>QC reads and use four aligners to map/remove host reads</p></li>
+<li><p>Kallisto-based contamination pre-filter</p></li>
+<li><p>seq-detective barcode detection for scRNA-seq libraries</p></li>
+<li><p>Host gene count quantification (featureCounts or HTSeq)</p></li>
+<li><p>Distributed computing on HPC environments (SLURM job scheduler)</p></li>
+<li><p>Highly automated with dynamic resource allocation</p></li>
 </ul>
 </section>
 <section id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <section id="clone-the-repository">
-<h3>Clone the repository<a class="headerlink" href="#clone-the-repository" title="Permalink to this heading"></a></h3>
+<h3>Clone the repository<a class="headerlink" href="#clone-the-repository" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">czbiohub</span><span class="o">-</span><span class="n">sf</span><span class="o">/</span><span class="n">Zebrafish</span><span class="o">-</span><span class="n">RNAquarium</span>
 </pre></div>
 </div>
 </section>
 <section id="install-dependencies">
-<h3>Install dependencies<a class="headerlink" href="#install-dependencies" title="Permalink to this heading"></a></h3>
-<p>The non-zebrafish reads pipeline requires the following dependencies in <code class="docutils literal notranslate"><span class="pre">PATH</span></code>:</p>
+<h3>Install dependencies<a class="headerlink" href="#install-dependencies" title="Link to this heading"></a></h3>
+<p>The recommended approach is to run the pipeline with <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">conda</span></code>, <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">mamba</span></code>, <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">docker</span></code>, or <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">singularity</span></code>, which will automatically pull containers or environments for most steps. The conda/mamba option is preferred.</p>
+<p>When using containers/conda, a small number of tools are not available as packages and must be installed locally:</p>
 <ul class="simple">
-<li><p>hisat2 ( https://daehwankimlab.github.io/hisat2/download/ )</p></li>
-<li><p>bowtie2=2.4.5 ( https://sourceforge.net/projects/bowtie-bio/files/bowtie2/ )</p></li>
-<li><p>czid-dedup=0.1.0 ( https://github.com/chanzuckerberg/czid-dedup )</p></li>
-<li><p>fastp=0.23.2 ( https://github.com/OpenGene/fastp )</p></li>
-<li><p>FastQC=0.12.1 ( https://www.bioinformatics.babraham.ac.uk/projects/fastqc/ )</p></li>
-<li><p>gmap-gsnap=2021-12-17 ( http://research-pub.gene.com/gmap/ )</p></li>
-<li><p>HTSeq=2.0.2 ( https://htseq.readthedocs.io/en/master/install.html )</p></li>
-<li><p>Price=1.2 ( https://derisilab.ucsf.edu/software/price/index.html )</p></li>
-<li><p>samtools=1.16.1 ( https://www.htslib.org/download/ )</p></li>
-<li><p>sratoolkit=3.0.0 ( https://github.com/ncbi/sra-tools/wiki/02.-Installing-SRA-Toolkit )</p></li>
-<li><p>STAR=2.7.10 ( https://github.com/alexdobin/STAR )</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fastq-lengths</span></code> — read length statistics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">czid-dedup</span></code> — duplicate read removal</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gmap-gsnap</span></code> — installed from source due to container issues</p></li>
 </ul>
-<p>Alternatively, most pre-installation can be skipped by running the nextflow
-pipeline with the <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">conda</span></code>, <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">mamba</span></code>, <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">docker</span></code>, or <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">singularity</span></code> parameters,
-which will automatically pull and use containers or environments for most steps. (The
-conda/mamba option is preferred)</p>
-<p><strong>in this case, currently <code class="docutils literal notranslate"><span class="pre">fastq-lengths</span></code>, <code class="docutils literal notranslate"><span class="pre">PRICE</span></code>, and <code class="docutils literal notranslate"><span class="pre">czid-dedup</span></code> are not
-available as containers</strong>.  <code class="docutils literal notranslate"><span class="pre">gmap</span></code> is also installed from source due to its containers having issues.
-<code class="docutils literal notranslate"><span class="pre">nextflow</span> <span class="pre">run</span> <span class="pre">install-deps.nf</span></code> or <code class="docutils literal notranslate"><span class="pre">setup-minimal.sh</span></code> will download these.
-e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">setup</span><span class="o">-</span><span class="n">minimal</span><span class="o">.</span><span class="n">sh</span>
-<span class="n">nextflow</span> <span class="n">run</span> <span class="o">-</span><span class="k">with</span><span class="o">-</span><span class="n">singularity</span>
+<p>These can be installed with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>./setup-minimal.sh
 </pre></div>
 </div>
+<p>Alternatively, for a fully manual installation, the pipeline requires these tools in <code class="docutils literal notranslate"><span class="pre">PATH</span></code>:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Tool</p></th>
+<th class="head"><p>Conda version</p></th>
+<th class="head"><p>Container version</p></th>
+<th class="head"><p>URL</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>sra-tools</p></td>
+<td><p>3.2.1</p></td>
+<td><p>3.2.1</p></td>
+<td><p><a class="reference external" href="https://github.com/ncbi/sra-tools">https://github.com/ncbi/sra-tools</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>fastp</p></td>
+<td><p>0.24.1</p></td>
+<td><p>0.23.4</p></td>
+<td><p><a class="reference external" href="https://github.com/OpenGene/fastp">https://github.com/OpenGene/fastp</a></p></td>
+</tr>
+<tr class="row-even"><td><p>HISAT2</p></td>
+<td><p>2.2.1</p></td>
+<td><p>2.2.1</p></td>
+<td><p><a class="reference external" href="https://daehwankimlab.github.io/hisat2/">https://daehwankimlab.github.io/hisat2/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>STAR</p></td>
+<td><p>2.7.10b</p></td>
+<td><p>2.7.10b</p></td>
+<td><p><a class="reference external" href="https://github.com/alexdobin/STAR">https://github.com/alexdobin/STAR</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bowtie2</p></td>
+<td><p>2.5.4</p></td>
+<td><p>2.4.5</p></td>
+<td><p><a class="reference external" href="https://github.com/BenLangmead/bowtie2">https://github.com/BenLangmead/bowtie2</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>samtools</p></td>
+<td><p>1.21</p></td>
+<td><p>1.19.2</p></td>
+<td><p><a class="reference external" href="https://www.htslib.org/">https://www.htslib.org/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>gmap-gsnap</p></td>
+<td><p>2025-04-19</p></td>
+<td><p>—</p></td>
+<td><p><a class="reference external" href="http://research-pub.gene.com/gmap/">http://research-pub.gene.com/gmap/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>czid-dedup</p></td>
+<td><p>0.1.2</p></td>
+<td><p>—</p></td>
+<td><p><a class="reference external" href="https://github.com/chanzuckerberg/czid-dedup">https://github.com/chanzuckerberg/czid-dedup</a></p></td>
+</tr>
+<tr class="row-even"><td><p>HTSeq</p></td>
+<td><p>2.0.2</p></td>
+<td><p>2.0.2</p></td>
+<td><p><a class="reference external" href="https://htseq.readthedocs.io/">https://htseq.readthedocs.io/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>subread (featureCounts)</p></td>
+<td><p>2.0.6</p></td>
+<td><p>2.0.6</p></td>
+<td><p><a class="reference external" href="https://subread.sourceforge.net/">https://subread.sourceforge.net/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>kallisto</p></td>
+<td><p>0.51.1</p></td>
+<td><p>—</p></td>
+<td><p><a class="reference external" href="https://pachterlab.github.io/kallisto/">https://pachterlab.github.io/kallisto/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>bustools</p></td>
+<td><p>0.44.1</p></td>
+<td><p>—</p></td>
+<td><p><a class="reference external" href="https://bustools.github.io/">https://bustools.github.io/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>kb-python</p></td>
+<td><p>0.29.1</p></td>
+<td><p>—</p></td>
+<td><p><a class="reference external" href="https://www.kallistobus.tools/">https://www.kallistobus.tools/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>seqtk</p></td>
+<td><p>1.5</p></td>
+<td><p>—</p></td>
+<td><p><a class="reference external" href="https://github.com/lh3/seqtk">https://github.com/lh3/seqtk</a></p></td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="create-a-working-directory-and-input-list">
-<h3>Create a working directory and input list<a class="headerlink" href="#create-a-working-directory-and-input-list" title="Permalink to this heading"></a></h3>
+<h3>Create a working directory and input list<a class="headerlink" href="#create-a-working-directory-and-input-list" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">Zebrafish</span><span class="o">-</span><span class="n">RNAquarium</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">nonhost</span>
 <span class="n">mkdir</span> <span class="n">test</span> <span class="o">&amp;&amp;</span> <span class="n">cp</span> <span class="n">data</span><span class="o">/</span><span class="n">SRA_accession_list</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">txt</span> <span class="n">SRA_accession_list</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </section>
 <section id="generating-reference-indexes">
-<h3>Generating reference indexes<a class="headerlink" href="#generating-reference-indexes" title="Permalink to this heading"></a></h3>
-<p>The nonhost pipeline needs reference genome information for STAR mapping.
-There are two ways of providing this.</p>
+<h3>Generating reference indexes<a class="headerlink" href="#generating-reference-indexes" title="Link to this heading"></a></h3>
+<p>The nonhost pipeline needs reference genome information for mapping. There are two ways of providing this.</p>
 <ol class="arabic simple">
-<li><p>pre-generated index directories (i.e. previously generated by STAR)
-provide the following parameters:</p></li>
+<li><p>Pre-generated index directories (i.e. previously generated by each aligner). Provide the following parameters:</p></li>
 </ol>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--hisat-ref-indexes</span> <span class="pre">&lt;hisat2</span> <span class="pre">reference</span> <span class="pre">index</span> <span class="pre">path&gt;</span></code></p></li>
@@ -300,34 +404,41 @@ provide the following parameters:</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--ref-genome-gtf</span> <span class="pre">&lt;reference.gtf&gt;</span></code></p></li>
 </ul>
 <ol class="arabic simple" start="2">
-<li><p>reference genome assembly and spike-in sequences (the required indexes will be generated for you)
-provide the following command line parameters:</p></li>
+<li><p>Reference genome assembly and spike-in sequences (indexes will be generated for you). Provide the following parameters:</p></li>
 </ol>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--ref-genome</span> <span class="pre">&lt;primary_assembly.fa.gz&gt;</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--ref-genome-gtf</span> <span class="pre">&lt;reference.gtf&gt;</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--ercc</span> <span class="pre">&lt;ERCC.fa&gt;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--ercc-fa</span> <span class="pre">&lt;ERCC.fa&gt;</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--ercc-gtf</span> <span class="pre">&lt;ERCC.gtf&gt;</span></code></p></li>
 </ul>
-<p>the host reference genome, and <em>only</em> the host reference, must be <code class="docutils literal notranslate"><span class="pre">bgzip</span></code> compressed and indexed
-with <code class="docutils literal notranslate"><span class="pre">samtools</span> <span class="pre">faidx</span></code>.</p>
-<p>for example, for ensembl release 108 of the <em>Danio rerio</em> genome:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span><span class="n">ref</span><span class="o">-</span><span class="n">genome</span> <span class="n">Danio_rerio</span><span class="o">.</span><span class="n">GRCz11</span><span class="o">.</span><span class="n">dna_sm</span><span class="o">.</span><span class="n">primary_assembly</span><span class="o">.</span><span class="n">fa</span><span class="o">.</span><span class="n">gz</span>
-<span class="o">--</span><span class="n">ref</span><span class="o">-</span><span class="n">genome</span><span class="o">-</span><span class="n">gtf</span> <span class="n">Danio_rerio</span><span class="o">.</span><span class="n">GRCz11</span><span class="mf">.108</span><span class="o">.</span><span class="n">gtf</span>
-<span class="o">--</span><span class="n">ercc</span> <span class="n">ERCC92</span><span class="o">.</span><span class="n">fa</span>
+<p>The host reference genome, and <em>only</em> the host reference, must be <code class="docutils literal notranslate"><span class="pre">bgzip</span></code> compressed and indexed with <code class="docutils literal notranslate"><span class="pre">samtools</span> <span class="pre">faidx</span></code>.</p>
+<p>For example, for the <em>Danio rerio</em> GRCz12tu genome assembly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span><span class="n">ref</span><span class="o">-</span><span class="n">genome</span> <span class="n">GCF_049306965</span><span class="mf">.1</span><span class="n">_GRCz12tu_genomic</span><span class="o">.</span><span class="n">fa</span><span class="o">.</span><span class="n">gz</span>
+<span class="o">--</span><span class="n">ref</span><span class="o">-</span><span class="n">genome</span><span class="o">-</span><span class="n">gtf</span> <span class="n">GCF_049306965</span><span class="mf">.1</span><span class="n">_GRCz12tu_genomic</span><span class="o">.</span><span class="n">gtf</span>
+<span class="o">--</span><span class="n">ercc</span><span class="o">-</span><span class="n">fa</span> <span class="n">ERCC92</span><span class="o">.</span><span class="n">fa</span>
 <span class="o">--</span><span class="n">ercc</span><span class="o">-</span><span class="n">gtf</span> <span class="n">ERCC92</span><span class="o">.</span><span class="n">gtf</span>
+<span class="o">--</span><span class="n">genome</span><span class="o">-</span><span class="n">size</span> <span class="mi">1448808683</span>
 </pre></div>
 </div>
 </section>
 <section id="running-the-main-pipeline">
-<h3>Running the main pipeline<a class="headerlink" href="#running-the-main-pipeline" title="Permalink to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>PATH=$PATH:$PWD/bin nextflow run main.nf --ref-genome Danio_rerio.GRCz11.dna_sm.primary_assembly.fa.gz \
---ref-genome-gtf Danio_rerio.GRCz11.108.gtf \
---ercc ERCC92.fa --ercc-gtf ERCC92.gtf \
---accession-list SRA_accession_list.test.txt
+<h3>Running the main pipeline<a class="headerlink" href="#running-the-main-pipeline" title="Link to this heading"></a></h3>
+<p>Using a params file (recommended for production runs):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>nextflow<span class="w"> </span>run<span class="w"> </span>main.nf<span class="w"> </span>-params-file<span class="w"> </span>params.yaml<span class="w"> </span>-profile<span class="w"> </span>slurm,mamba<span class="w"> </span>-resume
 </pre></div>
 </div>
-<p>See docs/gettingstarted</p>
+<p>Or with inline parameters:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>nextflow<span class="w"> </span>run<span class="w"> </span>main.nf<span class="w"> </span><span class="se">\</span>
+<span class="linenos">2</span><span class="w">  </span>--ref-genome<span class="w"> </span>GCF_049306965.1_GRCz12tu_genomic.fa.gz<span class="w"> </span><span class="se">\</span>
+<span class="linenos">3</span><span class="w">  </span>--ref-genome-gtf<span class="w"> </span>GCF_049306965.1_GRCz12tu_genomic.gtf<span class="w"> </span><span class="se">\</span>
+<span class="linenos">4</span><span class="w">  </span>--ercc-fa<span class="w"> </span>ERCC92.fa<span class="w"> </span>--ercc-gtf<span class="w"> </span>ERCC92.gtf<span class="w"> </span><span class="se">\</span>
+<span class="linenos">5</span><span class="w">  </span>--genome-size<span class="w"> </span><span class="m">1448808683</span><span class="w"> </span><span class="se">\</span>
+<span class="linenos">6</span><span class="w">  </span>--accession-list<span class="w"> </span>SRA_accession_list.test.txt<span class="w"> </span><span class="se">\</span>
+<span class="linenos">7</span><span class="w">  </span>-profile<span class="w"> </span>slurm,mamba
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="gettingstarted.html"><span class="std std-doc">Getting Started</span></a> for more details, and <a class="reference internal" href="pipeline-explanation.html"><span class="std std-doc">Pipeline Overview</span></a> for a description of each step.</p>
 </section>
 </section>
 </section>
@@ -336,7 +447,7 @@ with <code class="docutils literal notranslate"><span class="pre">samtools</span
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="RNAquarium" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="inputs-and-databases.html" class="btn btn-neutral float-left" title="Inputs &amp; Database Requirements" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="gettingstarted.html" class="btn btn-neutral float-right" title="Getting Started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

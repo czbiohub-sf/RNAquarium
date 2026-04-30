@@ -1,20 +1,20 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Index &mdash; RNAquarium Documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
-      <script src="_static/jquery.js"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-      <script src="_static/doctools.js"></script>
-      <script src="_static/sphinx_highlight.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -40,9 +40,34 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Part I: Host Mapping</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Part I: Transcriptomic + Filtering</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="nonhost-readme.html">Non-zebrafish reads from  datasets in SRA</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="inputs-and-databases.html">Inputs &amp; Database Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-i-transcriptomic-filtering">Part I: Transcriptomic + Filtering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#host-reference-genome-required">Host reference genome (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#gtf-annotation-file-required">GTF annotation file (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ercc-spike-in-sequences-required">ERCC spike-in sequences (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#sra-accession-list-required">SRA accession list (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#contaminant-sequences-optional">Contaminant sequences (optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#aligner-indexes-optional-auto-generated">Aligner indexes (optional, auto-generated)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-ii-metatranscriptomics">Part II: Metatranscriptomics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#unmapped-reads-from-part-i-required">Unmapped reads from Part I (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#run-to-bioproject-mapping-required">Run-to-bioproject mapping (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-host-only-subset-required">NCBI NT database — host-only subset (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-full-core-nt-required">NCBI NT database — full core_nt (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nr-database-required">NCBI NR database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#taxonomizr-database-required">Taxonomizr database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#blast-taxonomy-files-required-for-host-filter-step">BLAST taxonomy files (required for host-filter step)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#bbduk-adapter-contaminant-sequences-used-in-post-processing">BBDuk adapter/contaminant sequences (used in post-processing)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#database-summary-table">Database Summary Table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#disk-space-planning">Disk Space Planning</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nonhost-readme.html">Non-host reads from datasets in SRA</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#features">Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#usage">Usage</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="nonhost-readme.html#clone-the-repository">Clone the repository</a></li>
@@ -61,19 +86,30 @@
 <li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="parameters.html">RNAquarium pipeline parameters</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="parameters.html#reference-genome-options">Reference genome options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#pre-built-index-options">Pre-built index options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parameters.html#input-output-options">Input/output options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#generic-options">Generic options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#pipeline-options">Pipeline options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#tool-extra-parameters">Tool extra parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#pipeline-flow-control">Pipeline flow control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#resource-and-performance-options">Resource and performance options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#filtering-options">Filtering options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#publishing-options">Publishing options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#advanced-options">Advanced options</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline-explanation.html">Pipeline overview</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="pipeline-explanation.html">Pipeline Overview (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-0-index-generation">Step 0: Index generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-1-sra-prefetch-and-pre-processing">Step 1: SRA prefetch and pre-processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-filtering-and-adapter-trimming">Step 2: Filtering and adapter trimming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-1-sra-download-and-pre-processing">Step 1: SRA download and pre-processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-adapter-trimming-and-quality-filtering">Step 2: Adapter trimming and quality filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-5-kallisto-contamination-filter-optional">Step 2.5: Kallisto contamination filter (optional)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-3-hisat2">Step 3: HISAT2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-3b-host-read-counting-parallel-branch">Step 3b: Host read counting (parallel branch)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-4-star">Step 4: STAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-5-bowtie2">Step 5: Bowtie2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-6-deduplication">Step 6: Deduplication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-7-gsnap">Step 7: GSNAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#summary-statistics">Summary statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#output-structure">Output structure</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tips.html">Reference index directory names</a></li>

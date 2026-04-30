@@ -33,7 +33,7 @@ ref-genome: host.fa
 ref-genome-gtf: host.gtf
 ercc-fa: ERCC92.fa
 ercc-gtf: ERCC92.gtf
-genome-size: 1396431182
+genome-size: 1448808683
 accession-list: accession-list.txt
 ```
 
@@ -45,31 +45,24 @@ If you are running on a cluster that runs slurm, this should be `-profile slurm`
 
 If you are running on a cluster environment that uses a **different** workload manager/executor, you must copy the `slurm` profile to a new profile for your environment and, minimally, change the executor to the appropriate one according to https://www.nextflow.io/docs/latest/executor.html
 
-Depending on your environment and workload, more configuration may be needed; see [[params.html]]
+Depending on your environment and workload, more configuration may be needed; see [Parameters](parameters.md)
 
 
 ## On 'failed' Tasks
 when running the pipeline you may get messages that some processes have failed.
 ```
-[22/70ef62] process > prefetch (SRR7947912)          [ 99%] 185 of 186, failed: 1, retries: 1
-[2d/76614c] process > fastq_dump (SRR11164691)       [ 89%] 164 of 184
+[22/70ef62] process > download (SRR7947912)          [ 99%] 185 of 186, failed: 1, retries: 1
 [-        ] process > check_direct_fastqs            -
 [2d/7cbd5b] process > filter_barcodes (SRR19077303)  [ 92%] 151 of 164
 [20/299d1b] process > fastp (SRR16292403)            [ 96%] 148 of 153, failed: 2, retries: 2
-[9d/aba73c] process > priceseqfilter (SRR12623494)   [ 89%] 131 of 146
 [a4/1e902c] process > star_counts (SRR9608473)       [ 96%] 126 of 130
-[cd/528a40] process > sort_bam (SRR7240614)          [ 99%] 125 of 126
-[5d/ebdd65] process > htseq_count (SRR5687193)       [ 87%] 109 of 125
+[5d/ebdd65] process > feature_count (SRR5687193)     [ 87%] 109 of 125
+[12/ab3c4f] process > kb_negative (SRR19077303)      [ 94%] 142 of 150
 [9a/f711a0] process > hisat2 (SRR9608473)            [ 96%] 125 of 130
 [16/5ca824] process > star (SRR6176732)              [100%] 125 of 125
 [74/733caf] process > bowtie2 (SRR6268189)           [ 96%] 122 of 126, failed: 1, retries: 1
-[bf/13a88e] process > process_bowtie2_sam (SRR120... [ 95%] 116 of 121
-[29/c03fbb] process > bowtie2_filter_by_names (SR... [ 95%] 111 of 116
 [d9/4eb1b9] process > dedup (SRR20001190)            [ 94%] 109 of 115, failed: 6, retries: 4
 [71/ac0eb6] process > gsnap (SRR2968455)             [ 77%] 80 of 103
-[01/d34f25] process > process_gsnap_sam (SRR5418456) [ 91%] 73 of 80
-[24/fa8d08] process > gsnap_filter_by_names (SRR1... [ 95%] 70 of 73
-[-        ] process > gsnap_skip                     -
 [2c/30764f] process > stats_csv (SRR6933827)         [ 95%] 70 of 73
 ```
 dedup failures are 'normal' when dealing with sequences from unknown sources -- if the average read
@@ -95,4 +88,4 @@ dependency copy race conditions, you can try running
 
 to create the indexes ahead of time as a workaround.
 
-Make sure to use the precomputed index [[parameters]] (`--hisat-ref-indexes`, `--star-ref-indexes-ercc`, `--star-ref-indexes`, etc.)
+Make sure to use the precomputed index [parameters](parameters.md) (`--hisat-ref-indexes`, `--star-ref-indexes-ercc`, `--star-ref-indexes`, etc.)

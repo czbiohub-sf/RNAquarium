@@ -1,21 +1,21 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Metatranscriptome Pipeline (Part II) &mdash; RNAquarium Documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
-      <script src="_static/jquery.js"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-      <script src="_static/doctools.js"></script>
-      <script src="_static/sphinx_highlight.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -43,9 +43,34 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Part I: Host Mapping</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Part I: Transcriptomic + Filtering</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="nonhost-readme.html">Non-zebrafish reads from  datasets in SRA</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="inputs-and-databases.html">Inputs &amp; Database Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-i-transcriptomic-filtering">Part I: Transcriptomic + Filtering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#host-reference-genome-required">Host reference genome (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#gtf-annotation-file-required">GTF annotation file (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ercc-spike-in-sequences-required">ERCC spike-in sequences (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#sra-accession-list-required">SRA accession list (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#contaminant-sequences-optional">Contaminant sequences (optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#aligner-indexes-optional-auto-generated">Aligner indexes (optional, auto-generated)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-ii-metatranscriptomics">Part II: Metatranscriptomics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#unmapped-reads-from-part-i-required">Unmapped reads from Part I (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#run-to-bioproject-mapping-required">Run-to-bioproject mapping (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-host-only-subset-required">NCBI NT database — host-only subset (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-full-core-nt-required">NCBI NT database — full core_nt (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nr-database-required">NCBI NR database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#taxonomizr-database-required">Taxonomizr database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#blast-taxonomy-files-required-for-host-filter-step">BLAST taxonomy files (required for host-filter step)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#bbduk-adapter-contaminant-sequences-used-in-post-processing">BBDuk adapter/contaminant sequences (used in post-processing)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#database-summary-table">Database Summary Table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#disk-space-planning">Disk Space Planning</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nonhost-readme.html">Non-host reads from datasets in SRA</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#features">Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#usage">Usage</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="nonhost-readme.html#clone-the-repository">Clone the repository</a></li>
@@ -64,19 +89,30 @@
 <li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="parameters.html">RNAquarium pipeline parameters</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="parameters.html#reference-genome-options">Reference genome options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#pre-built-index-options">Pre-built index options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parameters.html#input-output-options">Input/output options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#generic-options">Generic options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#pipeline-options">Pipeline options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#tool-extra-parameters">Tool extra parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#pipeline-flow-control">Pipeline flow control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#resource-and-performance-options">Resource and performance options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#filtering-options">Filtering options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#publishing-options">Publishing options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#advanced-options">Advanced options</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline-explanation.html">Pipeline overview</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="pipeline-explanation.html">Pipeline Overview (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-0-index-generation">Step 0: Index generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-1-sra-prefetch-and-pre-processing">Step 1: SRA prefetch and pre-processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-filtering-and-adapter-trimming">Step 2: Filtering and adapter trimming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-1-sra-download-and-pre-processing">Step 1: SRA download and pre-processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-adapter-trimming-and-quality-filtering">Step 2: Adapter trimming and quality filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-5-kallisto-contamination-filter-optional">Step 2.5: Kallisto contamination filter (optional)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-3-hisat2">Step 3: HISAT2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-3b-host-read-counting-parallel-branch">Step 3b: Host read counting (parallel branch)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-4-star">Step 4: STAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-5-bowtie2">Step 5: Bowtie2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-6-deduplication">Step 6: Deduplication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-7-gsnap">Step 7: GSNAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#summary-statistics">Summary statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#output-structure">Output structure</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tips.html">Reference index directory names</a></li>
@@ -228,12 +264,12 @@
            <div itemprop="articleBody">
              
   <section id="metatranscriptome-pipeline-part-ii">
-<h1>Metatranscriptome Pipeline (Part II)<a class="headerlink" href="#metatranscriptome-pipeline-part-ii" title="Permalink to this heading"></a></h1>
+<h1>Metatranscriptome Pipeline (Part II)<a class="headerlink" href="#metatranscriptome-pipeline-part-ii" title="Link to this heading"></a></h1>
 <p>Taxonomic classification and viral discovery from non-host reads.</p>
 <section id="features">
-<h2>Features<a class="headerlink" href="#features" title="Permalink to this heading"></a></h2>
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Input: non-host reads from Part I (host mapping pipeline)</p></li>
+<li><p>Input: non-host reads from Part I (transcriptomic + filtering pipeline)</p></li>
 <li><p>Assembles contigs with SPAdes</p></li>
 <li><p>BLASTn against nt and Diamond against nr for taxonomic classification</p></li>
 <li><p>BBDuk-based adapter/contaminant filtering</p></li>
@@ -243,7 +279,7 @@
 </ul>
 </section>
 <section id="pipeline-architecture">
-<h2>Pipeline Architecture<a class="headerlink" href="#pipeline-architecture" title="Permalink to this heading"></a></h2>
+<h2>Pipeline Architecture<a class="headerlink" href="#pipeline-architecture" title="Link to this heading"></a></h2>
 <p><strong>Important:</strong> The Nextflow pipeline only handles assembly and database searches. All downstream processing is performed by standalone SLURM/R scripts.</p>
 <table class="docutils align-default">
 <thead>
@@ -274,15 +310,15 @@
 <p>All post-Nextflow scripts are located in <code class="docutils literal notranslate"><span class="pre">src/metatranscriptome/scripts/post_processing/</span></code>.</p>
 </section>
 <section id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <section id="clone-the-repository">
-<h3>Clone the repository<a class="headerlink" href="#clone-the-repository" title="Permalink to this heading"></a></h3>
+<h3>Clone the repository<a class="headerlink" href="#clone-the-repository" title="Link to this heading"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/czbiohub-sf/Zebrafish-RNAquarium
 </pre></div>
 </div>
 </section>
 <section id="install-dependencies">
-<h3>Install dependencies<a class="headerlink" href="#install-dependencies" title="Permalink to this heading"></a></h3>
+<h3>Install dependencies<a class="headerlink" href="#install-dependencies" title="Link to this heading"></a></h3>
 <p>The metatranscriptome pipeline requires the following dependencies in <code class="docutils literal notranslate"><span class="pre">PATH</span></code>:</p>
 <ul class="simple">
 <li><p>SPAdes ( <strong>https://github.com/ablab/spades</strong> )</p></li>
@@ -297,7 +333,7 @@
 <p>Alternatively, run the Nextflow pipeline with <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">conda</span></code>, <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">mamba</span></code>, <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">docker</span></code>, or <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">singularity</span></code> to automatically pull containers or environments for most steps.</p>
 </section>
 <section id="prepare-inputs">
-<h3>Prepare inputs<a class="headerlink" href="#prepare-inputs" title="Permalink to this heading"></a></h3>
+<h3>Prepare inputs<a class="headerlink" href="#prepare-inputs" title="Link to this heading"></a></h3>
 <p>The metatranscriptome pipeline consumes unmapped reads from Part I. Ensure all unmapped reads (single-end and paired-end) are symlinked into a single directory:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="nb">cd</span><span class="w"> </span>Zebrafish-RNAquarium/src/metatranscriptome
 <span class="linenos">2</span>mkdir<span class="w"> </span>-p<span class="w"> </span>all_unmapped_links
@@ -310,7 +346,7 @@
 </div>
 </section>
 <section id="database-requirements">
-<h3>Database requirements<a class="headerlink" href="#database-requirements" title="Permalink to this heading"></a></h3>
+<h3>Database requirements<a class="headerlink" href="#database-requirements" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>NCBI nt database</strong> (core_nt) for BLASTn searches</p></li>
 <li><p><strong>NCBI nr database</strong> for Diamond searches</p></li>
@@ -318,7 +354,7 @@
 </ul>
 </section>
 <section id="running-the-pipeline">
-<h3>Running the pipeline<a class="headerlink" href="#running-the-pipeline" title="Permalink to this heading"></a></h3>
+<h3>Running the pipeline<a class="headerlink" href="#running-the-pipeline" title="Link to this heading"></a></h3>
 <p><strong>Phase 1: Nextflow (assembly &amp; searches)</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span>sbatch<span class="w"> </span>run_75k.sh
 </pre></div>
@@ -337,14 +373,14 @@
 </section>
 </section>
 <section id="documentation">
-<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading"></a></h2>
+<h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>docs/Metatranscriptome-Technical-Notes.md</strong> – full pipeline documentation, workarounds, and step-by-step SLURM script sequence</p></li>
 <li><p><strong>docs/Metatranscriptome_virus-steps-Technical-Notes.md</strong> – virus-specific curation and Salmon quantification</p></li>
 </ul>
 </section>
 <section id="outputs">
-<h2>Outputs<a class="headerlink" href="#outputs" title="Permalink to this heading"></a></h2>
+<h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Output</p></th>
@@ -371,7 +407,7 @@
 </table>
 </section>
 <section id="key-considerations">
-<h2>Key considerations<a class="headerlink" href="#key-considerations" title="Permalink to this heading"></a></h2>
+<h2>Key considerations<a class="headerlink" href="#key-considerations" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>Large bioprojects</strong>: May need to be subdivided; see technical notes for “last9” strategy</p></li>
 <li><p><strong>BLAST performance</strong>: Place nt database on <code class="docutils literal notranslate"><span class="pre">/local/scratch</span></code> for 3×+ speedup</p></li>

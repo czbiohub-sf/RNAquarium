@@ -14,14 +14,15 @@ necessary to make more computationally expensive downstream searches and taxonom
 
 ## Overview of the workflow
 
-![RNAquarium pipeline overview illustration](_images/RNAquarium-Pipeline-for-Repo_v3.svg)
+![RNAquarium pipeline overview illustration](_images/RNAquarium-Pipeline-for-Repo_v042026.png)
 
 ---
 
 ```{toctree}
-:caption: Part I: Host Mapping
+:caption: Part I: Transcriptomic + Filtering
 :maxdepth: 2
 
+inputs-and-databases
 nonhost-readme
 gettingstarted
 parameters

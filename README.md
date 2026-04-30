@@ -11,4 +11,4 @@ reads retrieved.  For Zebrafish, starting from 77,188 runs this means retaining 
 necessary to make more computationally expensive downstream searches and taxonomy calling feasible.
 
 ## Overview of the workflow
-![RNAquarium pipeline overview illustration](docs/_images/RNAquarium-Pipeline-for-Repo_v3.svg)
+![RNAquarium pipeline overview illustration](docs/_images/RNAquarium-Pipeline-for-Repo_v042026.png)

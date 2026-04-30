@@ -1,26 +1,26 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pipeline overview &mdash; RNAquarium Documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+  <title>Pipeline Overview (Part I: Transcriptomic + Filtering) &mdash; RNAquarium Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
-      <script src="_static/jquery.js"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-      <script src="_static/doctools.js"></script>
-      <script src="_static/sphinx_highlight.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Reference index directory names" href="tips.html" />
-    <link rel="prev" title="RNAquarium pipeline parameters" href="parameters.html" /> 
+    <link rel="prev" title="RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)" href="parameters.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -43,9 +43,34 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Part I: Host Mapping</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Part I: Transcriptomic + Filtering</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="nonhost-readme.html">Non-zebrafish reads from  datasets in SRA</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="inputs-and-databases.html">Inputs &amp; Database Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-i-transcriptomic-filtering">Part I: Transcriptomic + Filtering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#host-reference-genome-required">Host reference genome (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#gtf-annotation-file-required">GTF annotation file (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ercc-spike-in-sequences-required">ERCC spike-in sequences (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#sra-accession-list-required">SRA accession list (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#contaminant-sequences-optional">Contaminant sequences (optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#aligner-indexes-optional-auto-generated">Aligner indexes (optional, auto-generated)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-ii-metatranscriptomics">Part II: Metatranscriptomics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#unmapped-reads-from-part-i-required">Unmapped reads from Part I (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#run-to-bioproject-mapping-required">Run-to-bioproject mapping (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-host-only-subset-required">NCBI NT database — host-only subset (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-full-core-nt-required">NCBI NT database — full core_nt (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nr-database-required">NCBI NR database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#taxonomizr-database-required">Taxonomizr database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#blast-taxonomy-files-required-for-host-filter-step">BLAST taxonomy files (required for host-filter step)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#bbduk-adapter-contaminant-sequences-used-in-post-processing">BBDuk adapter/contaminant sequences (used in post-processing)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#database-summary-table">Database Summary Table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#disk-space-planning">Disk Space Planning</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nonhost-readme.html">Non-host reads from datasets in SRA</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#features">Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#usage">Usage</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="nonhost-readme.html#clone-the-repository">Clone the repository</a></li>
@@ -64,19 +89,30 @@
 <li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="parameters.html">RNAquarium pipeline parameters</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="parameters.html#reference-genome-options">Reference genome options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#pre-built-index-options">Pre-built index options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parameters.html#input-output-options">Input/output options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#generic-options">Generic options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#pipeline-options">Pipeline options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#tool-extra-parameters">Tool extra parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#pipeline-flow-control">Pipeline flow control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#resource-and-performance-options">Resource and performance options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#filtering-options">Filtering options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#publishing-options">Publishing options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#advanced-options">Advanced options</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Pipeline overview</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Pipeline Overview (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#step-0-index-generation">Step 0: Index generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#step-1-sra-prefetch-and-pre-processing">Step 1: SRA prefetch and pre-processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#step-2-filtering-and-adapter-trimming">Step 2: Filtering and adapter trimming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-1-sra-download-and-pre-processing">Step 1: SRA download and pre-processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-adapter-trimming-and-quality-filtering">Step 2: Adapter trimming and quality filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-5-kallisto-contamination-filter-optional">Step 2.5: Kallisto contamination filter (optional)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#step-3-hisat2">Step 3: HISAT2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-3b-host-read-counting-parallel-branch">Step 3b: Host read counting (parallel branch)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-4-star">Step 4: STAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-5-bowtie2">Step 5: Bowtie2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-6-deduplication">Step 6: Deduplication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-7-gsnap">Step 7: GSNAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#summary-statistics">Summary statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#output-structure">Output structure</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tips.html">Reference index directory names</a></li>
@@ -217,7 +253,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Pipeline overview</li>
+      <li class="breadcrumb-item active">Pipeline Overview (Part I: Transcriptomic + Filtering)</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/pipeline-explanation.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -227,48 +263,121 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <p>[OUTDATED]
-The RNAquarium Nonhost Read Pipeline was developed by Chan Zuckerberg Biohub SF to identify viral
-and other non-host sequences in publicly available Zebrafish datasets.</p>
-<section id="pipeline-overview">
-<h1>Pipeline overview<a class="headerlink" href="#pipeline-overview" title="Permalink to this heading"></a></h1>
+  <section id="pipeline-overview-part-i-transcriptomic-filtering">
+<h1>Pipeline Overview (Part I: Transcriptomic + Filtering)<a class="headerlink" href="#pipeline-overview-part-i-transcriptomic-filtering" title="Link to this heading"></a></h1>
+<p>The RNAquarium transcriptomic and filtering pipeline was developed by Chan Zuckerberg Biohub to process publicly available zebrafish RNA-seq datasets. It downloads runs from the NCBI SRA, filters and trims reads, quantifies host gene expression, and passes reads through a series of host genome aligners to progressively remove host reads. The remaining unmapped reads are output as “possible non-host” for downstream metatranscriptomic analysis in Part II.</p>
+<p>For the 75k zebrafish production run, this pipeline retained approximately 11 billion out of 1.64 trillion input reads (~0.7%) as unmapped non-host reads.</p>
 <section id="step-0-index-generation">
-<h2>Step 0: Index generation<a class="headerlink" href="#step-0-index-generation" title="Permalink to this heading"></a></h2>
-<p>We use 4 mappers in the pipeline, all of which need genome indexes generated before mapping can
-take place.</p>
-<p>We generate two versions of the STAR indexes, one without ERCC spike-in controls as part of the
-“reference genome” for use in the host counts pipeline (where we <em>do</em> want to map to host)</p>
-<p>These steps take significant compute resources and time, but allow the mapping per-read to be fast.
-Since we can start generating these in parallel during prefetch (below) and initial read filtering,
-it doesn’t translate to a strong bottleneck.</p>
+<h2>Step 0: Index generation<a class="headerlink" href="#step-0-index-generation" title="Link to this heading"></a></h2>
+<p>The pipeline uses five alignment tools, each requiring its own set of genome indexes. If pre-built indexes are not provided via parameters, they are generated automatically at the start of the run:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Aligner</p></th>
+<th class="head"><p>Index type</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>HISAT2</p></td>
+<td><p>Splice-aware genome index</p></td>
+<td><p>Optionally includes transcript/exon information (<code class="docutils literal notranslate"><span class="pre">--hisat-use-transcript</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>STAR</p></td>
+<td><p>Genome index (without ERCC)</p></td>
+<td><p>Used for host read counting</p></td>
+</tr>
+<tr class="row-even"><td><p>STAR + ERCC</p></td>
+<td><p>Genome index (with ERCC spike-ins)</p></td>
+<td><p>Used for the mapping/filtering step</p></td>
+</tr>
+<tr class="row-odd"><td><p>Bowtie2</p></td>
+<td><p>Genome index</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p>GMAP/GSNAP</p></td>
+<td><p>Hash-based genome index</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<p>Additionally, if a contaminant FASTA is provided (<code class="docutils literal notranslate"><span class="pre">--contam-fa</span></code>), a <strong>kallisto</strong> contamination index is built for the optional pseudoalignment-based host/contaminant filter.</p>
+<p>Index generation is compute-intensive but runs in parallel with early pipeline steps (download, filtering) so it does not create a strong bottleneck. On subsequent runs, pre-built indexes can be supplied to skip this step entirely.</p>
 </section>
-<section id="step-1-sra-prefetch-and-pre-processing">
-<h2>Step 1: SRA prefetch and pre-processing<a class="headerlink" href="#step-1-sra-prefetch-and-pre-processing" title="Permalink to this heading"></a></h2>
-<p>In this stage of the pipeline, we download the SRA accessions specified in <code class="docutils literal notranslate"><span class="pre">--accession-list</span></code>.</p>
-<p>Because this download is slow and unreliable, we recommend that users with appropriate disk space
-specify a <code class="docutils literal notranslate"><span class="pre">--fastq-path</span></code> <strong>even when not using non-SRA database sequences</strong> as this will store the
-downloaded sequences and reuse them on subsequent pipeline runs rather than redownloading.</p>
-<p>“fastq-dump” converts SRA files to FASTQ.</p>
-<p>At this point, we have three patterns:</p>
-<ol class="arabic simple">
-<li><p>single-ended reads, with one FASTQ file.</p></li>
-<li><p>paired reads, with two FASTQ files</p></li>
-<li><p>scRNA-seq reads, with one FASTQ file for barcode sequences and one FASTQ file for reads</p></li>
-</ol>
-<p>The third case’s two files are ambiguous with paired reads to the rest of pipeline, requiring
-that we explicitly check whether a FASTQ looks like barcodes for scRNA-seq, and remove those.</p>
-<p>At the same time as barcode characterization we collect various useful information about an
-accession, such as read count, median read length, and file size in bytes.
-These statistics are useful later for dynamic resource allocation.</p>
+<section id="step-1-sra-download-and-pre-processing">
+<h2>Step 1: SRA download and pre-processing<a class="headerlink" href="#step-1-sra-download-and-pre-processing" title="Link to this heading"></a></h2>
+<p>Reads are downloaded from the NCBI SRA using <code class="docutils literal notranslate"><span class="pre">sra-tools</span></code> (prefetch + fasterq-dump). Because SRA downloads can be slow and unreliable, the pipeline supports throttling concurrent downloads (<code class="docutils literal notranslate"><span class="pre">--parallel-downloads</span></code>) and retries with backoff.</p>
+<p>During download, several pieces of metadata are collected per run: read count, median read length, file size in bytes, and single-end vs paired-end layout. These statistics drive dynamic resource allocation for all downstream steps.</p>
+<p><strong>seq-detective</strong> then analyzes each run to detect and filter technical sequences, particularly scRNA-seq barcodes. SRA datasets can contain three patterns: single-ended reads (one FASTQ), paired-end reads (two FASTQs), or scRNA-seq reads (one barcode FASTQ + one read FASTQ). The barcode files are ambiguous with paired-end layout, so seq-detective identifies and removes them. It can also optionally filter the corresponding mate file (<code class="docutils literal notranslate"><span class="pre">--sd-filter-mates</span></code>).</p>
+<p>Runs that produce empty or negligibly small files after filtering are dropped from further processing.</p>
 </section>
-<section id="step-2-filtering-and-adapter-trimming">
-<h2>Step 2: Filtering and adapter trimming<a class="headerlink" href="#step-2-filtering-and-adapter-trimming" title="Permalink to this heading"></a></h2>
-<p>In this step we do some basic processing of reads.
-We use FASTP for adapter trimming and PriceSeqFilter for quality filtering.</p>
+<section id="step-2-adapter-trimming-and-quality-filtering">
+<h2>Step 2: Adapter trimming and quality filtering<a class="headerlink" href="#step-2-adapter-trimming-and-quality-filtering" title="Link to this heading"></a></h2>
+<p><strong>fastp</strong> performs adapter trimming, quality filtering, and read-level QC. Custom adapter sequences can be provided via <code class="docutils literal notranslate"><span class="pre">--extra-adapters</span></code>. fastp also generates per-run HTML QC reports.</p>
+<p>Reads that are too short or too low-quality after trimming are removed. Runs that fall below a minimum size threshold after this step are dropped.</p>
+</section>
+<section id="step-2-5-kallisto-contamination-filter-optional">
+<h2>Step 2.5: Kallisto contamination filter (optional)<a class="headerlink" href="#step-2-5-kallisto-contamination-filter-optional" title="Link to this heading"></a></h2>
+<p>If a kallisto contamination index is provided (<code class="docutils literal notranslate"><span class="pre">--kb-contam-indexes</span></code>), reads are pseudoaligned against it using <strong>kallisto/bustools</strong> via kb-python. Reads that align to known host or contaminant sequences are removed; unaligned reads continue to the mapping steps.</p>
+<p>This optional step provides fast, lightweight host filtering before the more computationally expensive alignment steps. The <code class="docutils literal notranslate"><span class="pre">--kb-retain-mixed</span></code> parameter controls whether read pairs with one aligning mate are retained or discarded.</p>
 </section>
 <section id="step-3-hisat2">
-<h2>Step 3: HISAT2<a class="headerlink" href="#step-3-hisat2" title="Permalink to this heading"></a></h2>
-<p>Our first mapping step uses HISAT2</p>
+<h2>Step 3: HISAT2<a class="headerlink" href="#step-3-hisat2" title="Link to this heading"></a></h2>
+<p>The first splice-aware alignment step uses <strong>HISAT2</strong> against the host genome. Reads that align to the host are removed; unmapped reads continue. For paired-end data, the <code class="docutils literal notranslate"><span class="pre">--retain-mixed</span></code> parameter controls whether discordant pairs (one mate maps, one does not) are kept or removed.</p>
+<p>HISAT2 alignment statistics (aligned, multi-mapped, unmapped counts) are collected per run for the final summary.</p>
+</section>
+<section id="step-3b-host-read-counting-parallel-branch">
+<h2>Step 3b: Host read counting (parallel branch)<a class="headerlink" href="#step-3b-host-read-counting-parallel-branch" title="Link to this heading"></a></h2>
+<p>In parallel with the non-host filtering path, a separate branch quantifies host gene expression. After fastp trimming, reads are aligned to the host genome with ERCC spike-ins using <strong>STAR</strong> in quantification mode. The resulting BAM is then processed by either:</p>
+<ul class="simple">
+<li><p><strong>featureCounts</strong> (subread, default) — fast, multi-threaded gene counting</p></li>
+<li><p><strong>HTSeq</strong> (optional, via <code class="docutils literal notranslate"><span class="pre">--htseq-count</span></code>) — stricter but slower counting</p></li>
+</ul>
+<p>Per-run count vectors are collected into a combined <code class="docutils literal notranslate"><span class="pre">counts.csv</span></code> matrix. If <code class="docutils literal notranslate"><span class="pre">--output-cram</span></code> is enabled, STAR alignments are additionally compressed to CRAM format for archival.</p>
+<p>Host counting can be skipped entirely with <code class="docutils literal notranslate"><span class="pre">--skip-host-counts</span></code>.</p>
+</section>
+<section id="step-4-star">
+<h2>Step 4: STAR<a class="headerlink" href="#step-4-star" title="Link to this heading"></a></h2>
+<p>Unmapped reads from HISAT2 are aligned to the host genome using <strong>STAR</strong>. Reads that align are removed; unmapped reads continue. STAR threading is dynamically adjusted based on file size (<code class="docutils literal notranslate"><span class="pre">--star-threads-small</span></code> / <code class="docutils literal notranslate"><span class="pre">--star-threads-large</span></code>) and available memory.</p>
+<p>STAR can optionally use shared memory for the genome index (<code class="docutils literal notranslate"><span class="pre">--star-use-shared-mem</span></code>), which is useful when many concurrent STAR jobs run on the same node.</p>
+</section>
+<section id="step-5-bowtie2">
+<h2>Step 5: Bowtie2<a class="headerlink" href="#step-5-bowtie2" title="Link to this heading"></a></h2>
+<p>Unmapped reads from STAR are aligned using <strong>Bowtie2</strong> in its default end-to-end sensitive mode. This catches reads missed by the splice-aware aligners. Reads that align are removed.</p>
+<p>Runs that produce empty output after this step are dropped before deduplication.</p>
+</section>
+<section id="step-6-deduplication">
+<h2>Step 6: Deduplication<a class="headerlink" href="#step-6-deduplication" title="Link to this heading"></a></h2>
+<p><strong>czid-dedup</strong> removes PCR and optical duplicate reads. This step operates on the reads that survived all three alignment filters. Deduplication failures are common when average read length is very short (due to aggressive trimming), in which case the run is dropped with an <code class="docutils literal notranslate"><span class="pre">ignore</span></code> error strategy.</p>
+<p>Parameters <code class="docutils literal notranslate"><span class="pre">--dedup-percent-len</span></code> and <code class="docutils literal notranslate"><span class="pre">--dedup-min-len</span></code> control the minimum length thresholds for deduplication.</p>
+</section>
+<section id="step-7-gsnap">
+<h2>Step 7: GSNAP<a class="headerlink" href="#step-7-gsnap" title="Link to this heading"></a></h2>
+<p>The final alignment step uses <strong>GSNAP</strong> (from the GMAP suite) as a sensitive catch-all aligner. Reads that align to the host genome are removed. The remaining unmapped reads are the pipeline’s final output — “possible non-host” reads written as compressed FASTQ files.</p>
+<p>Output is organized into <code class="docutils literal notranslate"><span class="pre">unmapped_reads/Single/</span></code> and <code class="docutils literal notranslate"><span class="pre">unmapped_reads/Paired/</span></code> subdirectories by accession ID.</p>
+<p>If GSNAP fails for a run (for reasons other than out-of-memory), the pipeline falls back to keeping the non-host reads from the previous step (post-dedup, pre-GSNAP).</p>
+</section>
+<section id="summary-statistics">
+<h2>Summary statistics<a class="headerlink" href="#summary-statistics" title="Link to this heading"></a></h2>
+<p>At the end of the pipeline, per-run statistics from every step are collected into a CSV file (<code class="docutils literal notranslate"><span class="pre">stats-&lt;timestamp&gt;.csv</span></code>) and an overall summary (<code class="docutils literal notranslate"><span class="pre">host-filtering.summary.txt</span></code>). The CSV includes columns for read counts at each stage: starting reads, fastp output, kallisto output, HISAT2/STAR/Bowtie2 unmapped counts, dedup output, GSNAP unmapped counts, and final non-host read count.</p>
+</section>
+<section id="output-structure">
+<h2>Output structure<a class="headerlink" href="#output-structure" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;publish-dir&gt;/
+├── download/                    # Per-run download info and seq-detective results
+├── host_counts/                 # Gene count matrices and alignments
+│   ├── counts.csv               # Combined count matrix (all runs)
+│   ├── Single/&lt;id&gt;/             # Per-run count files (single-end)
+│   ├── Paired/&lt;id&gt;/             # Per-run count files (paired-end)
+│   └── alignments/              # CRAM files (if --output-cram)
+├── unmapped_reads/              # Final non-host reads (Part II input)
+│   ├── Single/&lt;id&gt;/             # Per-run unmapped FASTQs (single-end)
+│   └── Paired/&lt;id&gt;/             # Per-run unmapped FASTQs (paired-end)
+├── reports/
+│   └── stats-&lt;timestamp&gt;.csv   # Per-run statistics across all steps
+├── host-filtering.summary.txt  # Aggregate summary
+└── &lt;index directories&gt;/         # Generated aligner indexes (if not pre-built)
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -276,7 +385,7 @@ We use FASTP for adapter trimming and PriceSeqFilter for quality filtering.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="parameters.html" class="btn btn-neutral float-left" title="RNAquarium pipeline parameters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parameters.html" class="btn btn-neutral float-left" title="RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="tips.html" class="btn btn-neutral float-right" title="Reference index directory names" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

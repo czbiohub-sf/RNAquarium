@@ -4,7 +4,7 @@ Taxonomic classification and viral discovery from non-host reads.
 
 ## Features
 
-* Input: non-host reads from Part I (host mapping pipeline)
+* Input: non-host reads from Part I (transcriptomic + filtering pipeline)
 * Assembles contigs with SPAdes
 * BLASTn against nt and Diamond against nr for taxonomic classification
 * BBDuk-based adapter/contaminant filtering

@@ -1,26 +1,26 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Getting Started &mdash; RNAquarium Documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
-      <script src="_static/jquery.js"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-      <script src="_static/doctools.js"></script>
-      <script src="_static/sphinx_highlight.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="RNAquarium pipeline parameters" href="parameters.html" />
-    <link rel="prev" title="Non-zebrafish reads from datasets in SRA" href="nonhost-readme.html" /> 
+    <link rel="next" title="RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)" href="parameters.html" />
+    <link rel="prev" title="Non-host reads from datasets in SRA" href="nonhost-readme.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -43,9 +43,34 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Part I: Host Mapping</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Part I: Transcriptomic + Filtering</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="nonhost-readme.html">Non-zebrafish reads from  datasets in SRA</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="inputs-and-databases.html">Inputs &amp; Database Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-i-transcriptomic-filtering">Part I: Transcriptomic + Filtering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#host-reference-genome-required">Host reference genome (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#gtf-annotation-file-required">GTF annotation file (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ercc-spike-in-sequences-required">ERCC spike-in sequences (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#sra-accession-list-required">SRA accession list (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#contaminant-sequences-optional">Contaminant sequences (optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#aligner-indexes-optional-auto-generated">Aligner indexes (optional, auto-generated)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-ii-metatranscriptomics">Part II: Metatranscriptomics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#unmapped-reads-from-part-i-required">Unmapped reads from Part I (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#run-to-bioproject-mapping-required">Run-to-bioproject mapping (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-host-only-subset-required">NCBI NT database — host-only subset (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-full-core-nt-required">NCBI NT database — full core_nt (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nr-database-required">NCBI NR database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#taxonomizr-database-required">Taxonomizr database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#blast-taxonomy-files-required-for-host-filter-step">BLAST taxonomy files (required for host-filter step)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#bbduk-adapter-contaminant-sequences-used-in-post-processing">BBDuk adapter/contaminant sequences (used in post-processing)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#database-summary-table">Database Summary Table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#disk-space-planning">Disk Space Planning</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nonhost-readme.html">Non-host reads from datasets in SRA</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#features">Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#usage">Usage</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="nonhost-readme.html#clone-the-repository">Clone the repository</a></li>
@@ -64,19 +89,30 @@
 <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="parameters.html">RNAquarium pipeline parameters</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="parameters.html#reference-genome-options">Reference genome options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#pre-built-index-options">Pre-built index options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parameters.html#input-output-options">Input/output options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#generic-options">Generic options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#pipeline-options">Pipeline options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parameters.html#tool-extra-parameters">Tool extra parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#pipeline-flow-control">Pipeline flow control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#resource-and-performance-options">Resource and performance options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#filtering-options">Filtering options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#publishing-options">Publishing options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameters.html#advanced-options">Advanced options</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline-explanation.html">Pipeline overview</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="pipeline-explanation.html">Pipeline Overview (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-0-index-generation">Step 0: Index generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-1-sra-prefetch-and-pre-processing">Step 1: SRA prefetch and pre-processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-filtering-and-adapter-trimming">Step 2: Filtering and adapter trimming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-1-sra-download-and-pre-processing">Step 1: SRA download and pre-processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-adapter-trimming-and-quality-filtering">Step 2: Adapter trimming and quality filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-5-kallisto-contamination-filter-optional">Step 2.5: Kallisto contamination filter (optional)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-3-hisat2">Step 3: HISAT2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-3b-host-read-counting-parallel-branch">Step 3b: Host read counting (parallel branch)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-4-star">Step 4: STAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-5-bowtie2">Step 5: Bowtie2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-6-deduplication">Step 6: Deduplication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-7-gsnap">Step 7: GSNAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#summary-statistics">Summary statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#output-structure">Output structure</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tips.html">Reference index directory names</a></li>
@@ -228,9 +264,9 @@
            <div itemprop="articleBody">
              
   <section id="getting-started">
-<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading"></a></h1>
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h1>
 <section id="dependencies">
-<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading"></a></h2>
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
 <p>The RNAquarium pipeline requires several tools to be available in <code class="docutils literal notranslate"><span class="pre">$PATH</span></code>.</p>
 <p>They can either be installed separately, or, more typically, provided by containers.
 <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">docker</span></code> or <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">singularity</span></code></p>
@@ -241,7 +277,7 @@ These can be installed with</p>
 </div>
 </section>
 <section id="running-the-pipeline">
-<h2>Running the pipeline<a class="headerlink" href="#running-the-pipeline" title="Permalink to this heading"></a></h2>
+<h2>Running the pipeline<a class="headerlink" href="#running-the-pipeline" title="Link to this heading"></a></h2>
 <p>the main preprocessing pipeline is the default entry point of <code class="docutils literal notranslate"><span class="pre">main.nf</span></code>.</p>
 <p>The minimum required inputs are</p>
 <ul class="simple">
@@ -262,7 +298,7 @@ These can be installed with</p>
 <span class="nt">ref-genome-gtf</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">host.gtf</span>
 <span class="nt">ercc-fa</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ERCC92.fa</span>
 <span class="nt">ercc-gtf</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ERCC92.gtf</span>
-<span class="nt">genome-size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1396431182</span>
+<span class="nt">genome-size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1448808683</span>
 <span class="nt">accession-list</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">accession-list.txt</span>
 </pre></div>
 </div>
@@ -270,30 +306,23 @@ These can be installed with</p>
 <p>First, note that <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">local</span></code> causes the pipeline to use the <code class="docutils literal notranslate"><span class="pre">local</span></code> profile configuration in <code class="docutils literal notranslate"><span class="pre">nextflow.config</span></code>.  This is only appropriate for testing on a single user device.</p>
 <p>If you are running on a cluster that runs slurm, this should be <code class="docutils literal notranslate"><span class="pre">-profile</span> <span class="pre">slurm</span></code> and that profile should be adapted to your cluster as appropriate (in particular, <code class="docutils literal notranslate"><span class="pre">maxMemory</span></code>, <code class="docutils literal notranslate"><span class="pre">maxCpus</span></code>, <code class="docutils literal notranslate"><span class="pre">queue</span></code> should be updated according to your partitions, and the fallback for the <code class="docutils literal notranslate"><span class="pre">scratch</span></code> temp directory should be customized)</p>
 <p>If you are running on a cluster environment that uses a <strong>different</strong> workload manager/executor, you must copy the <code class="docutils literal notranslate"><span class="pre">slurm</span></code> profile to a new profile for your environment and, minimally, change the executor to the appropriate one according to https://www.nextflow.io/docs/latest/executor.html</p>
-<p>Depending on your environment and workload, more configuration may be needed; see [[params.html]]</p>
+<p>Depending on your environment and workload, more configuration may be needed; see <a class="reference internal" href="parameters.html"><span class="std std-doc">Parameters</span></a></p>
 </section>
 <section id="on-failed-tasks">
-<h2>On ‘failed’ Tasks<a class="headerlink" href="#on-failed-tasks" title="Permalink to this heading"></a></h2>
+<h2>On ‘failed’ Tasks<a class="headerlink" href="#on-failed-tasks" title="Link to this heading"></a></h2>
 <p>when running the pipeline you may get messages that some processes have failed.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mi">22</span><span class="o">/</span><span class="mi">70</span><span class="n">ef62</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">prefetch</span> <span class="p">(</span><span class="n">SRR7947912</span><span class="p">)</span>          <span class="p">[</span> <span class="mi">99</span><span class="o">%</span><span class="p">]</span> <span class="mi">185</span> <span class="n">of</span> <span class="mi">186</span><span class="p">,</span> <span class="n">failed</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">retries</span><span class="p">:</span> <span class="mi">1</span>
-<span class="p">[</span><span class="mi">2</span><span class="n">d</span><span class="o">/</span><span class="mi">76614</span><span class="n">c</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">fastq_dump</span> <span class="p">(</span><span class="n">SRR11164691</span><span class="p">)</span>       <span class="p">[</span> <span class="mi">89</span><span class="o">%</span><span class="p">]</span> <span class="mi">164</span> <span class="n">of</span> <span class="mi">184</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mi">22</span><span class="o">/</span><span class="mi">70</span><span class="n">ef62</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">download</span> <span class="p">(</span><span class="n">SRR7947912</span><span class="p">)</span>          <span class="p">[</span> <span class="mi">99</span><span class="o">%</span><span class="p">]</span> <span class="mi">185</span> <span class="n">of</span> <span class="mi">186</span><span class="p">,</span> <span class="n">failed</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">retries</span><span class="p">:</span> <span class="mi">1</span>
 <span class="p">[</span><span class="o">-</span>        <span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">check_direct_fastqs</span>            <span class="o">-</span>
 <span class="p">[</span><span class="mi">2</span><span class="n">d</span><span class="o">/</span><span class="mi">7</span><span class="n">cbd5b</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">filter_barcodes</span> <span class="p">(</span><span class="n">SRR19077303</span><span class="p">)</span>  <span class="p">[</span> <span class="mi">92</span><span class="o">%</span><span class="p">]</span> <span class="mi">151</span> <span class="n">of</span> <span class="mi">164</span>
 <span class="p">[</span><span class="mi">20</span><span class="o">/</span><span class="mi">299</span><span class="n">d1b</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">fastp</span> <span class="p">(</span><span class="n">SRR16292403</span><span class="p">)</span>            <span class="p">[</span> <span class="mi">96</span><span class="o">%</span><span class="p">]</span> <span class="mi">148</span> <span class="n">of</span> <span class="mi">153</span><span class="p">,</span> <span class="n">failed</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">retries</span><span class="p">:</span> <span class="mi">2</span>
-<span class="p">[</span><span class="mi">9</span><span class="n">d</span><span class="o">/</span><span class="n">aba73c</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">priceseqfilter</span> <span class="p">(</span><span class="n">SRR12623494</span><span class="p">)</span>   <span class="p">[</span> <span class="mi">89</span><span class="o">%</span><span class="p">]</span> <span class="mi">131</span> <span class="n">of</span> <span class="mi">146</span>
 <span class="p">[</span><span class="n">a4</span><span class="o">/</span><span class="mf">1e902</span><span class="n">c</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">star_counts</span> <span class="p">(</span><span class="n">SRR9608473</span><span class="p">)</span>       <span class="p">[</span> <span class="mi">96</span><span class="o">%</span><span class="p">]</span> <span class="mi">126</span> <span class="n">of</span> <span class="mi">130</span>
-<span class="p">[</span><span class="n">cd</span><span class="o">/</span><span class="mi">528</span><span class="n">a40</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">sort_bam</span> <span class="p">(</span><span class="n">SRR7240614</span><span class="p">)</span>          <span class="p">[</span> <span class="mi">99</span><span class="o">%</span><span class="p">]</span> <span class="mi">125</span> <span class="n">of</span> <span class="mi">126</span>
-<span class="p">[</span><span class="mi">5</span><span class="n">d</span><span class="o">/</span><span class="n">ebdd65</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">htseq_count</span> <span class="p">(</span><span class="n">SRR5687193</span><span class="p">)</span>       <span class="p">[</span> <span class="mi">87</span><span class="o">%</span><span class="p">]</span> <span class="mi">109</span> <span class="n">of</span> <span class="mi">125</span>
+<span class="p">[</span><span class="mi">5</span><span class="n">d</span><span class="o">/</span><span class="n">ebdd65</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">feature_count</span> <span class="p">(</span><span class="n">SRR5687193</span><span class="p">)</span>     <span class="p">[</span> <span class="mi">87</span><span class="o">%</span><span class="p">]</span> <span class="mi">109</span> <span class="n">of</span> <span class="mi">125</span>
+<span class="p">[</span><span class="mi">12</span><span class="o">/</span><span class="n">ab3c4f</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">kb_negative</span> <span class="p">(</span><span class="n">SRR19077303</span><span class="p">)</span>      <span class="p">[</span> <span class="mi">94</span><span class="o">%</span><span class="p">]</span> <span class="mi">142</span> <span class="n">of</span> <span class="mi">150</span>
 <span class="p">[</span><span class="mi">9</span><span class="n">a</span><span class="o">/</span><span class="n">f711a0</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">hisat2</span> <span class="p">(</span><span class="n">SRR9608473</span><span class="p">)</span>            <span class="p">[</span> <span class="mi">96</span><span class="o">%</span><span class="p">]</span> <span class="mi">125</span> <span class="n">of</span> <span class="mi">130</span>
 <span class="p">[</span><span class="mi">16</span><span class="o">/</span><span class="mi">5</span><span class="n">ca824</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">star</span> <span class="p">(</span><span class="n">SRR6176732</span><span class="p">)</span>              <span class="p">[</span><span class="mi">100</span><span class="o">%</span><span class="p">]</span> <span class="mi">125</span> <span class="n">of</span> <span class="mi">125</span>
 <span class="p">[</span><span class="mi">74</span><span class="o">/</span><span class="mi">733</span><span class="n">caf</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">bowtie2</span> <span class="p">(</span><span class="n">SRR6268189</span><span class="p">)</span>           <span class="p">[</span> <span class="mi">96</span><span class="o">%</span><span class="p">]</span> <span class="mi">122</span> <span class="n">of</span> <span class="mi">126</span><span class="p">,</span> <span class="n">failed</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">retries</span><span class="p">:</span> <span class="mi">1</span>
-<span class="p">[</span><span class="n">bf</span><span class="o">/</span><span class="mi">13</span><span class="n">a88e</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">process_bowtie2_sam</span> <span class="p">(</span><span class="n">SRR120</span><span class="o">...</span> <span class="p">[</span> <span class="mi">95</span><span class="o">%</span><span class="p">]</span> <span class="mi">116</span> <span class="n">of</span> <span class="mi">121</span>
-<span class="p">[</span><span class="mi">29</span><span class="o">/</span><span class="n">c03fbb</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">bowtie2_filter_by_names</span> <span class="p">(</span><span class="n">SR</span><span class="o">...</span> <span class="p">[</span> <span class="mi">95</span><span class="o">%</span><span class="p">]</span> <span class="mi">111</span> <span class="n">of</span> <span class="mi">116</span>
 <span class="p">[</span><span class="n">d9</span><span class="o">/</span><span class="mi">4</span><span class="n">eb1b9</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">dedup</span> <span class="p">(</span><span class="n">SRR20001190</span><span class="p">)</span>            <span class="p">[</span> <span class="mi">94</span><span class="o">%</span><span class="p">]</span> <span class="mi">109</span> <span class="n">of</span> <span class="mi">115</span><span class="p">,</span> <span class="n">failed</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="n">retries</span><span class="p">:</span> <span class="mi">4</span>
 <span class="p">[</span><span class="mi">71</span><span class="o">/</span><span class="n">ac0eb6</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">gsnap</span> <span class="p">(</span><span class="n">SRR2968455</span><span class="p">)</span>             <span class="p">[</span> <span class="mi">77</span><span class="o">%</span><span class="p">]</span> <span class="mi">80</span> <span class="n">of</span> <span class="mi">103</span>
-<span class="p">[</span><span class="mi">01</span><span class="o">/</span><span class="n">d34f25</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">process_gsnap_sam</span> <span class="p">(</span><span class="n">SRR5418456</span><span class="p">)</span> <span class="p">[</span> <span class="mi">91</span><span class="o">%</span><span class="p">]</span> <span class="mi">73</span> <span class="n">of</span> <span class="mi">80</span>
-<span class="p">[</span><span class="mi">24</span><span class="o">/</span><span class="n">fa8d08</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">gsnap_filter_by_names</span> <span class="p">(</span><span class="n">SRR1</span><span class="o">...</span> <span class="p">[</span> <span class="mi">95</span><span class="o">%</span><span class="p">]</span> <span class="mi">70</span> <span class="n">of</span> <span class="mi">73</span>
-<span class="p">[</span><span class="o">-</span>        <span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">gsnap_skip</span>                     <span class="o">-</span>
 <span class="p">[</span><span class="mi">2</span><span class="n">c</span><span class="o">/</span><span class="mi">30764</span><span class="n">f</span><span class="p">]</span> <span class="n">process</span> <span class="o">&gt;</span> <span class="n">stats_csv</span> <span class="p">(</span><span class="n">SRR6933827</span><span class="p">)</span>         <span class="p">[</span> <span class="mi">95</span><span class="o">%</span><span class="p">]</span> <span class="mi">70</span> <span class="n">of</span> <span class="mi">73</span>
 </pre></div>
 </div>
@@ -310,12 +339,12 @@ concurrent downloads with <code class="docutils literal notranslate"><span class
 worth investigating or tuning further.</p>
 </section>
 <section id="troubleshooting">
-<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this heading"></a></h2>
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
 <p>If STAR (or hisat2, or bowtie2, or gsnap) complain about missing input index files due to nextflow
 dependency copy race conditions, you can try running</p>
 <p><code class="docutils literal notranslate"><span class="pre">nextflow</span> <span class="pre">run</span> <span class="pre">modules/step.0.generate_indexes.nf</span></code></p>
 <p>to create the indexes ahead of time as a workaround.</p>
-<p>Make sure to use the precomputed index [[parameters]] (<code class="docutils literal notranslate"><span class="pre">--hisat-ref-indexes</span></code>, <code class="docutils literal notranslate"><span class="pre">--star-ref-indexes-ercc</span></code>, <code class="docutils literal notranslate"><span class="pre">--star-ref-indexes</span></code>, etc.)</p>
+<p>Make sure to use the precomputed index <a class="reference internal" href="parameters.html"><span class="std std-doc">parameters</span></a> (<code class="docutils literal notranslate"><span class="pre">--hisat-ref-indexes</span></code>, <code class="docutils literal notranslate"><span class="pre">--star-ref-indexes-ercc</span></code>, <code class="docutils literal notranslate"><span class="pre">--star-ref-indexes</span></code>, etc.)</p>
 </section>
 </section>
 
@@ -323,8 +352,8 @@ dependency copy race conditions, you can try running</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="nonhost-readme.html" class="btn btn-neutral float-left" title="Non-zebrafish reads from datasets in SRA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="parameters.html" class="btn btn-neutral float-right" title="RNAquarium pipeline parameters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="nonhost-readme.html" class="btn btn-neutral float-left" title="Non-host reads from datasets in SRA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parameters.html" class="btn btn-neutral float-right" title="RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

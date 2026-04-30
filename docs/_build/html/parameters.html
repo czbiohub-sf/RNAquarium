@@ -1,25 +1,25 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RNAquarium pipeline parameters &mdash; RNAquarium Documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+  <title>RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering) &mdash; RNAquarium Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
-      <script src="_static/jquery.js"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-      <script src="_static/doctools.js"></script>
-      <script src="_static/sphinx_highlight.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Pipeline overview" href="pipeline-explanation.html" />
+    <link rel="next" title="Pipeline Overview (Part I: Transcriptomic + Filtering)" href="pipeline-explanation.html" />
     <link rel="prev" title="Getting Started" href="gettingstarted.html" /> 
 </head>
 
@@ -43,9 +43,34 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Part I: Host Mapping</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Part I: Transcriptomic + Filtering</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="nonhost-readme.html">Non-zebrafish reads from  datasets in SRA</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="inputs-and-databases.html">Inputs &amp; Database Requirements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-i-transcriptomic-filtering">Part I: Transcriptomic + Filtering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#host-reference-genome-required">Host reference genome (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#gtf-annotation-file-required">GTF annotation file (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ercc-spike-in-sequences-required">ERCC spike-in sequences (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#sra-accession-list-required">SRA accession list (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#contaminant-sequences-optional">Contaminant sequences (optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#aligner-indexes-optional-auto-generated">Aligner indexes (optional, auto-generated)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#part-ii-metatranscriptomics">Part II: Metatranscriptomics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#unmapped-reads-from-part-i-required">Unmapped reads from Part I (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#run-to-bioproject-mapping-required">Run-to-bioproject mapping (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-host-only-subset-required">NCBI NT database — host-only subset (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nt-database-full-core-nt-required">NCBI NT database — full core_nt (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#ncbi-nr-database-required">NCBI NR database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#taxonomizr-database-required">Taxonomizr database (required)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#blast-taxonomy-files-required-for-host-filter-step">BLAST taxonomy files (required for host-filter step)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="inputs-and-databases.html#bbduk-adapter-contaminant-sequences-used-in-post-processing">BBDuk adapter/contaminant sequences (used in post-processing)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#database-summary-table">Database Summary Table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputs-and-databases.html#disk-space-planning">Disk Space Planning</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nonhost-readme.html">Non-host reads from datasets in SRA</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#features">Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nonhost-readme.html#usage">Usage</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="nonhost-readme.html#clone-the-repository">Clone the repository</a></li>
@@ -64,19 +89,30 @@
 <li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">RNAquarium pipeline parameters</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#reference-genome-options">Reference genome options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pre-built-index-options">Pre-built index options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#input-output-options">Input/output options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#generic-options">Generic options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pipeline-options">Pipeline options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#tool-extra-parameters">Tool extra parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pipeline-flow-control">Pipeline flow control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-and-performance-options">Resource and performance options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#filtering-options">Filtering options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#publishing-options">Publishing options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-options">Advanced options</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="pipeline-explanation.html">Pipeline overview</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="pipeline-explanation.html">Pipeline Overview (Part I: Transcriptomic + Filtering)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-0-index-generation">Step 0: Index generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-1-sra-prefetch-and-pre-processing">Step 1: SRA prefetch and pre-processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-filtering-and-adapter-trimming">Step 2: Filtering and adapter trimming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-1-sra-download-and-pre-processing">Step 1: SRA download and pre-processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-adapter-trimming-and-quality-filtering">Step 2: Adapter trimming and quality filtering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-2-5-kallisto-contamination-filter-optional">Step 2.5: Kallisto contamination filter (optional)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-3-hisat2">Step 3: HISAT2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-3b-host-read-counting-parallel-branch">Step 3b: Host read counting (parallel branch)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-4-star">Step 4: STAR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-5-bowtie2">Step 5: Bowtie2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-6-deduplication">Step 6: Deduplication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#step-7-gsnap">Step 7: GSNAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#summary-statistics">Summary statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pipeline-explanation.html#output-structure">Output structure</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tips.html">Reference index directory names</a></li>
@@ -217,7 +253,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">RNAquarium pipeline parameters</li>
+      <li class="breadcrumb-item active">RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/parameters.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -227,10 +263,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="rnaquarium-pipeline-parameters">
-<h1>RNAquarium pipeline parameters<a class="headerlink" href="#rnaquarium-pipeline-parameters" title="Permalink to this heading"></a></h1>
+  <section id="rnaquarium-pipeline-parameters-part-i-transcriptomic-filtering">
+<h1>RNAquarium pipeline parameters (Part I: Transcriptomic + Filtering)<a class="headerlink" href="#rnaquarium-pipeline-parameters-part-i-transcriptomic-filtering" title="Link to this heading"></a></h1>
 <section id="reference-genome-options">
-<h2>Reference genome options<a class="headerlink" href="#reference-genome-options" title="Permalink to this heading"></a></h2>
+<h2>Reference genome options<a class="headerlink" href="#reference-genome-options" title="Link to this heading"></a></h2>
 <p>Reference genome related files and options required for the workflow.</p>
 <table class="docutils align-default">
 <thead>
@@ -239,72 +275,99 @@
 <th class="head"><p>Type</p></th>
 <th class="head"><p>Default</p></th>
 <th class="head"><p>Required</p></th>
-<th class="head"><p>Hidden</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">genomeSize</span></code></p></td>
-<td><p></p></td>
+<td><p>Approximate host genome size in bytes</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">number</span></code></p></td>
-<td><p></p></td>
-<td><p>True</p></td>
-<td><p></p></td>
+<td><p>—</p></td>
+<td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">starRefIndexes</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">refGenome</span></code></p></td>
+<td><p>Host reference genome FASTA (bgzip compressed)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Danio_rerio.GRCz11.dna_sm.primary_assembly.fa</span></code></p></td>
+<td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">starRefIndexesErcc</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">refGenomeGtf</span></code></p></td>
+<td><p>Host reference GTF annotation</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Danio_rerio.GRCz11.108.gtf</span></code></p></td>
+<td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hisatRefIndexes</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">erccFa</span></code></p></td>
+<td><p>ERCC spike-in FASTA sequences</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ERCC92.fa</span></code></p></td>
+<td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">refGenome</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">erccGtf</span></code></p></td>
+<td><p>ERCC spike-in GTF annotation</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p>Danio_rerio.GRCz11.dna_sm.primary_assembly.fa</p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ERCC92.gtf</span></code></p></td>
+<td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">refGenomeGtf</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">contamFa</span></code></p></td>
+<td><p>Contaminant FASTA for kallisto filtering</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p>Danio_rerio.GRCz11.108.gtf</p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p>—</p></td>
+<td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">erccFa</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p>ERCC92.fa</p></td>
-<td><p></p></td>
-<td><p></p></td>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The default genome filenames still reference GRCz11. The 75k production run used GRCz12tu (<code class="docutils literal notranslate"><span class="pre">GCF_049306965.1_GRCz12tu_genomic.fa.gz</span></code>) with <code class="docutils literal notranslate"><span class="pre">genome-size:</span> <span class="pre">1448808683</span></code>, supplied via a params file that overrides these defaults.</p>
+</div>
+</section>
+<section id="pre-built-index-options">
+<h2>Pre-built index options<a class="headerlink" href="#pre-built-index-options" title="Link to this heading"></a></h2>
+<p>Supply pre-built aligner indexes to skip index generation. If not provided, indexes are generated automatically from the reference genome.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">erccGtf</span></code></p></td>
-<td><p></p></td>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">starRefIndexes</span></code></p></td>
+<td><p>STAR genome index directory (without ERCC)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p>ERCC92.gtf</p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">starRefIndexesErcc</span></code></p></td>
+<td><p>STAR genome index directory (with ERCC)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hisatRefIndexes</span></code></p></td>
+<td><p>HISAT2 index directory</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bowtieRefIndexes</span></code></p></td>
+<td><p>Bowtie2 index directory</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gsnapRefIndexes</span></code></p></td>
+<td><p>GMAP/GSNAP index directory</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kbContamIndexes</span></code></p></td>
+<td><p>Kallisto contamination index file</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
+<td><p>—</p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="input-output-options">
-<h2>Input/output options<a class="headerlink" href="#input-output-options" title="Permalink to this heading"></a></h2>
-<p>Basic inputs and outputs</p>
+<h2>Input/output options<a class="headerlink" href="#input-output-options" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Parameter</p></th>
@@ -312,262 +375,269 @@
 <th class="head"><p>Type</p></th>
 <th class="head"><p>Default</p></th>
 <th class="head"><p>Required</p></th>
-<th class="head"><p>Hidden</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">accessionList</span></code></p></td>
-<td><p></p></td>
+<td><p>File with SRA run accessions (one per line, or CSV with <code class="docutils literal notranslate"><span class="pre">Run,size_MB</span></code> columns)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p>True</p></td>
-<td><p></p></td>
+<td><p>—</p></td>
+<td><p>Yes (or <code class="docutils literal notranslate"><span class="pre">fastqPath</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastqPath</span></code></p></td>
-<td><p></p></td>
+<td><p>Glob pattern for pre-downloaded FASTQ files</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="generic-options">
-<h2>Generic options<a class="headerlink" href="#generic-options" title="Permalink to this heading"></a></h2>
-<p>Less common options for the pipeline, typically set in a config file.</p>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Parameter</p></th>
-<th class="head"><p>Description</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Default</p></th>
-<th class="head"><p>Required</p></th>
-<th class="head"><p>Hidden</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">help</span></code></p></td>
-<td><p>Display help text.</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p>True</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">h</span></code></p></td>
-<td><p>Display help text.</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reportdir</span></code></p></td>
-<td><p>directory to write nextflow reports/traces to</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p>reports</p></td>
-<td><p></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">timestamp</span></code></p></td>
-<td><p>timestamp to append to nextflow reports (default: current time, YYMMDD-HHmmss)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p>231108-222816</p></td>
-<td><p></p></td>
-<td><p>True</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tmp</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">parallelDownloads</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">number</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p>—</p></td>
+<td><p>No</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">publishDir</span></code></p></td>
-<td><p></p></td>
+<td><p>Output directory for results</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">$PWD</span></code></p></td>
+<td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">publishIntermediate</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tmp</span></code></p></td>
+<td><p>Scratch directory for temporary files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
+<td><p>—</p></td>
+<td><p>Recommended</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">publishFastqs</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
-<td><p>True</p></td>
-<td><p></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">publishPricefiltered</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
-<td><p>True</p></td>
-<td><p></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">publishReadcounts</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
-<td><p>True</p></td>
-<td><p></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">publishHisat</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
-<td><p>True</p></td>
-<td><p></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">publishStar</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
-<td><p>True</p></td>
-<td><p></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">backupTmp</span></code></p></td>
+<td><p>Fallback scratch directory</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
+<td><p>—</p></td>
+<td><p>No</p></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="pipeline-options">
-<h2>Pipeline options<a class="headerlink" href="#pipeline-options" title="Permalink to this heading"></a></h2>
-<p>Control for pipeline flow</p>
+<section id="pipeline-flow-control">
+<h2>Pipeline flow control<a class="headerlink" href="#pipeline-flow-control" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Parameter</p></th>
 <th class="head"><p>Description</p></th>
 <th class="head"><p>Type</p></th>
 <th class="head"><p>Default</p></th>
-<th class="head"><p>Required</p></th>
-<th class="head"><p>Hidden</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">skipHostCounts</span></code></p></td>
-<td><p></p></td>
+<td><p>Skip the host gene counting branch (Step 3b)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">skipHisat</span></code></p></td>
-<td><p></p></td>
+<td><p>Skip HISAT2 alignment step</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">htseqCount</span></code></p></td>
+<td><p>Use HTSeq instead of featureCounts for gene counting</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">outputCram</span></code></p></td>
+<td><p>Compress host alignments to CRAM format</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">retainMixed</span></code></p></td>
+<td><p>Retain discordant pairs (one mate maps, one does not) as non-host</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kbRetainMixed</span></code></p></td>
+<td><p>Retain discordant pairs in kallisto filter</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hisatUseTranscript</span></code></p></td>
-<td><p></p></td>
+<td><p>Include transcript/exon info in HISAT2 index</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="tool-extra-parameters">
-<h2>Tool extra parameters<a class="headerlink" href="#tool-extra-parameters" title="Permalink to this heading"></a></h2>
+<section id="resource-and-performance-options">
+<h2>Resource and performance options<a class="headerlink" href="#resource-and-performance-options" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Parameter</p></th>
 <th class="head"><p>Description</p></th>
 <th class="head"><p>Type</p></th>
 <th class="head"><p>Default</p></th>
-<th class="head"><p>Required</p></th>
-<th class="head"><p>Hidden</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">starIndexGenOptions</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">parallelDownloads</span></code></p></td>
+<td><p>Maximum concurrent SRA downloads</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">number</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">100</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hisatIndexGenOptions</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">maxCpus</span></code></p></td>
+<td><p>Maximum CPUs per process</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">number</span></code></p></td>
+<td><p>(profile-dependent)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sraPrefetchOptions</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">maxMemory</span></code></p></td>
+<td><p>Maximum memory per process</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p>(profile-dependent)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastqDumpOptions</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">starThreadsSmall</span></code></p></td>
+<td><p>STAR threads for small files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">number</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastpOptions</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">starThreadsLarge</span></code></p></td>
+<td><p>STAR threads for large files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">number</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">16</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">priceOptions</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">starSjdbOverhang</span></code></p></td>
+<td><p>STAR splice junction database overhang length</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">number</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">100</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">starCountOptions</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">starUseSharedMem</span></code></p></td>
+<td><p>Use STAR shared-memory genome loading</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">samtoolsSortOptions</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">seed</span></code></p></td>
+<td><p>Random seed for reproducibility</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">number</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">32854</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">htseqCountOptions</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+</tbody>
+</table>
+</section>
+<section id="filtering-options">
+<h2>Filtering options<a class="headerlink" href="#filtering-options" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hisatOptions</span></code></p></td>
-<td><p></p></td>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">extraAdapters</span></code></p></td>
+<td><p>Path to additional adapter sequences FASTA</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">$PWD/extra-adapters.fasta</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">starOptions</span></code></p></td>
-<td><p></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">string</span></code></p></td>
-<td><p></p></td>
-<td><p></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sdFilterMates</span></code></p></td>
+<td><p>seq-detective: also filter the mate of a detected barcode file</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dedupPercentLen</span></code></p></td>
+<td><p>czid-dedup: percentage of read length threshold</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">number</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">100</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dedupMinLen</span></code></p></td>
+<td><p>czid-dedup: minimum read length for deduplication</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">number</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">20</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="publishing-options">
+<h2>Publishing options<a class="headerlink" href="#publishing-options" title="Link to this heading"></a></h2>
+<p>Control which intermediate results are saved to the output directory.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">publishIntermediate</span></code></p></td>
+<td><p>Enable publishing of intermediate files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">publishFastqs</span></code></p></td>
+<td><p>Publish downloaded FASTQ files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">publishQCfiltered</span></code></p></td>
+<td><p>Publish fastp-filtered files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">publishReadcounts</span></code></p></td>
+<td><p>Publish host read count files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">publishKallisto</span></code></p></td>
+<td><p>Publish kallisto intermediate files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">publishHisat</span></code></p></td>
+<td><p>Publish HISAT2 intermediate files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">publishStar</span></code></p></td>
+<td><p>Publish STAR intermediate files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">publishBowtie</span></code></p></td>
+<td><p>Publish Bowtie2 intermediate files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">publishDedup</span></code></p></td>
+<td><p>Publish dedup intermediate files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">publishGsnap</span></code></p></td>
+<td><p>Publish GSNAP intermediate files</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="advanced-options">
+<h2>Advanced options<a class="headerlink" href="#advanced-options" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cleanupIntermediate</span></code></p></td>
+<td><p>Automatically clean up intermediate files to save disk space</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">nxfUnstageHack</span></code></p></td>
+<td><p>Enable workaround for Nextflow unstaging bug (see <a class="reference internal" href="technical-notes.html"><span class="std std-doc">Technical Notes</span></a>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">backupScratchHack</span></code></p></td>
+<td><p>Use backup scratch directory for downloads</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">boolean</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
 </tr>
 </tbody>
 </table>
@@ -579,7 +649,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="gettingstarted.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="pipeline-explanation.html" class="btn btn-neutral float-right" title="Pipeline overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pipeline-explanation.html" class="btn btn-neutral float-right" title="Pipeline Overview (Part I: Transcriptomic + Filtering)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
