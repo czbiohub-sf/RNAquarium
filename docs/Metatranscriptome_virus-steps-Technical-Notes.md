@@ -213,15 +213,9 @@ These changes are integrated into Steps 1 and 1b R scripts.
 
 ## Future Plan (Clean Nextflow Run)
 
-For a future "clean" metatranscriptome run (e.g. for publication-grade reruns), we plan to:
+For a future "clean" metatranscriptome run:
 
-1. **Integrate BBDuk directly into the Nextflow pipeline:**
+**Integrate BBDuk directly into the Nextflow pipeline:**
    - At the very start of the metatranscriptome pipeline (before SPAdes)
    - Only masking/removing adapter regions
    - Not at the host-counting stage (to avoid inflating runtime by 39,000× reads)
-
-2. **Use the updated August 2025 Taxonomizr database** from the beginning.
-
-3. **Run with an updated Diamond nr database** if available, ideally one that doesn't exhibit the large NA taxid issue.
-
-4. **Keep the `/local/scratch` nt BLAST strategy** as the default.
