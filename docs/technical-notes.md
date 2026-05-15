@@ -123,24 +123,47 @@ nxf_fs_copy() {
 ```
 
 
-## Dependencies
-There are multiple ways to obtain the dependencies for the RNAquarium preprocessing pipeline
- - installing locally
-   - if it works, it works.  May be unsafe for heterogeneous computing clusters, as no attempt is
-     made to identify different machine types.
- - using conda packages (preferred for ease of deployment)
-   - conda packages may not have optimizations for the user's hardware.
-   - some tools are not available as conda packages, and `setup-minimal.sh` is provided for these.
- - using a singular "RNAquarium" container with all tools
-   - may not have all optimizations for the user's hardware
-   - may have limited network bandwidth, which slows down the **prefetch** step.
- - using individual biocontainer package containers
-   - not all packages used are available, and `setup-minimal.sh` is provided for these.
-   - may have limited network bandwidth, which slows down the **prefetch** step.
+## Reference index directory names
 
-Some dependencies present additional problems which require careful testing when using a container.
-newer versions of gmap/gsnap are much faster at mapping, but have a bad container, different
-sensitivity, fail to detect all the input reads, or crash on certain input sequences.
+The default output directory names for mapper indexes are:
+
+ - `hisat2_{Genus_species}_genome`
+ - `star_{Genus_species}_indexes.ERCC`
+ - `star_{Genus_species}_indexes`
+ - `bowtie2_{Genus_species}_index`
+ - `gmap_{Genus_species}_genome`
+
+Where `{Genus_species}` comes from the first part of the reference genome filename before a dot (`.`), e.g., `Danio_rerio` from `Danio_rerio.GRCz11.dna_sm.primary_assembly.fa`, or `GCF_049306965` from `GCF_049306965.1_GRCz12tu_genomic.fa.gz`.
+
+These names can be provided to the reference index parameters (`--hisat-ref-indexes`, `--star-ref-indexes-ercc`, `--star-ref-indexes`, `--bowtie-ref-indexes`, `--gsnap-ref-indexes`) for subsequent runs of the pipeline, saving significant time on re-runs.
+
+
+## Utility Scripts
+
+The following utility scripts are provided in `src/nonhost/` for pipeline management and debugging:
+
+**`delete-step.sh`** — Removes all work directories for a specific Nextflow process, allowing that step to be re-run from scratch on the next `-resume`. Usage: pass the process name as an argument (e.g., `bash delete-step.sh gsnap`). This is useful when a step needs to be re-executed with different parameters without re-running the entire pipeline.
+
+**`collect-reruns.sh`** — Identifies SRA accessions that failed to complete the pipeline by comparing the input accession list against completed output directories. It automatically excludes expected dropouts (dedup failures due to short reads). Outputs the list of accessions that need re-running, either as a plain text list or as a filtered RunInfo CSV. Usage: `bash collect-reruns.sh input_accessions.txt nonhost_reads_dir counts_dir .nextflow.log`
+
+**`util/debug_run.sh`** — Diagnoses failures from `.nextflow.log` by extracting all accessions that terminated with errors, then for each one printing the process name, SLURM job ID, working directory, `seff` resource usage summary, and the task's `.command.log`. This produces a per-accession log file useful for diagnosing whether failures were due to OOM, preemption, or other causes. Usage: `bash util/debug_run.sh .nextflow.log`
+
+**`util/dropouts.sh`** — Generates a summary of pipeline dropouts and failures by category: download failures, corrupt files, dedup failures, gsnap failures (skipped runs), preemptions, and other errors. Outputs a single CSV line with counts. Usage: `bash util/dropouts.sh nonhost_reads_dir .nextflow.log`. Set `VERBOSE=1` for per-failure details.
+
+**Submission script templates** (`nextflow-submit-example.sh`, `nextflow-submit-local-test.sh`) — SLURM submission script templates showing recommended `#SBATCH` directives, module loading, and Nextflow invocation patterns. See `nextflow-submit-wild-zebrafish.sh` in the repository root for a complete working example with local FASTQs.
+
+
+## Dependencies
+
+There are multiple ways to obtain the dependencies for the RNAquarium preprocessing pipeline:
+
+ - **Conda/mamba packages** (preferred for ease of deployment) — conda packages may not have optimizations for the user's hardware. Some tools are not available as conda packages, and `setup-minimal.sh` is provided for these.
+ - **Local installation** — if it works, it works. May be unsafe for heterogeneous computing clusters, as no attempt is made to identify different machine types.
+ - **A singular "RNAquarium" container** with all tools — may not have all optimizations for the user's hardware. May have limited network bandwidth, which slows down the prefetch step.
+ - **Individual biocontainer packages** — not all packages used are available, and `setup-minimal.sh` is provided for these. May have limited network bandwidth, which slows down the prefetch step.
+
+Some dependencies present additional problems which require careful testing when using a container. Newer versions of gmap/gsnap are much faster at mapping, but have a bad container, different sensitivity, fail to detect all the input reads, or crash on certain input sequences.
+
 ```
 gsnap_version,         gsnap_time,
 after_dedup,total_read,aligned,multialign,aligned_unique,unaligned,mixed
@@ -159,5 +182,3 @@ after_dedup,total_read,aligned,multialign,aligned_unique,unaligned,mixed
 ! 2024-02-22(self-compiled) inconsistent (segfaults on some inputs)
 ```
 Other dependencies may or may not be safe to up- or downgrade.
-
-

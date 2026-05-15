@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/czbiohub-sf/Zebrafish-RNAquarium/master/nextflow_schema.json",
-    "title": "czbiohub-sf/Zebrafish-RNAquarium pipeline parameters",
+    "$id": "https://raw.githubusercontent.com/czbiohub-sf/RNAquarium/master/nextflow_schema.json",
+    "title": "czbiohub-sf/RNAquarium pipeline parameters",
     "description": "reprocessing of public rna-seq datasets for non-host reads",
     "type": "object",
     "definitions": {

@@ -35,7 +35,7 @@ Supply pre-built aligner indexes to skip index generation. If not provided, inde
 | Parameter | Description | Type | Default | Required |
 |-----------|-------------|------|---------|----------|
 | `accessionList` | File with SRA run accessions (one per line, or CSV with `Run,size_MB` columns) | `string` | — | Yes (or `fastqPath`) |
-| `fastqPath` | Glob pattern for pre-downloaded FASTQ files | `string` | — | No |
+| `fastqPath` | Glob pattern for local FASTQ files (alternative to `accessionList`). Uses Nextflow's `fromFilePairs`, which expects Illumina naming: `{sampleID}_R{1,2}_001.fastq.gz`. The sample ID is extracted as everything before `_R1_001` or `_R2_001` and is used in all output filenames. Also supports `_1.fastq.gz`/`_2.fastq.gz` and `.fq.gz` variants. | `string` | — | No |
 | `publishDir` | Output directory for results | `string` | `$PWD` | No |
 | `tmp` | Scratch directory for temporary files | `string` | — | Recommended |
 | `backupTmp` | Fallback scratch directory | `string` | — | No |

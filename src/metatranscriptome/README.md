@@ -4,7 +4,7 @@ Taxonomic classification and viral discovery from non-host reads.
 
 ## Features
 
-* Input: non-host reads from Part I (host mapping pipeline)
+* Input: non-host reads from Part I (transcriptomic + filtering pipeline)
 * Assembles contigs with SPAdes
 * BLASTn against nt and Diamond against nr for taxonomic classification
 * BBDuk-based adapter/contaminant filtering
@@ -30,7 +30,7 @@ All post-Nextflow scripts are located in `src/metatranscriptome/scripts/post_pro
 ### Clone the repository
 
 ```bash
-git clone https://github.com/czbiohub-sf/Zebrafish-RNAquarium
+git clone https://github.com/czbiohub-sf/RNAquarium
 ```
 
 ### Install dependencies
@@ -53,7 +53,7 @@ Alternatively, run the Nextflow pipeline with `-profile conda`, `-profile mamba`
 The metatranscriptome pipeline consumes unmapped reads from Part I. Ensure all unmapped reads (single-end and paired-end) are symlinked into a single directory:
 
 ```bash
-cd Zebrafish-RNAquarium/src/metatranscriptome
+cd RNAquarium/src/metatranscriptome
 mkdir -p all_unmapped_links
 # Symlink your unmapped reads here
 ```
@@ -63,6 +63,8 @@ Create a run-to-bioproject mapping file (`RNaquarium_run_to_bioproject_mapping.t
 ```bash
 python scripts/create_json_from_mapping.py
 ```
+
+**Important:** BioProject/group IDs in the mapping JSON must start with "PRJ" followed by two uppercase letters and digits (e.g., `PRJNA12345`, `PRJWILD00001`). The Part II code validates this format with a regex. For local FASTQ runs where samples don't have real BioProject IDs, create synthetic group IDs following this format (see [Inputs and Databases](../../docs/inputs-and-databases.md) for an example).
 
 ### Database requirements
 

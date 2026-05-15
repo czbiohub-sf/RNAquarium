@@ -27,7 +27,6 @@ nonhost-readme
 gettingstarted
 parameters
 pipeline-explanation
-tips
 technical-notes
 ```
 

@@ -47,7 +47,7 @@ External RNA Controls Consortium (ERCC) synthetic spike-in sequences, used for Q
 
 Download from Thermo Fisher: <https://tools.thermofisher.com/content/sfs/manuals/ERCC92.zip>
 
-### SRA accession list (required)
+### SRA accession list (required — or use local FASTQs)
 
 A text file with one SRA run accession per line (e.g., `SRR1234567`). The pipeline will download FASTQ data directly from NCBI SRA.
 
@@ -60,6 +60,16 @@ SRR1234569
 ```
 
 A test list is provided at `src/nonhost/data/SRA_accession_list.test.txt`. The 75k production run used a list of 77,188 zebrafish RNA-seq accessions.
+
+### Local FASTQ files (alternative to SRA)
+
+Instead of downloading from SRA, you can provide local FASTQ files using the `--fastq-path` parameter with a glob pattern:
+
+```yaml
+fastq-path: /path/to/fastqs/*_R{1,2}_001.fastq.gz
+```
+
+Files should follow Illumina naming conventions (`{sampleID}_R1_001.fastq.gz` / `{sampleID}_R2_001.fastq.gz`). The sample ID is derived from the filename as everything before `_R1_001` or `_R2_001`. Single-end reads and `.fq.gz` variants are also supported. See [Getting Started](gettingstarted.md) for a complete worked example.
 
 ### Contaminant sequences (optional)
 
@@ -95,9 +105,9 @@ Parameter: `--unmerged_accessions` (path to the directory containing symlinks to
 
 ### Run-to-bioproject mapping (required)
 
-A JSON file that maps SRA run accessions to their parent BioProjects. This is used to organize assembly into logical groups.
+A JSON file that maps sample/run IDs to their parent BioProjects (or assembly groups). This is used to organize assembly into logical groups — samples within the same group are co-assembled by SPAdes.
 
-Generated from NCBI metadata using `scripts/create_json_from_mapping.py`, which reads the SRA Accessions metadata table:
+For SRA-based runs, this can be generated from NCBI metadata using `scripts/create_json_from_mapping.py`, which reads the SRA Accessions metadata table:
 
 | File | Description |
 |------|-------------|
@@ -105,6 +115,17 @@ Generated from NCBI metadata using `scripts/create_json_from_mapping.py`, which 
 | `bioproject_mapping.json` | Generated JSON mapping (pipeline input) |
 
 The SRA metadata table can be downloaded from: `ftp://ftp.ncbi.nlm.nih.gov/sra/reports/Metadata/SRA_Accessions.tab`
+
+For local FASTQ runs, you must create this JSON manually. The group IDs **must** start with "PRJ" followed by two uppercase letters and digits (e.g., `PRJWILD00001`), since the Part II code validates this format with a regex. Example:
+
+```json
+{
+  "chikv_1_S9": "PRJWILD00001",
+  "chikv_2_S18": "PRJWILD00001",
+  "x219_S22": "PRJWILD00002",
+  "x234_S24": "PRJWILD00002"
+}
+```
 
 ### NCBI NT database — host-only subset (required)
 

@@ -15,7 +15,7 @@
 
 ### Clone the repository
 ```
-git clone https://github.com/czbiohub-sf/Zebrafish-RNAquarium
+git clone https://github.com/czbiohub-sf/RNAquarium
 ```
 
 ### Install dependencies
@@ -51,12 +51,13 @@ Alternatively, for a fully manual installation, the pipeline requires these tool
 | bustools | 0.44.1 | — | <https://bustools.github.io/> |
 | kb-python | 0.29.1 | — | <https://www.kallistobus.tools/> |
 | seqtk | 1.5 | — | <https://github.com/lh3/seqtk> |
+| fastq-namefilter | 0.3.0 | — | <https://github.com/yttria-aniseia/fastq-namefilter> |
+| fastq-numfilter | 0.3.0 | — | (included with fastq-namefilter) |
 
 
-### Create a working directory and input list
+### Set up and run
 ```
-cd Zebrafish-RNAquarium/src/nonhost
-mkdir test && cp data/SRA_accession_list.test.txt SRA_accession_list.test.txt
+cd RNAquarium/src/nonhost
 ```
 
 ### Generating reference indexes
