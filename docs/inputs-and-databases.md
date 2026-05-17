@@ -57,7 +57,7 @@ The preferred input format is a **RunInfo CSV** downloaded from the NCBI SRA sea
 2. Download as "RunInfo" — this produces an `SraRunInfo.csv` file. For the full zebrafish dataset this is >35 MB; the download can sometimes fail but can usually be restarted.
 3. Do not remove headers. Remove duplicate rows: `(read -r; printf "%s\n" "$REPLY"; sort -u) < SraRunInfo.csv > SraRunInfo_dedup.csv`
 
-The 75k production run used ~77,000 zebrafish RNA-seq accessions from this procedure. A small test list is provided at `src/nonhost/data/SRA_accession_list.test.txt`.
+The 75k production run used ~77,000 zebrafish RNA-seq accessions from this procedure.
 
 ### Local FASTQ files (alternative to SRA)
 
@@ -118,10 +118,8 @@ For local FASTQ runs, you must create this JSON manually. The group IDs **must**
 
 ```json
 {
-  "chikv_1_S9": "PRJWILD00001",
-  "chikv_2_S18": "PRJWILD00001",
-  "x219_S22": "PRJWILD00002",
-  "x234_S24": "PRJWILD00002"
+  "PRJWILD00001": ["chikv_1_S9", "chikv_2_S18"],
+  "PRJWILD00002": ["x219_S22", "x234_S24"]
 }
 ```
 
