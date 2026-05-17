@@ -62,12 +62,9 @@ HISAT2 alignment statistics (aligned, multi-mapped, unmapped counts) are collect
 
 ## Step 3b: Host read counting (parallel branch)
 
-*Nextflow processes: `star_counts`, `feature_count` (or `htseq_count`), `host_cram`*
+*Nextflow processes: `star_counts`, `feature_count`, `host_cram`*
 
-In parallel with the non-host filtering path, a separate branch quantifies host gene expression. After fastp trimming, reads are aligned to the host genome with ERCC spike-ins using **STAR** in quantification mode. The resulting BAM is then processed by either:
-
-- **featureCounts** (subread, default) — fast, multi-threaded gene counting
-- **HTSeq** (optional, via `--htseq-count`) — stricter but slower counting
+In parallel with the non-host filtering path, a separate branch quantifies host gene expression. After fastp trimming, reads are aligned to the host genome with ERCC spike-ins using **STAR** in quantification mode. The resulting BAM is then processed by **featureCounts** (subread) for gene-level read counting. Legacy HTSeq support exists via `--htseq-count` but is no longer recommended — the output was virtually equivalent to featureCounts for our purposes.
 
 Per-run count vectors are collected into a combined `counts.csv` matrix. If `--output-cram` is enabled, STAR alignments are additionally compressed to CRAM format for archival.
 

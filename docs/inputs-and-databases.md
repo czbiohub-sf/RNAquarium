@@ -49,17 +49,15 @@ Download from Thermo Fisher: <https://tools.thermofisher.com/content/sfs/manuals
 
 ### SRA accession list (required — or use local FASTQs)
 
-A text file with one SRA run accession per line (e.g., `SRR1234567`). The pipeline will download FASTQ data directly from NCBI SRA.
+The preferred input format is a **RunInfo CSV** downloaded from the NCBI SRA search interface, which includes a `size_MB` column used by the pipeline for dynamic resource scaling. A plain text file with one accession per line also works, but the CSV format is recommended.
 
-Example:
+**Obtaining the RunInfo CSV:**
 
-```
-SRR1234567
-SRR1234568
-SRR1234569
-```
+1. Search NCBI SRA (<https://www.ncbi.nlm.nih.gov/sra/>) with your query. For example, for all zebrafish transcriptomic data: `txid7955[Organism:noexp] AND ("TRANSCRIPTOMIC"[Source] OR "METATRANSCRIPTOMIC"[Source] OR "TRANSCRIPTOMIC SINGLE CELL"[Source])`. Do not filter Sources with the UI — the displayed numbers reflect experiments, not runs.
+2. Download as "RunInfo" — this produces an `SraRunInfo.csv` file. For the full zebrafish dataset this is >35 MB; the download can sometimes fail but can usually be restarted.
+3. Do not remove headers. Remove duplicate rows: `(read -r; printf "%s\n" "$REPLY"; sort -u) < SraRunInfo.csv > SraRunInfo_dedup.csv`
 
-A test list is provided at `src/nonhost/data/SRA_accession_list.test.txt`. The 75k production run used a list of 77,188 zebrafish RNA-seq accessions.
+The 75k production run used ~77,000 zebrafish RNA-seq accessions from this procedure. A small test list is provided at `src/nonhost/data/SRA_accession_list.test.txt`.
 
 ### Local FASTQ files (alternative to SRA)
 
