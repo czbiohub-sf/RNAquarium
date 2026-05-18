@@ -67,7 +67,7 @@ Instead of downloading from SRA, you can provide local FASTQ files using the `--
 fastq-path: /path/to/fastqs/*_R{1,2}_001.fastq.gz
 ```
 
-Files should follow Illumina naming conventions (`{sampleID}_R1_001.fastq.gz` / `{sampleID}_R2_001.fastq.gz`). The sample ID is derived from the filename as everything before `_R1_001` or `_R2_001`. Single-end reads and `.fq.gz` variants are also supported. See [Getting Started](gettingstarted.md) for a complete worked example.
+Files should follow Illumina naming conventions (`{sampleID}_R1_001.fastq.gz` / `{sampleID}_R2_001.fastq.gz`). The sample ID is derived from the filename as everything before `_R1_001` or `_R2_001`. Single-end reads and `.fq.gz` variants are also supported. See [Technical Notes](technical-notes.md) for a complete worked example.
 
 ### Contaminant sequences (optional)
 
