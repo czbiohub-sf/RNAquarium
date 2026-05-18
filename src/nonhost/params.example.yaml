@@ -23,10 +23,11 @@ genome-size: 1448808683
 
 # --- Scratch / temp ---
 tmp: /tmp/
+## if 'tmp' space above is limited, setting a backup-tmp directory and enabling backup-scratch-hack can reduce the number of failures when running many inputs on some slurm systems by checking for thundering herd conditions from our own jobs.
 # backup-tmp: /local/scratch/
+# backup-scratch-hack: true
 
 # --- Pipeline behavior ---
-backup-scratch-hack: true
 hisat-use-transcript: true
 publish-intermediate: false
 star-use-shared-mem: false
