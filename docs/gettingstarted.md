@@ -44,45 +44,9 @@ genome-size: 1448808683
 accession-list: accession-list.txt
 ```
 
-### Running with local FASTQs
+## Preparing for Part II (metatranscriptomics)
 
-Instead of downloading from SRA, you can provide local FASTQ files using the `fastq-path` parameter with a glob pattern:
-
-```yaml
-fastq-path: /path/to/fastqs/*_R{1,2}_001.fastq.gz
-```
-
-The expected filename convention is Illumina-style: `{sampleID}_R1_001.fastq.gz` and `{sampleID}_R2_001.fastq.gz` for paired-end data. Nextflow's `fromFilePairs` extracts the sample ID as everything before `_R1_001` or `_R2_001`. For example, `chikv_1_S9_R1_001.fastq.gz` produces sample ID `chikv_1_S9`. These IDs appear in all output filenames and directory names.
-
-Single-end reads and `.fq.gz` variants are also supported. A flat directory of FASTQs works fine (no subfolders needed).
-
-When using `fastq-path`, omit `accession-list` from your params file. The pipeline will use the `check_direct_fastqs` process instead of the SRA download process.
-
-**Preparing for Part II (metatranscriptomics):** If you plan to run the metatranscriptome pipeline on these samples afterward, you will need a `bioproject_mapping.json` that groups sample IDs into assembly groups. The group IDs must start with "PRJ" followed by two uppercase letters and digits (e.g., `PRJWILD00001`), since the Part II code validates this format with a regex. See [Inputs and Databases](inputs-and-databases.md) for details.
-
-Here is a complete example `params.yaml` for local FASTQs with the GRCz12tu zebrafish reference:
-```yaml
-# Input
-fastq-path: /path/to/fastqs/*_R{1,2}_001.fastq.gz
-
-# Reference genome (GRCz12tu)
-ref-genome:     /path/to/GCF_049306965.1_GRCz12tu_genomic.fa.gz
-ref-genome-gtf: /path/to/GCF_049306965.1_GRCz12tu_genomic.gtf
-genome-size: 1448808683
-
-# ERCC spike-ins
-ercc-fa:  /path/to/ERCC92.fa
-ercc-gtf: /path/to/ERCC92.gtf
-
-# Output
-publish-dir: output
-tmp: /tmp/
-
-# Pipeline behavior
-output-cram: false
-cleanup-intermediate: true
-retain-mixed: true
-```
+If you plan to run the metatranscriptome pipeline on these samples afterward, you will need a `bioproject_mapping.json` that groups sample IDs into assembly groups. The group IDs must start with "PRJ" followed by two uppercase letters and digits (e.g., `PRJWILD00001`), since the Part II code validates this format with a regex. See [Inputs and Databases](inputs-and-databases.md) for details.
 
 
 ## HPC profiles and customization
@@ -110,7 +74,7 @@ The recommended way to launch the pipeline on an HPC is via a SLURM submission s
  - **Run `sbatch` from the repository root directory.** The script uses `SLURM_SUBMIT_DIR` to locate the repo and handles `cd src/nonhost` internally. This is necessary because Nextflow interprets `main.nf` as a local file only when run from the directory containing it; otherwise it may try to fetch it as a GitHub repository URL.
  - **The script adds `src/nonhost/bin/` to `$PATH`** so locally compiled tools (from `setup-minimal.sh`) are available.
 
-See `nextflow-submit-wild-zebrafish.sh` in the repository root for a complete working example.
+See the submission script templates in `src/nonhost/` for examples.
 
 
 ## On 'failed' Tasks

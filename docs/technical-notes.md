@@ -123,6 +123,45 @@ nxf_fs_copy() {
 ```
 
 
+## Running with local FASTQs
+
+Instead of downloading from SRA, you can provide local FASTQ files using the `fastq-path` parameter with a glob pattern:
+
+```yaml
+fastq-path: /path/to/fastqs/*_R{1,2}_001.fastq.gz
+```
+
+The expected filename convention is Illumina-style: `{sampleID}_R1_001.fastq.gz` and `{sampleID}_R2_001.fastq.gz` for paired-end data. Nextflow's `fromFilePairs` extracts the sample ID as everything before `_R1_001` or `_R2_001`. For example, `chikv_1_S9_R1_001.fastq.gz` produces sample ID `chikv_1_S9`. These IDs appear in all output filenames and directory names.
+
+Single-end reads and `.fq.gz` variants are also supported. A flat directory of FASTQs works fine (no subfolders needed).
+
+When using `fastq-path`, omit `accession-list` from your params file. The pipeline will use the `check_direct_fastqs` process instead of the SRA download process.
+
+Here is a complete example `params.yaml` for local FASTQs with the GRCz12tu zebrafish reference:
+```yaml
+# Input
+fastq-path: /path/to/fastqs/*_R{1,2}_001.fastq.gz
+
+# Reference genome (GRCz12tu)
+ref-genome:     /path/to/GCF_049306965.1_GRCz12tu_genomic.fa.gz
+ref-genome-gtf: /path/to/GCF_049306965.1_GRCz12tu_genomic.gtf
+genome-size: 1448808683
+
+# ERCC spike-ins
+ercc-fa:  /path/to/ERCC92.fa
+ercc-gtf: /path/to/ERCC92.gtf
+
+# Output
+publish-dir: output
+tmp: /tmp/
+
+# Pipeline behavior
+output-cram: false
+cleanup-intermediate: true
+retain-mixed: true
+```
+
+
 ## Reference index directory names
 
 The default output directory names for mapper indexes are:
@@ -150,7 +189,7 @@ The following utility scripts are provided in `src/nonhost/` for pipeline manage
 
 **`util/dropouts.sh`** — Generates a summary of pipeline dropouts and failures by category: download failures, corrupt files, dedup failures, gsnap failures (skipped runs), preemptions, and other errors. Outputs a single CSV line with counts. Usage: `bash util/dropouts.sh nonhost_reads_dir .nextflow.log`. Set `VERBOSE=1` for per-failure details.
 
-**Submission script templates** (`nextflow-submit-example.sh`, `nextflow-submit-local-test.sh`) — SLURM submission script templates showing recommended `#SBATCH` directives, module loading, and Nextflow invocation patterns. See `nextflow-submit-wild-zebrafish.sh` in the repository root for a complete working example with local FASTQs.
+**Submission script templates** (`nextflow-submit-example.sh`, `nextflow-submit-local-test.sh`) — SLURM submission script templates showing recommended `#SBATCH` directives, module loading, and Nextflow invocation patterns.
 
 
 ## Dependencies

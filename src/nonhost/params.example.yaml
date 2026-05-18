@@ -26,6 +26,7 @@ tmp: /tmp/
 # backup-tmp: /local/scratch/
 
 # --- Pipeline behavior ---
+backup-scratch-hack: true
 hisat-use-transcript: true
 publish-intermediate: false
 star-use-shared-mem: false
