@@ -108,4 +108,4 @@ nextflow run main.nf \
 ```
 
 
-See [Getting Started](../../docs/gettingstarted.md) for more details, and [Pipeline Overview](../../docs/pipeline-explanation.md) for a description of each step.
+See [Getting Started](gettingstarted.md) for more details, and [Pipeline Overview](pipeline-explanation.md) for a description of each step.

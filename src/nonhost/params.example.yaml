@@ -1,29 +1,46 @@
+# RNAquarium Part I example parameters
+# Update paths to match your environment
+
+# --- Input (choose one) ---
 accession-list: data/SRA_accessions_list.test.txt
-ref-genome: /hpc/projects/balla_group/sra_experiments/tools/STAR/Danio_rerio.GRCz11.dna_sm.primary_assembly.fa
-ref-genome-gtf: /hpc/projects/balla_group/sra_experiments/tools/STAR/Danio_rerio.GRCz11.108.gtf
-ercc-fa: /hpc/projects/balla_group/sra_experiments/tools/STAR/ERCC92.fa
-ercc-gtf: /hpc/projects/balla_group/sra_experiments/tools/STAR/ERCC92.gtf
+# fastq-path: /path/to/fastqs/*_R{1,2}_001.fastq.gz
+
+# --- Reference genome (GRCz12tu) ---
+ref-genome: /path/to/GCF_049306965.1_GRCz12tu_genomic.fa.gz
+ref-genome-gtf: /path/to/GCF_049306965.1_GRCz12tu_genomic.gtf
+ercc-fa: /path/to/ERCC92.fa
+ercc-gtf: /path/to/ERCC92.gtf
 contam-fa: danio_refseq.fasta
-genome-size: 1396431182
-hisat-ref-indexes:     output/hisat2_Danio_rerio.GRCz11.dna_sm.primary_assembly_indexes
-star-ref-indexes-ercc: output/star_Danio_rerio_indexes.ERCC
-star-ref-indexes:      output/star_Danio_rerio_indexes
-bowtie-ref-indexes:    output/bowtie2_Danio_rerio.GRCz11.dna_sm.primary_assembly_indexes
-gsnap-ref-indexes:     output/gmap_Danio_rerio_indexes
-kb-contam-indexes:     output/kallisto_contam_indexes
+genome-size: 1448808683
+
+# --- Pre-built indexes (optional, saves time on re-runs) ---
+# hisat-ref-indexes:     output/hisat2_GCF_049306965.1_GRCz12tu_genomic_indexes
+# star-ref-indexes-ercc: output/star_GCF_049306965_indexes.ERCC
+# star-ref-indexes:      output/star_GCF_049306965_indexes
+# bowtie-ref-indexes:    output/bowtie2_GCF_049306965.1_GRCz12tu_genomic_indexes
+# gsnap-ref-indexes:     output/gmap_GCF_049306965_indexes
+# kb-contam-indexes:     output/kallisto_contam_indexes
+
+# --- Scratch / temp ---
 tmp: /tmp/
-backup-tmp: SET ME IN params.example.yaml
-backup-scratch-hack: true
+## if 'tmp' space above is limited, setting a backup-tmp directory and enabling backup-scratch-hack can reduce the number of failures when running many inputs on some slurm systems by checking for thundering herd conditions from our own jobs.
+# backup-tmp: /local/scratch/
+# backup-scratch-hack: true
+
+# --- Pipeline behavior ---
 hisat-use-transcript: true
 publish-intermediate: false
 star-use-shared-mem: false
 skip-host-counts: false
+output-cram: false
 cleanup-intermediate: true
 nxf-unstage-hack: true
+retain-mixed: true
+kb-retain-mixed: false
+
+# --- Resources ---
 parallel-downloads: 50
 max-cpus: 128
 max-memory: "256GB"
 star-threads-small: 4
 star-threads-large: 16
-retain-mixed: true
-kb-retain-mixed: false
