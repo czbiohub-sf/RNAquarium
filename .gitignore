@@ -74,3 +74,18 @@ readstats/*.png
 !/src/Serratus_Lite/query_virus_data/*.tsv
 /src/Serratus_Lite/slurm.out/
 /src/Serratus_Lite/results/
+
+# macOS Finder cruft
+.DS_Store
+**/.DS_Store
+
+# Run-specific working files (real HPC paths / email — never commit)
+run_wildzebrafish*.sh
+nextflow-submit-wild-zebrafish*.sh
+params.wild-zebrafish*.yaml
+wild-zebrafish-bioproject-mapping.json
+copy-fastp-from-workdir.sh
+override.config
+
+# Archived old codebase snapshot
+actual75kcode/
