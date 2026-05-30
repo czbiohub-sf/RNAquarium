@@ -48,7 +48,7 @@ setwd(outpathvirus)
 
 library(taxonomizr)
 # Define path to your taxonomizr database
-db_path <- "//hpc/scratch/group.data.science/eric_temp/databases/taxonomizr/aug2025taxonomy/nameNode.sqlite"
+db_path <- "/path/to/databases/taxonomizr/aug2025taxonomy/nameNode.sqlite"
 
 # Step 1a: Get unique taxids from taxid_NTclustered
 unique_taxids_NTclustered <- allchunks_diamondnr_andblastntclustered %>%

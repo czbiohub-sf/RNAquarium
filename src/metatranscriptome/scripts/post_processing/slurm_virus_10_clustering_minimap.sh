@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH -o slurm.%N.%j.out # STDOUT
 #SBATCH -e slurm.%N.%j.err # STDERR
-#SBATCH --mail-user eric.waltari@czbiohub.org   # this is the email you wish to be notified at
+#SBATCH --mail-user your.email@example.com   # this is the email you wish to be notified at
 #SBATCH --mail-type END,FAIL   # ALL will alert you of job beginning, completion, failure etc
 
 ## just the bash commands I would use
@@ -85,7 +85,7 @@ done
 ## finally can move some interesting subsets into subset folder
 ## mkdir subsets
 ## mv *flu* subsets/
-# scp -r eric.waltari@login01.czbiohub.org://hpc/projects/balla_group/sra_experiments/RNAquarium_60k_nonhostpipeline/RNAquarium_outputs/virus_outputs/clusters_forminimap clusters_2025
+# scp -r user@cluster.example.org:/path/to/RNAquarium_outputs/virus_outputs/clusters_forminimap clusters_2025
 
 
 ## rinse and repeat

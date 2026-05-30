@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH -o slurm.%N.%j.out # STDOUT
 #SBATCH -e slurm.%N.%j.err # STDERR
-#SBATCH --mail-user eric.waltari@czbiohub.org   # this is the email you wish to be notified at
+#SBATCH --mail-user your.email@example.com   # this is the email you wish to be notified at
 #SBATCH --mail-type END,FAIL   # ALL will alert you of job beginning, completion, failure etc
 
 
@@ -21,7 +21,7 @@ conda activate seqtk
 ## generic code
 
 ## focused on dark matter calcs and extracting fasta
-## /hpc/projects/balla_group/sra_experiments/RNAquarium_60k_nonhostpipeline/paired_end/chunk_001_nonzfhum.fasta
+## /path/to/RNAquarium_output/paired_end/chunk_001_nonzfhum.fasta
 
 
 ### key stats are taxonomy_hits_nonhost_inputcontigs_list

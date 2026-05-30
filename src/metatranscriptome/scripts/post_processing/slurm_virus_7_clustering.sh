@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH -o slurm.%N.%j.out # STDOUT
 #SBATCH -e slurm.%N.%j.err # STDERR
-#SBATCH --mail-user eric.waltari@czbiohub.org   # this is the email you wish to be notified at
+#SBATCH --mail-user your.email@example.com   # this is the email you wish to be notified at
 #SBATCH --mail-type END,FAIL   # ALL will alert you of job beginning, completion, failure etc
 
 ## just the bash commands I would use
@@ -40,7 +40,7 @@ cat taxonomy_hits_viruses_mostrecent.fasta targetNT_sequences.fasta > taxonomy_h
 rm targetNT_sequences0.fasta
 date
 sleep 1
-/hpc/projects/balla_group/sra_experiments/tools/MMseqs2/build/bin/mmseqs easy-cluster taxonomy_hits_viruses_mostrecent_withtargets.fasta taxonomy_hits_viruses_easycluster1 tmp --min-seq-id 0.5 -c 0.1 --cov-mode 1
+mmseqs easy-cluster taxonomy_hits_viruses_mostrecent_withtargets.fasta taxonomy_hits_viruses_easycluster1 tmp --min-seq-id 0.5 -c 0.1 --cov-mode 1
 
 
 

@@ -59,7 +59,7 @@ single_hit <- single_hit %>% rename("query" = "V1") %>%
 ## this didn't help! trying another awk command to limit each chunk to 400 characters:
 ## awk -F '\t' '{for(i=1;i<=NF;i++) if(length($i) > 400) $i=substr($i,1,400)}1' OFS='\t' chunk007test_fullNT_3296 > chunk007test_fullNT_3296n    
 #    library(data.table)
-## also maybe try fread?  counts_Sample <- fread("~/tohpc/scratch/group.data.science/eric_temp/host_count_tests/countsTable.csv")    but add quote="" 
+## also maybe try fread?  counts_Sample <- fread("/path/to/host_count_tests/countsTable.csv")    but add quote=""
 # single_hit <- fread(allblastnfiles[i], verbose = TRUE)
 # single_hit_freadnoquote <- fread(allblastnfiles, verbose = TRUE, quote="")
 ## then single_hit_freadnoquote <- as_tibble(single_hit_freadnoquote)

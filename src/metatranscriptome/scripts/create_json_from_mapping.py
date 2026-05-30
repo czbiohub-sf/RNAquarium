@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 RNAQ_PROTO_DIR = Path(
-    "/hpc/projects/balla_group/sra_experiments/RNAquarium_prototyping"
+    "/path/to/RNAquarium_prototyping"
 )
 RNAQ_MAPPING_TSV = RNAQ_PROTO_DIR / "RNaquarium_run_to_bioproject_mapping.tsv"
 OUTFILE = "test/sample_mapping.json"

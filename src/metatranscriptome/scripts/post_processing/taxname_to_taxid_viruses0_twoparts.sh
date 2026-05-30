@@ -4,9 +4,9 @@
 #Handles various special character cases with exact and inexact searches & Uses single AWK approach - loads taxonomy once, processes everything in memory - Fastest approach for large datasets
 
 # Configuration
-TSV_FILE="/hpc/projects/balla_group/sra_experiments/versioned_zf_output/75k_unstable/metatranscriptome_all/RNAquarium_outputs/taxonomy_hits_viruses0_fullcols_mostrecent.tsv.gz"
-NAMES_DMP="/hpc/scratch/group.data.science/eric_temp/databases/taxonomizr/aug2025taxonomy/names.dmp"
-OUTPUT_FILE="/hpc/projects/balla_group/sra_experiments/versioned_zf_output/75k_unstable/metatranscriptome_all/RNAquarium_outputs/taxonomy_hits_viruses0_fullcols_mostrecent_withtaxids.tsv.gz"
+TSV_FILE="/path/to/RNAquarium_outputs/taxonomy_hits_viruses0_fullcols_mostrecent.tsv.gz"
+NAMES_DMP="/path/to/databases/taxonomizr/aug2025taxonomy/names.dmp"
+OUTPUT_FILE="/path/to/RNAquarium_outputs/taxonomy_hits_viruses0_fullcols_mostrecent_withtaxids.tsv.gz"
 TEMP_DIR="temp_taxid_processing_viruses0"
 
 echo "Processing large TSV file: $TSV_FILE"

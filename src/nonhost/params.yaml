@@ -18,4 +18,4 @@ star-threads-small: 4
 star-threads-large: 16
 max-cpus: 32
 max-memory: "240GB"
-tmp: /hpc/scratch/group.data.science/y_temp/
+tmp: /path/to/scratch/tmp/

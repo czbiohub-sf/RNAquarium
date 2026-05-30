@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH -o slurm.%N.%j.out # STDOUT
 #SBATCH -e slurm.%N.%j.err # STDERR
-#SBATCH --mail-user eric.waltari@czbiohub.org   # this is the email you wish to be notified at
+#SBATCH --mail-user your.email@example.com   # this is the email you wish to be notified at
 #SBATCH --mail-type END,FAIL   # ALL will alert you of job beginning, completion, failure etc
 
 ## just the bash commands I would use

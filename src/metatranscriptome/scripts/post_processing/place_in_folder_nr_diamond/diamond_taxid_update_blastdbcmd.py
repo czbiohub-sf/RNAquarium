@@ -242,8 +242,8 @@ def main():
     Main function to process diamond files using blastdbcmd
     """
     # Configuration - UPDATE THESE PATHS
-    blast_db_path = "/hpc/scratch/group.data.science/eric_temp/databases/2025/nr_clustered/nr_cluster_seq"  # Full path to your NR database
-    blastdbcmd_path = "/hpc/scratch/group.data.science/eric_temp/ncbi-blast-2.15.0+/bin/blastdbcmd"
+    blast_db_path = "/path/to/databases/2025/nr_clustered/nr_cluster_seq"  # Full path to your NR database
+    blastdbcmd_path = "blastdbcmd"
     
     # Verify paths exist
     if not os.path.exists(f"{blast_db_path}.pal"):
