@@ -5,7 +5,7 @@ params.myExecutor = 'slurm'
 params.prefix = 'bin/'
 
 workflow {
-	//install_seq_detective()
+	install_seq_detective()
 	install_fastq_lengths()
 	install_fastq_namefilter()
 	//install_priceseqfilter(Channel.fromPath( 'pricesource.patch' ))
@@ -23,7 +23,10 @@ process install_seq_detective {
 
 	script:
 	def BINNAME="seq-detective"
-	def URL="git@github.com:czbiohub-sf/seq-tech-detective.git"
+	// NOTE: this repo must be publicly accessible (or you must have access) for the
+	// HTTPS clone below to succeed. For SSH access instead, use:
+	//   git@github.com:czbiohub-sf/seq-tech-detective.git
+	def URL="https://github.com/czbiohub-sf/seq-tech-detective.git"
 	"""
 git clone $URL seq-tech-detective-core -b JUDGEMENT --depth 1
 cd seq-tech-detective-core

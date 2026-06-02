@@ -6,12 +6,55 @@ The RNAquarium pipeline requires several tools to be available in `$PATH`.
 
 They can either be installed separately, or, more typically, provided by containers or conda environments. Use `-profile docker`, `-profile singularity`, or `-profile conda`/`-profile mamba` as appropriate for your environment.
 
+> **`conda` vs `mamba`:** these are interchangeable here. Both `-profile conda` and `-profile mamba` set `conda.enabled` and create the same environments; `-profile mamba` simply additionally sets `conda.useMamba` so the faster `mamba` frontend is used to solve and create them. On the `bruno` profile the appropriate module (`module load mamba` or `module load conda`) is loaded automatically for each task, so the profile you choose just needs to correspond to a module available on your cluster. It does not need to match what you use interactively on the login node.
+
 There are a small number of programs that are not available as containers or conda packages. These can be installed with:
 ```bash
 cd src/nonhost
 bash setup-minimal.sh
 ```
 This installs `fastq-lengths`, `fastq-namefilter`, `fastq-numfilter`, `PriceSeqFilter`, `czid-dedup`, and `gsnap`/`gmap` into `src/nonhost/bin/`. Make sure this directory is in your `$PATH` when running the pipeline (the submission script templates handle this automatically).
+
+### `seq-detective` (required only for SRA downloads)
+
+`seq-detective` is required **only** when running from SRA accessions. It is invoked
+exclusively by the `download` step, where it subsamples the downloaded reads, maps them
+against the host index, and classifies each mate as biological or technical (e.g. a
+single-cell cell-barcode read, a poly-A/poly-T tail, or a low-information mate), removing
+technical mate files before downstream processing. This matters for public SRA data, where
+library metadata is frequently missing or wrong.
+
+If you run **only from local FASTQ files** you do not need `seq-detective` at all: the local
+path (`filter_barcodes`) performs an equivalent but lighter, read-length-based barcode/mate
+check using `fastq-lengths` (installed by `setup-minimal.sh`). No other step in the pipeline
+uses `seq-detective`.
+
+`seq-detective` is **not** installed by `setup-minimal.sh`. Any run that downloads from SRA
+will fail at the first step without it (exit status 127, "command not found"; the pipeline
+now also emits an explicit preflight error naming the missing tool).
+
+Install it with:
+```bash
+cd src/nonhost
+nextflow run install-deps.nf
+```
+This builds `seq-detective` (along with the other locally compiled tools) into
+`src/nonhost/bin/`. As with the tools above, make sure `src/nonhost/bin/` is on your `$PATH`.
+
+**Install layout:** the build produces three directories that must be kept together under
+`src/nonhost/` — `bin/` (the `seq-detective` launcher), `libexec/seq-detective/` (the
+subcommands: `download`, `fingerprint`, `map`, `index-build`, `judge.py`, ...), and
+`share/seq-detective/` (barcode onlists). The launcher locates `libexec` and `share`
+relative to its own real path, so copy (do not symlink) all three and keep them as siblings.
+Copying only the `bin/` binary will produce runtime "subcommand not found" errors.
+
+> **Note:** `install-deps.nf` clones `seq-detective` from
+> `https://github.com/czbiohub-sf/seq-tech-detective.git`. This requires that repository to be
+> accessible to you (publicly available, or via your GitHub credentials). The build uses
+> `meson` and a C/C++ compiler with OpenMP; these (plus `mamba`/`conda`) are provided by the
+> repo's `environment.yml`. On some clusters the automated clone in `install-deps.nf` will not
+> work from a batch job (no outbound network or credentials on compute nodes); in that case
+> build it once by hand on a login node and copy the three directories into `src/nonhost/`.
 
 
 ## Running the pipeline
@@ -109,3 +152,5 @@ nextflow run modules/local/step.0.generate_indexes.nf
 to create the indexes ahead of time as a workaround. Make sure to use the precomputed index [parameters](parameters.md) (`--hisat-ref-indexes`, `--star-ref-indexes-ercc`, `--star-ref-indexes`, etc.) on subsequent runs.
 
 **Nextflow caching pitfall:** If you change `nextflow.config` or `override.config` after a previous run, Nextflow's `-resume` may continue using cached task scripts with the old settings. To force regeneration, delete both the `.nextflow/` cache directory and the work directory, then re-run without `-resume`.
+
+**Re-running after fixing a missing dependency:** If a step failed because a tool was missing (e.g. a `seq-detective` exit-127 in `download`) and you then install it, do **not** re-run with `-resume` against the same work directory — the previously failed tasks are cached as failures and may be reused. Re-run without `-resume`, or point `-work-dir` at a fresh directory, so the affected tasks are re-executed now that the tool is present.
