@@ -13,8 +13,8 @@ workingpath <- getwd()
 workingpathdash <- str_c(workingpath, "/")
 
 ####UPDATE####  defining paths with Taxonomizr sqlite database(s)
-taxonomizr_base_dir <- "//hpc/scratch/group.data.science/eric_temp/databases/taxonomizr/aug2025taxonomy"
-taxonomizr_fallback_dir <- "//hpc/scratch/group.data.science/eric_temp/databases/taxonomizr/feb2025taxonomy"
+taxonomizr_base_dir <- "/path/to/databases/taxonomizr/aug2025taxonomy"
+taxonomizr_fallback_dir <- "/path/to/databases/taxonomizr/feb2025taxonomy"
 
 taxonomizr_db_path <- file.path(taxonomizr_base_dir, "nameNode.sqlite")
 taxonomizr_db_path_fallback <- file.path(taxonomizr_fallback_dir, "nameNode.sqlite")

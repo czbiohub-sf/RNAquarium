@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=32
 #SBATCH -o slurm.%N.%j.out # STDOUT
 #SBATCH -e slurm.%N.%j.err # STDERR
-#SBATCH --mail-user eric.waltari@czbiohub.org   # this is the email you wish to be notified at
+#SBATCH --mail-user your.email@example.com   # this is the email you wish to be notified at
 #SBATCH --mail-type END,FAIL   # ALL will alert you of job beginning, completion, failure etc
 
 ## just the bash commands I would use
@@ -53,7 +53,7 @@ conda activate bbmap
 
 #cd RNAquarium_outputs/virus_outputs # already here!
 # Copy adapter/primer list to this directory
-cp /hpc/projects/balla_group/sra_experiments/RNAquarium_75k/RNAquarium/src/metatranscriptome/fastp_adapters_with9added.fasta .
+cp /path/to/RNAquarium/src/metatranscriptome/bin/fastp_adapters_with9added.fasta .
 
 ## running filter only on viruses, not NTtargets
 bbduk.sh -Xmx24g threads=auto in=taxonomy_hits_viruses_mostrecent.fasta out=taxonomy_hits_viruses_mostrecent_masked.fa ref=adapters,artifacts,phix,lambda,pjet,kapa,fastp_adapters_with9added.fasta k=21 mink=10 hdist=1 maskmiddle=f kmask=N fastawrap=0 stats=taxonomy_hits_viruses_mostrecent_masking_stats.txt
@@ -67,7 +67,7 @@ cat taxonomy_hits_viruses_mostrecent_masked_trimmed.fa targetNT_sequences.fasta 
 sleep 1
 ### now mmseqs cluster
 
-/hpc/projects/balla_group/sra_experiments/tools/MMseqs2/build/bin/mmseqs easy-cluster taxonomy_hits_viruses_mostrecent_withtargets.fasta taxonomy_hits_viruses_easycluster1 tmp --min-seq-id 0.5 -c 0.1 --cov-mode 1
+mmseqs easy-cluster taxonomy_hits_viruses_mostrecent_withtargets.fasta taxonomy_hits_viruses_easycluster1 tmp --min-seq-id 0.5 -c 0.1 --cov-mode 1
 
 
 

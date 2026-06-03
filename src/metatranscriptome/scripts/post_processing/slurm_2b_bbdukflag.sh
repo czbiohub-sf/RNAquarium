@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH -o slurm.%N.%j.out # STDOUT
 #SBATCH -e slurm.%N.%j.err # STDERR
-#SBATCH --mail-user eric.waltari@czbiohub.org   # this is the email you wish to be notified at
+#SBATCH --mail-user your.email@example.com   # this is the email you wish to be notified at
 #SBATCH --mail-type END,FAIL   # ALL will alert you of job beginning, completion, failure etc
 
 ## just the bash commands I would use
@@ -22,7 +22,7 @@ conda activate bbmap
 cd RNAquarium_outputs
 
 # Copy adapter/primer list to this directory
-cp /hpc/projects/balla_group/sra_experiments/RNAquarium_75k/RNAquarium/src/metatranscriptome/fastp_adapters_with9added.fasta .
+cp /path/to/RNAquarium/src/metatranscriptome/bin/fastp_adapters_with9added.fasta .
 
 # Check if masked.fasta exists, only continue if not & also save previous version of unmasked fasta!
 if [ ! -f taxonomy_hits_nonhost_list_masked.fasta ]; then

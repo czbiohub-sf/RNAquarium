@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=nf-RNAquarium
-#SBATCH --chdir=/hpc/mydata/gibraan.rahman/projects/RNAquarium/merge_assemble
+#SBATCH --chdir=/path/to/RNAquarium/merge_assemble
 #SBATCH --output=./slurm/nf-RNAquarium.out
 #SBATCH --time=21-00:00:00
 #SBATCH --mem=16G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=cpu
-#SBATCH --mail-user=gibraan.rahman@czbiohub.org
+#SBATCH --mail-user=your.email@example.com
 #SBATCH --mail-type=BEGIN,END,FAIL
 
-UNMERGED_ACC="/hpc/projects/balla_group/sra_experiments/zebrafish_RNAseq/rnaquarium_output/nonhost_reads/"
+UNMERGED_ACC="/path/to/rnaquarium_output/nonhost_reads/"
 BIOPROJ_MAP="tmp/filt_mapping.json"
-WORK_DIR="/hpc/scratch/group.swe/rnaquarium/work"
+WORK_DIR="/path/to/scratch/rnaquarium/work"
 PUB_DIR="./output_2024_07_25/"
-NT_DIR="/hpc/scratch/group.swe/db/nt_clustered"
+NT_DIR="/path/to/databases/nt_clustered"
 NT_DB_NAME="nt_compressed_shuffled.fa"
-NTFULL_DIR="/hpc/scratch/group.data.science/eric_temp/databases/2025/core_nt"
+NTFULL_DIR="/path/to/databases/2025/core_nt"
 NTFULL_DB_NAME="core_nt"
-NR_DIR="/hpc/scratch/group.data.science/eric_temp/databases/2025/nr_clustered"
-TAXONOMY_DB="/hpc/scratch/group.data.science/eric_temp/mmseqs_out/taxonomizr/feb2025taxonomy/nameNode.sqlite"
+NR_DIR="/path/to/databases/2025/nr_clustered"
+TAXONOMY_DB="/path/to/databases/taxonomizr/feb2025taxonomy/nameNode.sqlite"
 
 mkdir -p $PUB_DIR
 

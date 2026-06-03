@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 
 HOME_DIR = Path(
-    "/hpc/mydata/gibraan.rahman/projects/RNAquarium/merge_assemble/"
+    "/path/to/RNAquarium/merge_assemble/"
 )
 LOG_FILE = HOME_DIR / "slurm/nf-RNAquarium.out.bak"
 FULL_MAP_FILE = HOME_DIR / "tmp/full_mapping.json"

@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=nf-RNAquarium
-#SBATCH --chdir=/hpc/projects/balla_group/sra_experiments/RNAquarium_75k/RNAquarium/src/metatranscriptome
+#SBATCH --chdir=/path/to/RNAquarium/src/metatranscriptome
 #SBATCH --output=./nf-RNAquarium.out
 #SBATCH --time=21-00:00:00
 #SBATCH --mem=16G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=cpu
-#SBATCH --mail-user=eric.waltari@czbiohub.org
+#SBATCH --mail-user=your.email@example.com
 #SBATCH --mail-type=BEGIN,END,FAIL
 
-UNMERGED_ACC="/hpc/projects/balla_group/sra_experiments/RNAquarium_75k/RNAquarium/src/metatranscriptome/all_unmapped_links/"
-BIOPROJ_MAP="/hpc/projects/balla_group/sra_experiments/SRA_metadata/bioproject_mapping.json"
-WORK_DIR="/hpc/scratch/group.data.science/eric_temp/nf_metatmp_24jul25/"
-PUB_DIR="/hpc/projects/balla_group/sra_experiments/versioned_zf_output/75k_unstable/metatranscriptome/"
-NT_DIR="/hpc/scratch/group.swe/db/nt_clustered"
+UNMERGED_ACC="/path/to/RNAquarium/src/metatranscriptome/all_unmapped_links/"
+BIOPROJ_MAP="/path/to/SRA_metadata/bioproject_mapping.json"
+WORK_DIR="/path/to/scratch/nf_metatmp/"
+PUB_DIR="/path/to/output/metatranscriptome/"
+NT_DIR="/path/to/databases/nt_clustered"
 NT_DB_NAME="nt_compressed_shuffled.fa"
-NTFULL_DIR="/hpc/scratch/group.data.science/eric_temp/databases/2025/core_nt"
+NTFULL_DIR="/path/to/databases/2025/core_nt"
 NTFULL_DB_NAME="core_nt"
-NR_DIR="/hpc/scratch/group.data.science/eric_temp/databases/2025/nr_clustered"
-TAXONOMY_DB="/hpc/scratch/group.data.science/eric_temp/mmseqs_out/taxonomizr/feb2025taxonomy/nameNode.sqlite"
+NR_DIR="/path/to/databases/2025/nr_clustered"
+TAXONOMY_DB="/path/to/databases/taxonomizr/feb2025taxonomy/nameNode.sqlite"
 
 mkdir -p $PUB_DIR
 
@@ -29,7 +29,7 @@ TIMELINE="${PUB_DIR}/timeline.75k.html"
 unset NXF_VER
 
 module load nextflow/24.10.5
-## to run this version /hpc/apps/x86_64/nextflow/24.10.5/bin/nextflow /path/to/module/nextflow/24.10.5/bin/nextflow run but getting errors due to my .bash_profile note new unset command first
+## if module load is unavailable, you can call the nextflow binary by full path; note the unset NXF_VER above
 nextflow run \
     -profile slurm,singularity \
     -with-report $REPORT \
