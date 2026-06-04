@@ -89,3 +89,6 @@ override.config
 
 # Archived old codebase snapshot
 actual75kcode/
+
+docs/AUDIT-detailed-75k-comparison.md
+docs/CHANGELOG-documentation-updates-2026-04.md
