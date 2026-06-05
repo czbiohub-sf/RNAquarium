@@ -7,3 +7,5 @@ requests>=2.32.4
 urllib3>=2.5.0
 certifi>=2024.7.4
 jinja2>=3.1.6
+idna>=3.15
+Pygments>=2.20.0
