@@ -13,7 +13,7 @@ RNAquarium enables:
 
 ## Overview of the workflow
 
-![RNAquarium pipeline overview illustration](docs/_images/RNAquarium-Pipeline-for-Repo_v062026_detailed.png)
+![RNAquarium pipeline overview illustration](docs/_images/RNAquarium-Pipeline-for-Repo_v062026.png)
 
 ## Explore the data
 
