@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=salmon_SEportion_sept24
-#SBATCH --time=2-21:00:00      # NOTE THAT 22 HOURS IS A CUT-OFF, USING LESS HERE
+#SBATCH --time=2-21:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem=1260G
@@ -13,9 +13,6 @@
 #SBATCH --mail-user your.email@example.com   # this is the email you wish to be notified at
 #SBATCH --mail-type END,FAIL   # ALL will alert you of job beginning, completion, failure etc
 
-## just the bash commands I would use srun --pty --cpus-per-task 28 --mem=1260G --time=1-10 bash -l
-
-#module purge
 module purge
 module load anaconda/2023.03
 conda activate salmon
