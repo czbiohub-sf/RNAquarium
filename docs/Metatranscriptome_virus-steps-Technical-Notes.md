@@ -187,7 +187,6 @@ We used the following SLURM scripts:
 - `slurm_salmonpreSEPE_sept24.sh`
 - `slurm_salmonPE_sept24.sh`
 - `slurm_salmonSE_sept24.sh`
-- `slurm_salmonSEb_sept24.sh` (split SE into two batches)
 - `slurm_salmonSEPEpost_sept24.sh` (post-processing & aggregation)
 
 Final Salmon count matrix (~75k SRA runs × ~182k virus contigs):
