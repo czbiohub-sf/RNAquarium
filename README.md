@@ -25,18 +25,18 @@ Please refer to the [documentation](https://czbiohub-sf.github.io/RNAquarium/) f
 
 **Part I — Transcriptomic + Filtering**
 
-* [Inputs and Databases](czbiohub-sf.github.io/RNAquarium/inputs-and-databases.html)
-* [Non-host pipeline overview](czbiohub-sf.github.io/RNAquarium/nonhost-readme.html)
-* [Getting Started (installation & usage)](czbiohub-sf.github.io/RNAquarium/gettingstarted.html)
-* [Parameters](czbiohub-sf.github.io/RNAquarium/parameters.html)
-* [Pipeline Explanation](czbiohub-sf.github.io/RNAquarium/pipeline-explanation.html)
-* [Technical Notes](czbiohub-sf.github.io/RNAquarium/technical-notes.html)
+* [Inputs and Databases](https://czbiohub-sf.github.io/RNAquarium/inputs-and-databases.html)
+* [Non-host pipeline overview](https://czbiohub-sf.github.io/RNAquarium/nonhost-readme.html)
+* [Getting Started (installation & usage)](https://czbiohub-sf.github.io/RNAquarium/gettingstarted.html)
+* [Parameters](https://czbiohub-sf.github.io/RNAquarium/parameters.html)
+* [Pipeline Explanation](https://czbiohub-sf.github.io/RNAquarium/pipeline-explanation.html)
+* [Technical Notes](https://czbiohub-sf.github.io/RNAquarium/technical-notes.html)
 
 **Part II — Metatranscriptomics**
 
-* [Metatranscriptome pipeline overview (usage)](czbiohub-sf.github.io/RNAquarium/metatranscriptome-readme.html)
-* [Metatranscriptome Technical Notes](czbiohub-sf.github.io/RNAquarium/Metatranscriptome-Technical-Notes.html)
-* [Metatranscriptome virus-steps Technical Notes](czbiohub-sf.github.io/RNAquarium/Metatranscriptome_virus-steps-Technical-Notes.html)
+* [Metatranscriptome pipeline overview (usage)](https://czbiohub-sf.github.io/RNAquarium/metatranscriptome-readme.html)
+* [Metatranscriptome Technical Notes](https://czbiohub-sf.github.io/RNAquarium/Metatranscriptome-Technical-Notes.html)
+* [Metatranscriptome virus-steps Technical Notes](https://czbiohub-sf.github.io/RNAquarium/Metatranscriptome_virus-steps-Technical-Notes.html)
 
 ## Authors and maintainers
 
