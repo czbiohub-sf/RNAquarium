@@ -5,7 +5,7 @@ params.myExecutor = 'slurm'
 params.prefix = 'bin/'
 
 workflow {
-	//install_seq_detective()
+	install_seq_detective()
 	install_fastq_lengths()
 	install_fastq_namefilter()
 	//install_priceseqfilter(Channel.fromPath( 'pricesource.patch' ))
@@ -23,9 +23,9 @@ process install_seq_detective {
 
 	script:
 	def BINNAME="seq-detective"
-	def URL="git@github.com:czbiohub-sf/seq-tech-detective.git"
+	def URL="https://github.com/czbiohub-sf/seq-tech-detective.git"
 	"""
-git clone $URL seq-tech-detective-core -b JUDGEMENT --depth 1
+git clone $URL seq-tech-detective-core -b CORE --depth 1
 cd seq-tech-detective-core
 mamba env create -f environment.yml -n seq-detective
 mamba activate seq-detective

@@ -44,7 +44,24 @@ process download {
 	def PROLOGUE = """
 	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
 	set -v
-	
+
+	# preflight: fail fast with a clear message if a required tool is missing.
+	# Exit status 3 is used deliberately: the download errorStrategy treats exit 3
+	# as non-retryable ('ignore'), so a missing dependency fails once with a clear
+	# message instead of triggering pointless retries (a missing binary will not
+	# appear on a re-run). seq-detective is only needed on the SRA-download path and
+	# is installed via install-deps.nf (see docs/gettingstarted.md); the rest come
+	# from the conda/container env.
+	for _tool in prefetch fasterq-dump vdb-config vdb-dump seqtk seq-detective; do
+		if ! command -v "\$_tool" >/dev/null 2>&1; then
+			echo "ERROR [download]: required tool '\$_tool' not found on PATH." >&2
+			echo "  - prefetch/fasterq-dump/vdb-* and seqtk come from the conda/container env (use -profile mamba/conda/singularity/docker)." >&2
+			echo "  - seq-detective must be installed via 'nextflow run install-deps.nf' and src/nonhost/bin/ added to PATH." >&2
+			echo "  See docs/gettingstarted.md (Dependencies) for details." >&2
+			exit 3
+		fi
+	done
+
 	# prefetch won't run without config, we can't control much, but at least initialize it
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	mkdir -p fastq
