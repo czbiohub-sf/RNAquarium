@@ -28,8 +28,9 @@ process install_seq_detective {
 git clone $URL seq-tech-detective-core -b CORE --depth 1
 cd seq-tech-detective-core
 mamba env create -f environment.yml -n seq-detective
-mamba activate seq-detective
-make -j${task.cpus} && \
+# Build inside the env via 'conda run' rather than 'mamba activate', which is not
+# available in a non-interactive batch shell (the shell hook is not initialized).
+conda run -n seq-detective make -j${task.cpus} && \
 mv -u build/seq-detective/bin/* ../bin/ && \
 mv -u build/seq-detective/libexec/ ../ && \
 mv -u build/seq-detective/share/ ../ && \
