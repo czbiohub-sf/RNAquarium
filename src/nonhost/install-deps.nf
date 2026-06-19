@@ -28,9 +28,13 @@ process install_seq_detective {
 git clone $URL seq-tech-detective-core -b CORE --depth 1
 cd seq-tech-detective-core
 mamba env create -f environment.yml -n seq-detective
-# Build inside the env via 'conda run' rather than 'mamba activate', which is not
-# available in a non-interactive batch shell (the shell hook is not initialized).
-conda run -n seq-detective make -j${task.cpus} && \
+# Initialize the conda shell hook before activating: in a non-interactive batch
+# shell the hook (__conda_exe etc.) is not sourced, so 'conda activate' / 'conda run'
+# fail with "__conda_exe: command not found". 'conda info --base' works because the
+# base conda executable is on PATH (it is what ran 'mamba env create' above).
+source "\$(conda info --base)/etc/profile.d/conda.sh"
+conda activate seq-detective
+make -j${task.cpus} && \
 mv -u build/seq-detective/bin/* ../bin/ && \
 mv -u build/seq-detective/libexec/ ../ && \
 mv -u build/seq-detective/share/ ../ && \
