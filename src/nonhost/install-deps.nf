@@ -18,8 +18,11 @@ process install_seq_detective {
 	cpus 1
 	memory '2GB'
 	time '10min'
-	output: file("seq-detective")
-	publishDir params.prefix, mode: 'move'
+	// seq-detective installs three sibling dirs (bin/, libexec/, share/). Unlike the
+	// single-binary tools (which publish into params.prefix == 'bin/'), these must land
+	// as siblings of bin/ under the launch dir, so publish to the parent of params.prefix.
+	output: path("seq-detective/*")
+	publishDir "${file(params.prefix).parent ?: '.'}", mode: 'move'
 
 	script:
 	def BINNAME="seq-detective"
@@ -37,11 +40,12 @@ mamba env create -f environment.yml -n seq-detective
 command -v module >/dev/null 2>&1 && module load mamba || true
 eval "\$(conda shell.bash hook 2>/dev/null)" || eval "\$(mamba shell.bash hook)"
 conda activate seq-detective
-make -j${task.cpus} && \
-mv -u build/seq-detective/bin/* ../bin/ && \
-mv -u build/seq-detective/libexec/ ../ && \
-mv -u build/seq-detective/share/ ../ && \
+make -j${task.cpus}
+# Stage the install tree (build/seq-detective/{bin,libexec,share}) into the task
+# work dir as 'seq-detective/'; the output/publishDir directives above then move
+# bin/, libexec/, share/ to the launch dir as siblings.
 cd ..
+mv seq-tech-detective-core/build/seq-detective seq-detective
 rm -rf seq-tech-detective-core/
 	"""
 }
