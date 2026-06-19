@@ -20,9 +20,12 @@ process install_seq_detective {
 	time '10min'
 	// seq-detective installs three sibling dirs (bin/, libexec/, share/). Unlike the
 	// single-binary tools (which publish into params.prefix == 'bin/'), these must land
-	// as siblings of bin/ under the launch dir, so publish to the parent of params.prefix.
-	output: path("seq-detective/*")
-	publishDir "${file(params.prefix).parent ?: '.'}", mode: 'move'
+	// as siblings of bin/ under the launch dir. Publish to the parent of params.prefix
+	// and use saveAs to strip the staged 'seq-detective/' wrapper so the files flatten
+	// into <launchDir>/{bin,libexec,share}/... (same saveAs pattern as install_gsnap).
+	output: path("seq-detective/**")
+	publishDir "${file(params.prefix).parent ?: '.'}", mode: 'move',
+		saveAs: { it.replaceFirst(/^seq-detective\//, "") }
 
 	script:
 	def BINNAME="seq-detective"
