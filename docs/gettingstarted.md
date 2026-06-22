@@ -20,7 +20,7 @@ This installs `fastq-lengths`, `fastq-namefilter`, `fastq-numfilter`, `PriceSeqF
 `seq-detective` is **not** installed by `setup-minimal.sh`, and `install-deps.nf` does not build it by default. If you need the SRA-download path, enable it explicitly:
 ```bash
 cd src/nonhost
-nextflow run install-deps.nf --install-seq-detective
+nextflow run install-deps.nf --installSeqDetective
 ```
 This clones [seq-tech-detective](https://github.com/czbiohub-sf/seq-tech-detective) and builds `seq-detective` into `src/nonhost/bin/`. The build uses `meson` and a C/C++ compiler with OpenMP, plus `mamba`/`conda` for runtime dependencies — these are provided by the repo's `environment.yml`, so ensure `mamba` (or `conda`) is available (e.g. `module load mamba`).
 
