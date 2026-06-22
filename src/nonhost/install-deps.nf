@@ -3,9 +3,14 @@ nextflow.enable.dsl=2
 
 params.myExecutor = 'slurm'
 params.prefix = 'bin/'
+// seq-detective is only needed for the SRA-download path; off by default so users who
+// run only from local FASTQ files don't build it. Enable with --install-seq-detective
+params.install_seq_detective = false
 
 workflow {
-	install_seq_detective()
+	if (params.install_seq_detective) {
+		install_seq_detective()
+	}
 	install_fastq_lengths()
 	install_fastq_namefilter()
 	//install_priceseqfilter(Channel.fromPath( 'pricesource.patch' ))
@@ -33,15 +38,15 @@ process install_seq_detective {
 	"""
 git clone $URL seq-tech-detective-core -b CORE --depth 1
 cd seq-tech-detective-core
-mamba env create -f environment.yml -n seq-detective
-# Initialize conda's shell functions before activating. In a non-interactive batch
-# shell these are not defined ('conda'/'mamba' are shell functions set up by the
-# login shell or an environment module), so 'conda activate' fails with
+# Make conda/mamba available and initialize their shell functions. In a non-interactive
+# batch shell these are not set up (they are shell functions provided by the login shell
+# or an environment module), so 'mamba env create' / 'conda activate' fail with
 # "__conda_exe: command not found". 'module load mamba' is CZ Biohub-specific and is
-# guarded so it does not error elsewhere; external users with conda/mamba already on
-# PATH will have the hook initialized by the eval below.
+# guarded so it does not error elsewhere; external users with conda/mamba already on PATH
+# rely on the eval below to initialize the hook.
 command -v module >/dev/null 2>&1 && module load mamba || true
 eval "\$(conda shell.bash hook 2>/dev/null)" || eval "\$(mamba shell.bash hook)"
+mamba env create -f environment.yml -n seq-detective
 conda activate seq-detective
 make -j${task.cpus}
 # Stage the install tree (build/seq-detective/{bin,libexec,share}) into the task

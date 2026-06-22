@@ -17,10 +17,10 @@ This installs `fastq-lengths`, `fastq-namefilter`, `fastq-numfilter`, `PriceSeqF
 
 `seq-detective` is required **only** when running from SRA accessions. It is invoked exclusively by the `download` step, where it subsamples the downloaded reads, maps them against the host index, and classifies each mate as biological or technical (e.g. a single-cell cell-barcode read, a poly-A/poly-T tail, or a low-information mate), removing technical mate files before downstream processing. If you run **only from local FASTQ files** you do not need it: the local path uses a lighter, read-length-based check (`fastq-lengths`, installed above) instead. No other step uses `seq-detective`.
 
-`seq-detective` is **not** installed by `setup-minimal.sh`. Install it with:
+`seq-detective` is **not** installed by `setup-minimal.sh`, and `install-deps.nf` does not build it by default. If you need the SRA-download path, enable it explicitly:
 ```bash
 cd src/nonhost
-nextflow run install-deps.nf
+nextflow run install-deps.nf --install-seq-detective
 ```
 This clones [seq-tech-detective](https://github.com/czbiohub-sf/seq-tech-detective) and builds `seq-detective` into `src/nonhost/bin/`. The build uses `meson` and a C/C++ compiler with OpenMP, plus `mamba`/`conda` for runtime dependencies — these are provided by the repo's `environment.yml`, so ensure `mamba` (or `conda`) is available (e.g. `module load mamba`).
 
