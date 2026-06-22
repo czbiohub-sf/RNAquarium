@@ -3,9 +3,15 @@ nextflow.enable.dsl=2
 
 params.myExecutor = 'slurm'
 params.prefix = 'bin/'
+// seq-detective is needed for the SRA-download path; built by default. If you run only
+// from local FASTQ files you can skip it with --install-seq-detective false (Nextflow
+// treats the kebab-case CLI flag as equivalent to the camelCase param below).
+params.installSeqDetective = true
 
 workflow {
-	//install_seq_detective()
+	if (params.installSeqDetective) {
+		install_seq_detective()
+	}
 	install_fastq_lengths()
 	install_fastq_namefilter()
 	//install_priceseqfilter(Channel.fromPath( 'pricesource.patch' ))
@@ -18,22 +24,37 @@ process install_seq_detective {
 	cpus 1
 	memory '2GB'
 	time '10min'
-	output: file("seq-detective")
-	publishDir params.prefix, mode: 'move'
+	// seq-detective installs three sibling dirs (bin/, libexec/, share/). Unlike the
+	// single-binary tools (which publish into params.prefix == 'bin/'), these must land
+	// as siblings of bin/ under the launch dir. Publish to the parent of params.prefix
+	// and use saveAs to strip the staged 'seq-detective/' wrapper so the files flatten
+	// into <launchDir>/{bin,libexec,share}/... (same saveAs pattern as install_gsnap).
+	output: path("seq-detective/**")
+	publishDir "${file(params.prefix).parent ?: '.'}", mode: 'move',
+		saveAs: { it.replaceFirst(/^seq-detective\//, "") }
 
 	script:
 	def BINNAME="seq-detective"
-	def URL="git@github.com:czbiohub-sf/seq-tech-detective.git"
+	def URL="https://github.com/czbiohub-sf/seq-tech-detective.git"
 	"""
-git clone $URL seq-tech-detective-core -b JUDGEMENT --depth 1
+git clone $URL seq-tech-detective-core -b CORE --depth 1
 cd seq-tech-detective-core
+# Make conda/mamba available and initialize their shell functions. In a non-interactive
+# batch shell these are not set up (they are shell functions provided by the login shell
+# or an environment module), so 'mamba env create' / 'conda activate' fail with
+# "__conda_exe: command not found". 'module load mamba' is CZ Biohub-specific and is
+# guarded so it does not error elsewhere; external users with conda/mamba already on PATH
+# rely on the eval below to initialize the hook.
+command -v module >/dev/null 2>&1 && module load mamba || true
+eval "\$(conda shell.bash hook 2>/dev/null)" || eval "\$(mamba shell.bash hook)"
 mamba env create -f environment.yml -n seq-detective
-mamba activate seq-detective
-make -j${task.cpus} && \
-mv -u build/seq-detective/bin/* ../bin/ && \
-mv -u build/seq-detective/libexec/ ../ && \
-mv -u build/seq-detective/share/ ../ && \
+conda activate seq-detective
+make -j${task.cpus}
+# Stage the install tree (build/seq-detective/{bin,libexec,share}) into the task
+# work dir as 'seq-detective/'; the output/publishDir directives above then move
+# bin/, libexec/, share/ to the launch dir as siblings.
 cd ..
+mv seq-tech-detective-core/build/seq-detective seq-detective
 rm -rf seq-tech-detective-core/
 	"""
 }

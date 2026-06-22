@@ -44,7 +44,7 @@ process download {
 	def PROLOGUE = """
 	trap 'echo "\$\$ Interrupt by external (OOM?), exiting."; exit 130' SIGINT
 	set -v
-	
+
 	# prefetch won't run without config, we can't control much, but at least initialize it
 	set +e; yes "q" | vdb-config -i > /dev/null 2>&1; set -e
 	mkdir -p fastq
