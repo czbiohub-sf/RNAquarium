@@ -17,12 +17,16 @@ This installs `fastq-lengths`, `fastq-namefilter`, `fastq-numfilter`, `PriceSeqF
 
 `seq-detective` is required **only** when running from SRA accessions. It is invoked exclusively by the `download` step, where it subsamples the downloaded reads, maps them against the host index, and classifies each mate as biological or technical (e.g. a single-cell cell-barcode read, a poly-A/poly-T tail, or a low-information mate), removing technical mate files before downstream processing. If you run **only from local FASTQ files** you do not need it: the local path uses a lighter, read-length-based check (`fastq-lengths`, installed above) instead. No other step uses `seq-detective`.
 
-`seq-detective` is **not** installed by `setup-minimal.sh`, and `install-deps.nf` does not build it by default. If you need the SRA-download path, enable it explicitly:
+`seq-detective` is **not** installed by `setup-minimal.sh`, but `install-deps.nf` builds it by default:
 ```bash
 cd src/nonhost
-nextflow run install-deps.nf --installSeqDetective true
+nextflow run install-deps.nf
 ```
-This clones [seq-tech-detective](https://github.com/czbiohub-sf/seq-tech-detective) and builds `seq-detective` into `src/nonhost/bin/`. The build uses `meson` and a C/C++ compiler with OpenMP, plus `mamba`/`conda` for runtime dependencies — these are provided by the repo's `environment.yml`, so ensure `mamba` (or `conda`) is available (e.g. `module load mamba`).
+If you run **only from local FASTQ files** and don't need the SRA-download path, you can skip it:
+```bash
+nextflow run install-deps.nf --install-seq-detective false
+```
+The default run clones [seq-tech-detective](https://github.com/czbiohub-sf/seq-tech-detective) and builds `seq-detective` into `src/nonhost/bin/`. The build uses `meson` and a C/C++ compiler with OpenMP, plus `mamba`/`conda` for runtime dependencies — these are provided by the repo's `environment.yml`, so ensure `mamba` (or `conda`) is available (e.g. `module load mamba`).
 
 **Install layout:** the build produces three directories that must be kept together under `src/nonhost/` — `bin/` (the `seq-detective` launcher), `libexec/seq-detective/` (the subcommands), and `share/seq-detective/` (barcode onlists). The launcher locates `libexec` and `share` relative to its own path, so keep all three as siblings; copying only the `bin/` binary will cause runtime "subcommand not found" errors.
 

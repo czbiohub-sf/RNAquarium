@@ -3,11 +3,10 @@ nextflow.enable.dsl=2
 
 params.myExecutor = 'slurm'
 params.prefix = 'bin/'
-// seq-detective is only needed for the SRA-download path; off by default so users who
-// run only from local FASTQ files don't build it. Enable with --installSeqDetective
-// (this standalone script does not load nf-validation, so the param name is matched
-// exactly on the command line -- camelCase, no dashed alias).
-params.installSeqDetective = false
+// seq-detective is needed for the SRA-download path; built by default. If you run only
+// from local FASTQ files you can skip it with --install-seq-detective false (Nextflow
+// treats the kebab-case CLI flag as equivalent to the camelCase param below).
+params.installSeqDetective = true
 
 workflow {
 	if (params.installSeqDetective) {
