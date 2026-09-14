@@ -668,17 +668,17 @@ workflow {
 		.splitCsv( header: true, skip: 0, strip: true, limit: 1 )
 		.reduce { a, b ->
 			[
-				starting_reads: a.starting_reads.toLong() + (b.starting_reads ? b.starting_reads.toLong() : 0L),
-				fastp_reads_after: a.fastp_reads_after.toLong() + (b.fastp_reads_after ? b.fastp_reads_after.toLong() : 0L),
+				starting_reads: (a.starting_reads ? a.starting_reads.toLong() : 0L) + (b.starting_reads ? b.starting_reads.toLong() : 0L),
+				fastp_reads_after: (a.fastp_reads_after ? a.fastp_reads_after.toLong() : 0L) + (b.fastp_reads_after ? b.fastp_reads_after.toLong() : 0L),
 				// [not a mistake] using input to next step to determine output from previous
-				hisat2_reads_before: a.hisat2_reads_before.toLong() + (b.hisat2_reads_before ? b.hisat2_reads_before.toLong() : 0L),
-				star_reads_before: a.star_reads_before.toLong() + (b.star_reads_before ? b.star_reads_before.toLong() : 0L),
-				bowtie2_reads_before: a.bowtie2_reads_before.toLong() + (b.bowtie2_reads_before ? b.bowtie2_reads_before.toLong() : 0L),
-				dedup_reads_before: a.dedup_reads_before.toLong() + (b.dedup_reads_before ? b.dedup_reads_before.toLong() : 0L),
+				hisat2_reads_before: (a.hisat2_reads_before ? a.hisat2_reads_before.toLong() : 0L) + (b.hisat2_reads_before ? b.hisat2_reads_before.toLong() : 0L),
+				star_reads_before: (a.star_reads_before ? a.star_reads_before.toLong() : 0L) + (b.star_reads_before ? b.star_reads_before.toLong() : 0L),
+				bowtie2_reads_before: (a.bowtie2_reads_before ? a.bowtie2_reads_before.toLong() : 0L) + (b.bowtie2_reads_before ? b.bowtie2_reads_before.toLong() : 0L),
+				dedup_reads_before: (a.dedup_reads_before ? a.dedup_reads_before.toLong() : 0L) + (b.dedup_reads_before ? b.dedup_reads_before.toLong() : 0L),
 				// [not a mistake] ends here
-				dedup_reads_after: a.dedup_reads_after.toLong() + (b.dedup_reads_after ? b.dedup_reads_after.toLong() : 0L),
+				dedup_reads_after: (a.dedup_reads_after ? a.dedup_reads_after.toLong() : 0L) + (b.dedup_reads_after ? b.dedup_reads_after.toLong() : 0L),
 				// currently gsnap output + skipped gsnap
-				final_reads: a.final_reads.toLong() + (b.final_reads ? b.final_reads.toLong() : 0L)
+				final_reads: (a.final_reads ? a.final_reads.toLong() : 0L) + (b.final_reads ? b.final_reads.toLong() : 0L)
 			]
 		}
 		.combine(accessions.count()).combine(n_direct_fastqs.count()).combine(filter_barcodes_result.ok.count()).combine(all_stats.count())
