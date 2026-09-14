@@ -15,9 +15,11 @@ wget https://github.com/yttria-aniseia/fastq-lengths/archive/refs/tags/v0.2.8.ta
 	tar -xzvf fastq-lengths-0.2.8.tar.gz && cd fastq-lengths-0.2.8 && make && mv bin/fastq-lengths ${DESTDIR}${bindir}/fastq-lengths && cd .. && \
 	rm -rf fastq-lengths-0.2.8/ && rm fastq-lengths-0.2.8.tar.gz
 
-wget https://github.com/yttria-aniseia/fastq-namefilter/archive/refs/tags/0.2.8.tar.gz -O fastq-namefilter-0.2.8.tar.gz && \
-	tar -xzvf fastq-namefilter-0.2.8.tar.gz && cd fastq-namefilter-0.2.8 && make && mv bin/fastq-namefilter ${DESTDIR}${bindir}/fastq-namefilter && cd .. && \
-	rm -rf fastq-namefilter-0.2.8/ && rm fastq-namefilter-0.2.8.tar.gz
+wget https://github.com/yttria-aniseia/fastq-namefilter/archive/refs/tags/0.3.0.tar.gz -O fastq-namefilter-0.3.0.tar.gz && \
+    tar -xzvf fastq-namefilter-0.3.0.tar.gz && cd fastq-namefilter-0.3.0 && make && \
+    mv bin/fastq-namefilter ${DESTDIR}${bindir}/fastq-namefilter && \
+    mv bin/fastq-numfilter  ${DESTDIR}${bindir}/fastq-numfilter && cd .. && \
+    rm -rf fastq-namefilter-0.3.0/ && rm fastq-namefilter-0.3.0.tar.gz
 
 wget https://derisilab.ucsf.edu/software/price/PriceSource140408.tar.gz -O PriceSource140408.tar.gz && \
 	tar -xzvf PriceSource140408.tar.gz && patch -ruN --verbose -d PriceSource140408 -i $PWD/pricesource.patch && \
