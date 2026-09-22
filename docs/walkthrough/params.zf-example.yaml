@@ -58,20 +58,8 @@ publish-intermediate: true
 retain-mixed: true
 kb-retain-mixed: false
 # Keep intermediates: for a test-drive this lets you inspect per-step outputs.
-# When true, main.nf builds a cleanupScript that TRUNCATES each step's inputs to zero
-# and re-sparsifies them (preserving size/mtime so lenient caching still resumes) --
-# it does not delete them. That reclaims disk on real runs but leaves hollow files that
-# are confusing to inspect, and it has been implicated in an end-of-run stats summary
-# NPE on tiny inputs. Real runs can set true.
-# VERIFIED 2026-09-18: with false, the rendered .command.sh ends at cleanup="..." with
-# nothing after it, i.e. cleanupScript expands to empty. This key maps correctly.
 cleanup-intermediate: false
-# NOTE the camelCase here: this is deliberate, not a typo. The kebab form
-# 'publish-qc-filtered' does NOT map, because the non-standard 'QC' casing breaks the
-# kebab->camelCase conversion. A camelCase key in a params file is passed through
-# verbatim, so this form works. Every OTHER key in this file is kebab-case and maps
-# correctly (audited against nextflow_schema.json). The submit script also passes
-# --publishQCfiltered on the command line as belt-and-suspenders.
+# NOTE the camelCase here: this is deliberate, not a typo.
 publishQCfiltered: true
 
 # --- Resource limits (scaled down for a small batch) ---
