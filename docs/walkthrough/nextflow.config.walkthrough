@@ -1,12 +1,15 @@
 // ===========================================================================
-// WALKTHROUGH TEST CONFIG — derived from the repo's nextflow.config.
-// Differences vs. upstream (test-drive only; do NOT use for real analysis):
-//   * --qos=throttle_500 and large --tmp reservations stripped from all
-//     clusterOptions (Biohub-specific; unrunnable on other clusters).
+// WALKTHROUGH TEST CONFIG — test-only variant of the repo's nextflow.config.
+// Not for real analysis. The changes:
+//   * --qos=throttle_500 and the large --tmp reservations dropped from every
+//     clusterOptions (Biohub-specific, so not portable to other clusters).
 //   * conda.channels set explicitly on the conda/mamba profiles.
-//   * gsnap + host_cram publishDir mode "move" -> "copy" (swap 4), so re-runs
-//     are non-destructive, -resume works, and a failed publish cannot lose data.
-// The gsnap cpus guard and slurm ext.largeThreshold match upstream (unchanged).
+//   * gsnap's cpus directive short-circuits when ext.largeThreshold is unset,
+//     so the pipeline also runs under profiles that don't set it.
+//   * gsnap + host_cram publishDir mode "move" -> "copy", so a re-run is
+//     non-destructive and -resume can cache those steps.
+// The ext.largeThreshold values in the slurm and bruno profiles are unchanged.
+// Why: docs/walkthrough/README.md, Part I Step 6.
 // ===========================================================================
 import java.time.*
 import java.text.DecimalFormat
@@ -134,6 +137,8 @@ profiles {
 		}
 		process {
 			executor = 'slurm'
+			// [walkthrough] --qos=throttle_500 removed here and the --tmp reservations
+			// from the per-process clusterOptions below; both are Biohub-specific.
 			clusterOptions = ''
 			ext.extraClusterOptions = ""
 
@@ -505,6 +510,9 @@ process {
 		// we have to do extra handling elsewhere to disambiguate from oom
 		errorStrategy = { task.attempt <= task.ext.maxAttempts && task.exitStatus != 9
 						 ? 'retry' : 'ignore' }
+		// [walkthrough] the `!task.ext?.largeThreshold ||` term short-circuits when
+		// ext.largeThreshold is unset. The slurm and bruno profiles set it; without
+		// one of them it is null and the size comparison below would fail on it.
 		cpus = (params.maxMemory as MemoryUnit)
 			.compareTo(MemoryUnit.of("32GB")) < 0 ? {cpus({4})} : {cpus({!task.ext?.largeThreshold || (meta.fastq_size < task.ext.largeThreshold/2) ? 8 : 48})}
 		// up to 32.9 GB or so
@@ -519,12 +527,9 @@ process {
 			path: {meta.single_end
 				   ? "$params.publishDir/unmapped_reads/Single/$meta.id/"
 				   : "$params.publishDir/unmapped_reads/Paired/$meta.id/" },
-			// [walkthrough swap 4] mode was "move" upstream. "move" removes the
-			// outputs from the work dir, which (a) makes -resume useless for gsnap
-			// (the cache check looks for outputs that are no longer there, so gsnap
-			// re-runs every time) and (b) leaves no copy behind if the publish write
-			// fails -- publishDir defaults to failOnError:false on nf 23.10, so that
-			// failure is only a WARN. "copy" keeps a recoverable copy in the work dir.
+			// [walkthrough] "copy" rather than "move". "move" takes the outputs
+			// out of the work dir, so -resume can't cache gsnap and there's no
+			// second copy left if the publish itself doesn't land.
 			mode: "copy" ]
 		publishDir.enabled = true
 	}
@@ -601,7 +606,7 @@ process {
 			path: {meta.single_end
 				   ? "$params.publishDir/host_counts/alignments/Single/$meta.id/"
 				   : "$params.publishDir/host_counts/alignments/Paired/$meta.id/" },
-			// [walkthrough swap 4] "move" -> "copy"; same reasoning as gsnap above.
+			// [walkthrough] "move" -> "copy"; same reasoning as gsnap above.
 			mode: "copy" ]
 		publishDir.enabled = true
 	}
