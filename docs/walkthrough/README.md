@@ -16,27 +16,35 @@ Example dataset: **BioProject PRJEB28062**, runs **ERR2723539** (~11 MB) and
 
 ## What's in this folder
 
-In the repository these files live under **`docs/walkthrough/`**:
+In the repository these files live under **`docs/walkthrough/`**. The table is in the
+order you use them.
 
-```
-docs/walkthrough/
-├── README.md                              ← you are here
-├── zf-example.csv                         ← 2-sample SRA accession list (Part I input)
-├── params.zf-example.yaml                 ← Part I params template (edit the paths)
-├── nextflow-submit-part1-nonhost.sh       ← portable Part I SLURM submission script
-├── nextflow.config.walkthrough            ← test-scale Part I config; copy over the repo's
-├── stats.walkthrough.nf                   ← test-only patch of stats.nf
-├── step.7.gsnap.walkthrough.nf            ← test-only patch of step.7.gsnap.nf
-├── zf-example-bioproject-mapping.json     ← assembly-group mapping (Part II input)
-├── build-toy-databases.sh                 ← optional tiny test DBs for Part II
-├── modules.walkthrough.config             ← test-scale Part II conf/modules.config
-├── part2-test-databases.md                ← doc for the toy-database approach
-└── run-part2-metatranscriptome.sh         ← portable Part II submission script
-```
+**Everything here is a read-only template.** Copy what you need into your own run area
+(or into the repo, where the table says so) and edit *the copy* — never the original.
+A later `git pull` then can't clobber your edits, and your outputs never get committed.
 
-**Treat everything here as read-only templates.** Copy the ones you need into your
-own run area and edit paths there — don't edit or run them in place. That way a later
-`git pull` won't clobber your edits and your outputs never get committed.
+Two kinds of file, and the difference matters:
+
+- **EDIT** — will not run until you open it and change values.
+- *copy as-is* — has to be put in the right place, but nothing inside needs changing.
+
+| File | Action | Used at | Where it goes, and what you change |
+| --- | --- | --- | --- |
+| `README.md` | read | start | you are here |
+| `zf-example.csv` | copy as-is | Part I · Step 4 | your run area — nothing to change |
+| **`params.zf-example.yaml`** | **EDIT** | Part I · Step 5 | your run area — every `/path/to/…`, plus `genome-size` |
+| **`nextflow-submit-part1-nonhost.sh`** | **EDIT** | Part I · Steps 6–7 | your run area — `--partition`, `PROJECT_DIR`, the conda Case A/B/C lines, `--genome-size` |
+| `nextflow.config.walkthrough` | copy as-is | Part I · Step 6 | **into the repo**, over `src/nonhost/nextflow.config` |
+| `stats.walkthrough.nf` | copy as-is | Part I · Step 6 | **into the repo**, over `src/nonhost/modules/local/stats.nf` |
+| `step.7.gsnap.walkthrough.nf` | copy as-is | Part I · Step 6 | **into the repo**, over `src/nonhost/modules/local/step.7.gsnap.nf` |
+| `zf-example-bioproject-mapping.json` | copy as-is | Part II · Step 3 | your run area — nothing to change |
+| **`build-toy-databases.sh`** | **EDIT** | Part II · Step 4 | your run area — `DB_DIR`, optionally the seeded virus accessions. Toy-DB route only |
+| `modules.walkthrough.config` | copy as-is | Part II · Step 4 | **into the repo**, over `src/metatranscriptome/conf/modules.config` |
+| **`run-part2-metatranscriptome.sh`** | **EDIT** | Part II · Step 5 | your run area — `--partition`, the three literal `#SBATCH` paths, `PROJECT_DIR`, `DB_DIR` |
+| `part2-test-databases.md` | read (optional) | Part II · Step 4 | background for the two toy-DB rows above |
+
+The four files copied **into the repo** are the "swaps". They are `git`-revertible
+(`git checkout -- <path>`), and each step below shows how to back them up first.
 
 ---
 
@@ -161,7 +169,7 @@ Part I lives in `src/nonhost/` (its `main.nf`, `nextflow.config`, `setup-minimal
 ## Where these files go (and how to run them)
 
 Keep the repo, your run area, and scratch separate. Set two shell variables to your
-own paths for the copy commands below:
+own paths, then copy the templates across:
 
 ```bash
 REPO=/path/to/RNAquarium          # your git clone
@@ -176,13 +184,10 @@ cp "$REPO"/docs/walkthrough/nextflow-submit-part1-nonhost.sh  "$RUN"/
 cp "$REPO"/docs/walkthrough/zf-example-bioproject-mapping.json "$RUN"/
 cp "$REPO"/docs/walkthrough/run-part2-metatranscriptome.sh     "$RUN"/
 cp "$REPO"/docs/walkthrough/build-toy-databases.sh             "$RUN"/   # toy-DB run only
-# The four swaps (nextflow.config.walkthrough, stats.walkthrough.nf,
-# step.7.gsnap.walkthrough.nf, modules.walkthrough.config) are copied *into the
-# repo* at their steps below.
 ```
 
-The **config/stats swaps** are copied over files *inside the repo* (Part I Step 6,
-Part II Step 4) and are `git`-revertible.
+The four swaps go *into the repo* instead, at their steps below (Part I Step 6, Part
+II Step 4) — see the table above for their destinations.
 
 ---
 
