@@ -343,7 +343,7 @@ cp docs/walkthrough/step.7.gsnap.walkthrough.nf   src/nonhost/modules/local/step
 ```
 
 Why these swaps: the version of the pipeline used in our 75k run had a bug in gsnap that 
-caused small runs like the one's in our test set to fail if all reads were filtered. 
+caused small runs (like the ones in this test) to fail if all reads were filtered. 
 Note that this does not affect analysis (as the reads would have been filtered anyway), 
 but we suggest the following swaps to avoid errors and improve statistics counting:
 
