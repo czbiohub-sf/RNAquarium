@@ -1,16 +1,16 @@
 // ===========================================================================
-// WALKTHROUGH-LOCAL PATCH of src/nonhost/modules/local/stats.nf
-// Makes the stats row robust to empty/missing per-step values on tiny test
-// inputs, so it always has its full 41 fields and the end-of-run summary
-// reduce in main.nf never sees a null (which otherwise NPEs). Two failure
-// modes are covered: (1) $(( )) / bc subtractions on EMPTY operands (e.g.
-// the kallisto kb_unaligned line -> 'operand expected'); (2) UNQUOTED empty
-// printf args being dropped by word-splitting -> short row. All arithmetic is
-// defaulted to 0 and all printf args are quoted+defaulted; parse_sam also
-// skips a missing/empty samfile. NO counts/math change for present, non-empty
-// values. Test-drive convenience only; NOT part of the upstream PR.
-// (Note: the kallisto branch guard `[[ "input.2" == "na" ]]` compares a
-//  FILENAME string, not file content -- a likely upstream bug worth a look.)
+// WALKTHROUGH SWAP — test-only variant of src/nonhost/modules/local/stats.nf
+//
+//     cp stats.walkthrough.nf <repo>/src/nonhost/modules/local/stats.nf
+//
+// Makes the stats row tolerant of empty per-step values, which inputs as small
+// as this walkthrough's can produce: every arithmetic operand defaults to 0,
+// every printf argument is quoted and defaulted, and parse_sam skips a missing
+// or empty samfile. The row therefore keeps all 41 fields and the end-of-run
+// summary in main.nf always has a value to reduce over.
+//
+// Counts and math are unchanged for present, non-empty values.
+// Why: docs/walkthrough/README.md, Part I Step 6.
 // ===========================================================================
 params.skipHisat = false
 
