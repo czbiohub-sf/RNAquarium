@@ -38,6 +38,8 @@ Please refer to the [documentation](https://czbiohub-sf.github.io/RNAquarium/) f
 * [Metatranscriptome Technical Notes](https://czbiohub-sf.github.io/RNAquarium/Metatranscriptome-Technical-Notes.html)
 * [Metatranscriptome virus-steps Technical Notes](https://czbiohub-sf.github.io/RNAquarium/Metatranscriptome_virus-steps-Technical-Notes.html)
 
+For test-running RNAquarium on a SLURM cluster with a tiny, fully reproducible two-sample zebrafish example refer to the [walkthrough](https://github.com/czbiohub-sf/RNAquarium/blob/docs/main/docs/walkthrough/README.md).
+
 ## Authors and maintainers
 
 RNAquarium is developed and maintained by the [Computational Biology Platform](https://biohub.org/comp-biology/) & [Balla Group](https://biohub.org/balla/) at the [Biohub](https://biohub.org).
@@ -52,4 +54,4 @@ This project follows the [Code of Conduct](CODE_OF_CONDUCT.md). By participating
 
 ## License
 
-RNAquarium is released under the [BSD 3-Clause License](LICENSE). Copyright (c) Chan Zuckerberg Biohub.
+RNAquarium is released under the [BSD 3-Clause License](LICENSE). Copyright (c) Biohub.

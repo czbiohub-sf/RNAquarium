@@ -1,0 +1,70 @@
+# =============================================================================
+# RNAquarium Part I (nonhost) — small SRA example params
+# =============================================================================
+# A minimal, reproducible two-sample zebrafish example.
+# Accessions ERR2723539 + ERR2723409 (BioProject PRJEB28062), ~11 + ~38 MB.
+#
+# EDIT every /path/to/... below to match your site before running.
+#
+# PARAMETER NAMES: use kebab-case (ref-genome, ref-genome-gtf, genome-size, ...),
+# matching the pipeline's own examples and the proven 75k production params file.
+# nf-validation maps these to the camelCase schema names. (See the note in
+# Troubleshooting & Known Issues about kebab vs camelCase — this is still being
+# pinned down; kebab-case is what the working production runs use.)
+#
+# SAMPLE IDs: for local-FASTQ input, Nextflow's fromFilePairs takes the sample ID
+# as everything before _R1_001 / _R2_001. For SRA input the run accession is the ID.
+# Those IDs flow into all output filenames and directory names, and must match the
+# values you list in the Part II bioproject mapping JSON.
+# =============================================================================
+
+# --- Input: SRA RunInfo CSV (preferred; the size_MB column drives resource scaling) ---
+accession-list: /path/to/your/run-area/zf-example.csv
+
+# --- Host reference genome (GRCz12tu) — must be bgzip-compressed + samtools faidx'd ---
+ref-genome:     /path/to/your/refs/GCF_049306965.1_GRCz12tu_genomic.fa.gz
+ref-genome-gtf: /path/to/your/refs/GCF_049306965.1_GRCz12tu_genomic.gtf
+# Host assembly size (schema says "in bytes; FASTA file size is good enough").
+# Use your own: awk '{s+=$2} END{print s}' <your.fa.gz.fai>
+genome-size:    1448808562
+
+# --- ERCC spike-ins ---
+ercc-fa:  /path/to/your/refs/ERCC92.fa
+ercc-gtf: /path/to/your/refs/ERCC92.gtf
+
+# --- Contaminant filter (OPTIONAL — leave commented if you don't have this file) ---
+#contam-fa: /path/to/your/refs/drerio_refseq_and_addgene_regions.fa
+
+# --- Pre-built aligner indexes (OPTIONAL — reuse to skip hours of index building) ---
+# External users will usually NOT have these; leave them commented and the pipeline
+# generates the indexes automatically from the genome on the first run.
+#hisat-ref-indexes:     /path/to/your/refs/hisat2_GCF_049306965.1_GRCz12tu_genomic_indexes/
+#star-ref-indexes:      /path/to/your/refs/star_GCF_049306965_indexes/
+#star-ref-indexes-ercc: /path/to/your/refs/star_GCF_049306965_indexes.ERCC/
+#bowtie-ref-indexes:    /path/to/your/refs/bowtie2_GCF_049306965.1_GRCz12tu_genomic_indexes/
+#gsnap-ref-indexes:     /path/to/your/refs/gmap_GCF_049306965_indexes/
+#kb-contam-indexes:     /path/to/your/refs/kb_contaminant_index.idx
+
+# --- Output ---
+publish-dir: /path/to/your/run-area/RNAquarium_outputs/nonhost_zf-example/
+tmp: /tmp/
+
+# --- Pipeline behavior ---
+hisat-use-transcript: true
+skip-host-counts: false
+star-use-shared-mem: false
+output-cram: true
+publish-intermediate: true
+retain-mixed: true
+kb-retain-mixed: false
+# Keep intermediates: for a test-drive this lets you inspect per-step outputs.
+cleanup-intermediate: false
+# NOTE the camelCase here: this is deliberate, not a typo.
+publishQCfiltered: true
+
+# --- Resource limits (scaled down for a small batch) ---
+max-cpus: 32
+max-memory: "240GB"
+star-threads-small: 4
+star-threads-large: 16
+seed: 32854

@@ -1,0 +1,624 @@
+// ===========================================================================
+// WALKTHROUGH TEST CONFIG — test-only variant of the repo's nextflow.config.
+// Not for real analysis. The changes:
+//   * --qos=throttle_500 and the large --tmp reservations dropped from every
+//     clusterOptions (Biohub-specific, so not portable to other clusters).
+//   * conda.channels set explicitly on the conda/mamba profiles.
+//   * gsnap's cpus directive short-circuits when ext.largeThreshold is unset,
+//     so the pipeline also runs under profiles that don't set it.
+//   * gsnap + host_cram publishDir mode "move" -> "copy", so a re-run is
+//     non-destructive and -resume can cache those steps.
+// The ext.largeThreshold values in the slurm and bruno profiles are unchanged.
+// Why: docs/walkthrough/README.md, Part I Step 6.
+// ===========================================================================
+import java.time.*
+import java.text.DecimalFormat
+import nextflow.util.SysHelper
+import nextflow.util.MemoryUnit
+
+DecimalFormat df = new DecimalFormat("#")
+df.setMaximumFractionDigits(0)
+
+manifest {
+	name = "czbiohub-sf/RNAquarium"
+	description = "reprocessing of public rna-seq datasets for non-host reads"
+	author = "Yttria Aniseia"
+	mainScript = "main.nf"
+	nextflowVersion = ">= 22.10"
+}
+
+plugins {
+	id 'nf-validation'
+}
+
+params {
+	reportdir = "reports"
+	timestamp = new Date().format("YYMMdd-HHmmss")
+	maxMemory = SysHelper.getAvailMemory().getBytes() ? SysHelper.getAvailMemory() : '240GB' as MemoryUnit
+	maxCpus = SysHelper.getAvailCpus() ? SysHelper.getAvailCpus() : 32
+	largeThreshold = null
+}
+params.tmp = null
+params.backupTmp = null
+params.backupScratchHack = false
+params.nxfUnstageHack = false
+
+timeline {enabled = true
+		  file = "${params.reportdir}/timeline-${params.timestamp}.html"}
+report {enabled = true
+		file = "${params.reportdir}/report-${params.timestamp}.html"}
+trace {enabled = true
+	   raw = true
+	   fields = "task_id,process,tag,hash,native_id,status,exit,module,container,cpus,time,disk,memory,attempt,submit,start,complete,duration,realtime,queue,cpu_model,%cpu,%mem,rss,vmem,peak_rss,peak_vmem,rchar,wchar,syscr,syscw,read_bytes,write_bytes"
+	   file = "${params.reportdir}/trace-${params.timestamp}.txt"}
+dag {enabled = false
+	 file = "${params.reportdir}/dag-${params.timestamp}.svg"}
+
+profiles {
+	// containerization profiles
+	docker {
+		docker.enabled = true
+	}
+	singularity {
+		singularity.enabled = true
+		singularity.autoMounts = true
+	}
+	conda {
+		conda.enabled = true
+		// [walkthrough] force channels so per-process env creation works on ANY cluster,
+		// regardless of the user's/site's .condarc (else deps like isa-l, on conda-forge,
+		// fail to resolve).
+		conda.channels = ['conda-forge', 'bioconda']
+	}
+	mamba {
+		conda.enabled = true
+		conda.useMamba = true
+		conda.channels = ['conda-forge', 'bioconda']   // [walkthrough] see conda profile above
+	}
+
+	testing { // local testing executor profile
+		params {
+			maxMemory = SysHelper.getAvailMemory().getBytes() ? SysHelper.getAvailMemory() : '240GB' as MemoryUnit
+			maxCpus = SysHelper.getAvailCpus() ? SysHelper.getAvailCpus() : 32
+			maxCpus = 4
+			maxMemory = "18000000000B"
+			minSafeMemory = '1GB' as MemoryUnit
+		}
+		process {
+			debug = true
+			executor = 'local'
+			cache = 'lenient'
+			errorStrategy = 'terminate'
+			scratch = params.tmp ?: "/tmp/"
+			ext.maxAttempts = 2
+			ext.gzipCmd = "gzip"
+			ext.extraBeforeScript = ""
+		}
+	}
+	slurm { // generic slurm executor profile
+		executor {
+			queueSize = 1000
+		}
+		params {
+			minSafeMemory =  '4GB' as MemoryUnit
+			maxMemory = '256GB' as MemoryUnit
+			maxCpus = 32
+			largeThreshold = 80000000000
+		}
+		process {
+			executor = 'slurm'
+			cache = 'lenient'
+			scratch = params.tmp ?: "/tmp/"
+			errorStrategy = { (task.attempt <= task.ext.maxAttempts)
+							 ? 'retry' : 'ignore' }
+			ext.maxAttempts = 2
+			ext.largeThreshold = 48000000000
+			ext.gzipCmd = {"gzip"}
+			queue = {
+				if (task.ext?.largeThreshold && task.ext?.smallQueue && task.ext?.largeQueue) {
+					def useSmall = meta?.sra_size
+					? meta.sra_size < task.ext.largeThreshold
+					: task.attempt <= 2
+					return useSmall ? task.ext.smallQueue : task.ext.largeQueue
+				}
+				return ''
+			}
+		}
+	}
+	bruno {
+		executor {
+			queueGlobalStatus = true
+			queueSize = 1000
+		}
+		params {
+			minSafeMemory = '4GB' as MemoryUnit
+			maxMemory = '512GB' as MemoryUnit
+			maxCpus = 64
+		}
+		process {
+			executor = 'slurm'
+			// [walkthrough] --qos=throttle_500 removed here and the --tmp reservations
+			// from the per-process clusterOptions below; both are Biohub-specific.
+			clusterOptions = ''
+			ext.extraClusterOptions = ""
+
+			ext.maxAttempts = 2
+
+			ext.largeThreshold = 48000000000
+			ext.smallQueue = 'preempted'
+			ext.largeQueue = 'cpu'
+			queue = {
+				if (task.ext?.largeThreshold && task.ext?.smallQueue && task.ext?.largeQueue) {
+					useSmall = meta?.sra_size
+					? (meta.sra_size < task.ext.largeThreshold) && (task.attempt <= 2 && task.exitStatus != 143)
+					: task.attempt <= 2
+					return useSmall ? task.ext.smallQueue : task.ext.largeQueue
+				}
+				return ''
+			}
+			cache = 'lenient'
+			scratch = params.tmp ?: "/tmp/"
+			errorStrategy = { (task.attempt <= task.ext.maxAttempts)
+							 ? 'retry' : 'ignore' }
+			ext.gzipCmd = {"pigz -f -p $task.cpus"}
+			ext.extraBeforeScript = {
+				nextflow.Nextflow.getSession().getCondaConfig().enabled ?
+					( nextflow.Nextflow.getSession().getCondaConfig().useMamba ?
+					 "module load mamba" :
+					 "module load conda" ) :
+					"# (no conda)"
+			}
+
+			// couldn't get parameterizing this to work
+			// params.backupScratchHack && params.backupTmp ?
+			beforeScript = params.backupScratchHack && params.backupTmp ? {
+				task.attempt <= 2 && meta.hasProperty('sra_size') ?
+				"""
+	${task.ext.extraBeforeScript ?: ""}
+	rm -rf \$NXF_SCRATCH || true
+	local tmp_avail=\$(df -P "${params.tmp}" | tail -1 | awk '{print \$4}')
+	tmp_choice="${params.backupTmp}"
+	readarray -t ids < <(squeue -w \$SLURMD_NODENAME -o "%i" -S i | tail -n +2)
+	PERJOBGUESS=67108864  # 64 GB? / 1024 (df reports 1K blocks)
+	res_guess=0
+	for (( i=0; i < \${#ids[@]}; i++ ));
+	do
+		if [[ \${ids[\$i]%_*} -eq "\$SLURM_JOB_ID" ]];
+		then
+			res_guess=\$(( \$PERJOBGUESS * \$i ))
+		fi
+	done
+	if [[ ${meta.sra_size} -ne 0 && \$(( ${meta.sra_size} * 10 * 2 )) -le \$(( (\$tmp_avail - \$res_guess) * 1024 )) ]]
+	then
+		tmp_choice="${params.tmp}"
+	fi
+	NXF_SCRATCH="\$(set +u; nxf_mktemp \$tmp_choice)"
+"""
+				: {"""
+	${task.ext.extraBeforeScript ?: ""}
+	rm -rf \$NXF_SCRATCH || true
+	NXF_SCRATCH="\$(set +u; nxf_mktemp ${params.backupTmp})"
+"""}
+}
+			: {"""
+	${task.ext.extraBeforeScript ?: ""}
+"""}
+
+			// attempt to catch filesystem failures
+			afterScript = params.nxfUnstageHack ? {
+				"""if [[ \${nxf_fs_copy_ret:=0} > \$nxf_main_ret ]] ; then nxf_main_ret=\$nxf_fs_copy_ret ; fi
+}
+nxf_fs_copy() {
+	local source=\$1
+	local target=\$2
+	local basedir=\$(dirname \$1)
+	mkdir -p \$target/\$basedir
+	cp -fRL \$source \$target/\$basedir
+	nxf_fs_copy_ret=\$?
+	if [[ \$nxf_fs_copy_ret > 0 ]]
+	then
+		sleep 10  # second chance
+		cp -fRL \$source \$target/\$basedir
+		nxf_fs_copy_ret=\$?
+		if [[ \$nxf_fs_copy_ret > 0 ]]
+		then
+			ls -alh
+			echo "NXF_UNSTAGE copy \$source failed (\$nxf_fs_copy_ret)" | tee .command.err
+			local temp=\$(basename \$source)
+			rm -fr \$target/\$basedir/\${temp//_[12].fastq/_*.fastq}
+		fi
+	fi
+}
+zzz_ignore_this_zzz() {
+	true """
+			}
+			: {"""
+"""}
+		}
+	}
+}
+
+
+def cpus(v) {
+	DecimalFormat df = new DecimalFormat("#")
+	df.setMaximumFractionDigits(0)
+	req_cpus = "${df.format(Math.ceil(v()))}" as int
+	try {
+		return Math.min( Math.max(req_cpus, 4), params.maxCpus as int )
+	} catch (all) {
+		println "   ### WARNING ###   Max cpus '${params.maxCpus}' is not valid! Using default value: $req_cpus"
+		return req_cpus
+	}
+}
+
+def mem(v, unit) {
+	DecimalFormat df = new DecimalFormat("#")
+	df.setMaximumFractionDigits(0)
+	req_mem = MemoryUnit.of("${df.format(Math.ceil(v()))}${unit}")
+	try {
+		if (req_mem.compareTo(params.minSafeMemory as MemoryUnit) == -1)
+			return params.minSafeMemory as MemoryUnit
+		else if (req_mem.compareTo(params.maxMemory as MemoryUnit) == 1)
+			return params.maxMemory as MemoryUnit
+		else
+			return req_mem
+	} catch (all) {
+		println "   ### WARNING ###   Max memory '${params.maxMemory()}' is not valid! Using default value: $req_mem"
+		return req_mem
+	}
+}
+
+def tmp(v, unit) {
+	if (!task.scratch.toString().startsWith("/tmp"))
+		return ""
+
+	DecimalFormat df = new DecimalFormat("#")
+	df.setMaximumFractionDigits(0)
+	req_tmp = MemoryUnit.of("${df.format(Math.ceil(v()))}${unit}")
+	if (req_tmp.compareTo("8G" as MemoryUnit) == 1) {
+		task.scratch = params.backupTmp
+		return ""
+	} else {
+		return "tmp=${MemoryUnit.of("${df.format(Math.ceil(2*v()))}${unit}").toGiga()}G"
+	}
+}
+
+def time(v, unit) {
+	DecimalFormat df = new DecimalFormat("#")
+	df.setMaximumFractionDigits(0)
+	req_time = nextflow.util.Duration.of("${df.format(Math.ceil(v()))}${unit}")
+	try {
+		if (req_time.compareTo(params.maxTime as nextflow.util.Duration) == 1)
+			return params.maxTime as nextflow.util.Duration
+		else
+			return req_time
+	} catch (all) {
+		println "   ### WARNING ###   Max time '${params.maxTime}' is not valid! Using default value: $req_time"
+		return req_time
+	}
+}
+
+def container_select(singularity_path, docker_path) {
+	if (conda.enabled)
+		return ""
+	return workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ? singularity_path : docker_path
+}
+def conda_select(conda_list) {
+	return conda.enabled ? conda_list : ""
+}
+
+process {
+	tag = {"$meta.id"}
+	publishDir.enabled = {params.publishIntermediate}
+	ext.python_version = '3.10.2'
+	ext.maxMemory = params.maxMemory
+	ext.maxAttempts = 3
+	maxRetries = 4
+
+	// task.attempt starts at 1
+	// STEP 1: Download
+	withLabel: sratools {
+		container = {container_select(
+			'https://depot.galaxyproject.org/singularity/sra-tools:3.2.1--h4304569_0',
+			'quay.io/biocontainers/sra-tools:3.2.1--h4304569_0')}
+		conda = {conda_select("bioconda::sra-tools=3.2.1 bioconda::seqtk=1.5 conda-forge::jq conda-forge::polars=1.16.* bioconda::fastp=0.24.1 bioconda::hisat2=2.2.1 bioconda::subread=2.0.6 bioconda::samtools=1.21")}
+	}
+	withName: download {
+		// we can't fall back to process.errorStrategy, for some reason
+		errorStrategy = { task.exitStatus != 3 && task.attempt <= 3 ? 'retry' : 'ignore' }
+		cpus = {cpus({2})}
+		memory = {meta.size_MB
+				  ? mem({4096*task.cpus*task.attempt + (meta.size_MB*(task.attempt - 1))}, "MB")
+				  : mem({8192*task.cpus*task.attempt}, "MB")}
+		time = {time({1334/task.cpus + (60 + 90) * task.attempt}, "min")}
+
+		scratch = {params.backupScratchHack || task.attempt > 1 ? params.backupTmp : params.tmp}
+		// --tmp=${((meta.sra_size as long)/1048576 * 40).toLong()}M
+		clusterOptions = {"--nice=25"}
+		publishDir = [
+			path: {"${params.publishDir}/download/${meta.id}"},
+			pattern: {params.publishFastqs
+					  ? "{seq-detective*,info.txt,stats.txt,fastq/}"
+					  : "{seq-detective*,info.txt,stats.txt}"} ]
+		publishDir.enabled = true
+	}
+
+	withName: check_direct_fastqs {
+		cpus = {cpus({2})}
+		memory = {mem({2*task.attempt}, "GB")}
+		time = {time({60 * task.attempt}, "min")}
+
+		scratch = false
+		// --tmp=${((meta.sra_size as long)/1048576 * 40).toLong()}M
+		clusterOptions = ''
+	}
+
+	withLabel: median {
+		cpus = {cpus({1})}
+		memory = {mem({4*task.attempt}, "GB")} // fastq-lengths ~16MB, but gzip needs more?
+		time = {time({60*task.attempt + 0.000000025*meta.reads}, "min")}
+
+		clusterOptions = ''
+		container = ''
+	}
+
+	// STEP 2: Trimming and QC
+	withLabel: fastp {
+		cpus = {cpus({4})}
+		memory = {mem({(4096 + 22*meta.readlen)*task.attempt}, "MB")}
+		time = {time({30*task.attempt + .00000000014*meta.fastq_size}, "min")}
+
+		clusterOptions = ''
+		container = {container_select(
+			'https://depot.galaxyproject.org/singularity/fastp:0.23.4--hadf994f_5',
+			'quay.io/biocontainers/fastp:0.23.4--hadf994f_5')}
+		conda = {conda_select("bioconda::fastp=0.24.1")}
+	}
+
+	// STEP 2.5: Kallisto
+	withLabel: kb {
+		// remember: we need an rnaquarium entire container definition soon
+		// also depends on fastq-numfilter
+		conda = {conda_select("bioconda::kallisto=0.51.1 bioconda::bustools=0.44.1 bioconda::kb-python=0.29.1")}
+	}
+	withName: kb_generate_indexes {
+		cpus = {cpus({6})}
+		memory = {mem({(4)*task.attempt}, "GB")}
+		publishDir = [ path: {"$params.publishDir/kb_contam_indexes"}, mode: 'copy' ]
+	}
+	withName: kb_negative { // host/contam filter
+		errorStrategy = { task.attempt <= task.ext.maxAttempts
+						 ? 'retry' : 'ignore' }
+		cpus = {cpus({8})}
+		memory = {mem({2*task.attempt}, "GB")}
+		time = {time({120*task.attempt + .00000000010*meta.fastq_size}, "min")}
+
+		clusterOptions = ''
+		publishDir = [ path: {"$params.publishDir/intermediate/kallisto_out/$meta.id"} ]
+		publishDir.enabled = {params.publishIntermediate && params.publishKallisto}
+	}
+
+
+	// STEP 3: Hisat2
+	withLabel: hisat2 {
+		container = {container_select(
+			'https://depot.galaxyproject.org/singularity/hisat2:2.2.1--hdbdd923_6',
+			'quay.io/biocontainers/hisat2:2.2.1--hdbdd923_6')}
+		conda = {conda_select("bioconda::hisat2=2.2.1 bioconda::samtools=1.21")}
+	}
+	withName: hisat2_generate_indexes {
+		cpus = {cpus({16})}
+		memory = {mem({(params.hisatUseTranscript ? 80 : 16)*task.attempt}, "GB")}
+		publishDir = [ path: {"$params.publishDir/hisat2_${ref_genome_fa.baseName}_indexes"}, mode: 'copy' ]
+	}
+	withName: hisat2 { // [nonhost] mapping
+		errorStrategy = { task.attempt <= task.ext.maxAttempts
+						 ? 'retry' : 'ignore' }
+		cpus = {cpus({8})}
+		memory = {mem({4 + 20*(task.attempt - 1)}, "GB")}
+		time = {time({180*task.attempt + .00000000010*meta.fastq_size}, "min")}
+
+		clusterOptions = ''
+		publishDir = [ path: {"$params.publishDir/intermediate/hisat2_out/$meta.id"} ]
+		publishDir.enabled = {params.publishIntermediate && params.publishHisat}
+	}
+
+	// STEP 4: STAR
+	withLabel: star {
+		container = {container_select(
+			'https://depot.galaxyproject.org/singularity/star:2.7.10b--h9ee0642_0',
+			'quay.io/biocontainers/star:2.7.10b--h9ee0642_0')}
+		conda = {conda_select("bioconda::star=2.7.10b bioconda::samtools=1.21")}
+	}
+	withName: star_generate_indexes {
+		// TODO: making this dynamic would be based on genome size
+		// "The required RAM is ~10*GenomeSize bytes for the genome indices, plus per-thread buffer memory (150MB per thread)" [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4631051/]
+		// wants as many thread as SA chunks
+		cpus = {cpus({20})}
+		// PROVISIONAL change later
+		memory = {mem({45}, "GB")} // 22.564
+		time = {time({120}, "min")} // 59m 11s
+		publishDir = [ path: {"$params.publishDir"}, mode: 'copy' ]
+	}
+	withName: star { // mapping
+		// MUST be lowered in low-memory environments
+		cpus = (params.maxMemory as MemoryUnit)
+			.compareTo(MemoryUnit.of("32GB")) < 0 ? {1} :
+			{meta.fastq_size < 4000_000_000 ? params.starThreadsSmall : params.starThreadsLarge}
+		memory = {mem({11*(params.genomeSize/(10**9)) + 6*task.cpus*task.attempt}, "GB")}
+		time = {time({180*task.attempt + .00000000024*meta.fastq_size}, "min")}
+
+		clusterOptions = ''
+		publishDir = [ path: {"$params.publishDir/intermediate/STAR_out/$meta.id"} ]
+		publishDir.enabled = {params.publishIntermediate && params.publishStar}
+	}
+
+	// STEP 5: Bowtie2
+	withLabel: bowtie2 { // bowtie2 container
+		container = {container_select(
+			'https://depot.galaxyproject.org/singularity/bowtie2:2.4.5--py37hb24965f_4',
+			'quay.io/biocontainers/bowtie2:2.4.5--py37hb24965f_4')}
+		conda = {conda_select("bioconda::bowtie2=2.5.4 bioconda::samtools=1.21")}
+	}
+	withName: bowtie2_generate_indexes {
+		cpus = {cpus({8})}
+		memory = {mem({8*task.attempt}, "GB")}
+		publishDir = [ path: {"$params.publishDir/bowtie2_${ref_genome_fa.baseName}_indexes"}, mode: 'copy' ]
+	}
+	withName: bowtie2 {
+		errorStrategy = { task.attempt <= task.ext.maxAttempts
+						 ? 'retry' : 'ignore' }
+		// "when aligning to a human genome index, increasing -p from 1 to 8
+		// increases the memory footprint by a few hundred megabytes."
+		// PROVISIONAL unoptimized
+		cpus = {cpus({8})}
+		memory = {mem({4*task.attempt}, "GB")}
+		time = {time({120*task.attempt + .00000000010*meta.fastq_size}, "min")}
+
+		clusterOptions = ''
+		publishDir = [ path: {"$params.publishDir/intermediate/Bowtie2_out/$meta.id"} ]
+		publishDir.enabled = {params.publishIntermediate && params.publishBowtie}
+	}
+
+	// STEP 6: dedup
+	withLabel: dedup {
+		errorStrategy = { task.attempt <= 2 && task.exitStatus != 9 && task.exitStatus != 1
+						 ? 'retry' : 'ignore' }
+		cpus = 3
+		memory = {mem({4*task.attempt*task.cpus}, "GB")}
+		time = {time({120*task.attempt + .00000000005*meta.fastq_size}, "min")}
+
+		clusterOptions = ''
+	}
+
+	// STEP 7: gsnap
+	withLabel: gmap { // gmap/gsnap container
+		// don't use gmap containers (slow and/or broken)
+		conda = {conda_select("bioconda::samtools=1.21")}
+		cpus = {cpus({4})}
+	}
+	withName: gsnap_generate_indexes {
+		cpus = {cpus({1})}
+		memory = {mem({4}, "GB")}
+		time = {time({45*task.attempt}, "min")}
+
+		publishDir = [ path: {"$params.publishDir"}, mode: 'copy' ]
+	}
+	withName: gsnap {
+		ext.maxAttempts = 3
+		// gsnap exitcode is 9 for all errors.
+		// we have to do extra handling elsewhere to disambiguate from oom
+		errorStrategy = { task.attempt <= task.ext.maxAttempts && task.exitStatus != 9
+						 ? 'retry' : 'ignore' }
+		// [walkthrough] the `!task.ext?.largeThreshold ||` term short-circuits when
+		// ext.largeThreshold is unset. The slurm and bruno profiles set it; without
+		// one of them it is null and the size comparison below would fail on it.
+		cpus = (params.maxMemory as MemoryUnit)
+			.compareTo(MemoryUnit.of("32GB")) < 0 ? {cpus({4})} : {cpus({!task.ext?.largeThreshold || (meta.fastq_size < task.ext.largeThreshold/2) ? 8 : 48})}
+		// up to 32.9 GB or so
+		//memory = {mem({4}, "GB")}
+		memory = {mem({Math.min(2*task.cpus, 64)*task.attempt + 8*Math.ceil(meta.reads/(10**7))}, "GB")}
+		time = {time({240*task.attempt + .00000000010*meta.fastq_size}, "min")}
+
+		clusterOptions = ''
+		// publishDir = [ path: {"$params.publishDir/intermediate/gsnap_out/$meta.id"} ]
+		// publishDir.enabled = {params.publishIntermediate && params.publishGsnap}
+		publishDir = [
+			path: {meta.single_end
+				   ? "$params.publishDir/unmapped_reads/Single/$meta.id/"
+				   : "$params.publishDir/unmapped_reads/Paired/$meta.id/" },
+			// [walkthrough] "copy" rather than "move". "move" takes the outputs
+			// out of the work dir, so -resume can't cache gsnap and there's no
+			// second copy left if the publish itself doesn't land.
+			mode: "copy" ]
+		publishDir.enabled = true
+	}
+
+
+	// STEP 3b fork: Host read counts
+	withName: star_counts { // read counts
+		// MUST be lowered in low-memory environments
+		cpus = (params.maxMemory as MemoryUnit)
+			.compareTo(MemoryUnit.of("32GB")) < 0 ? {2} : {12*task.attempt}
+		memory = {mem({9*(params.genomeSize/(10**9)) + 0.4*task.cpus*task.attempt}, "GB")}
+		time = {time({360*task.attempt + .00000000020*meta.fastq_size}, "min")}
+
+		clusterOptions = ''
+
+		publishDir = [ path: {"$params.publishDir/intermediate/STAR_out/counts/$meta.id"} ]
+		publishDir.enabled = {params.publishIntermediate && params.publishReadcounts}
+	}
+	withLabel: samtools {
+		container = {container_select(
+			'https://depot.galaxyproject.org/singularity/samtools:1.19.2--h50ea8bc_1',
+			'quay.io/biocontainers/samtools:1.19.2--h50ea8bc_1')}
+		conda = {conda_select("bioconda::samtools=1.21")}
+	}
+	withName: sort_bam {
+		// partially based on info from https://bioinformatics.stackexchange.com/a/18626
+		cpus = {cpus({4*task.attempt})}
+		memory = {mem({4096*task.cpus + 2048 + 16384*(task.attempt - 1)}, "MB")}
+		time = {time({240*task.attempt}, "min")}
+
+		clusterOptions = ''
+	}
+	withLabel: htseq {
+		cpus = {1*task.attempt}
+		memory = {mem({4*task.attempt}, "GB")}
+
+		clusterOptions = ''
+		container = {container_select(
+			'https://depot.galaxyproject.org/singularity/htseq:2.0.2--py310h5aa3a86_1',
+			'quay.io/biocontainers/htseq:2.0.2--py310h5aa3a86_1')}
+		conda = {conda_select("bioconda::htseq=2.0.2")}
+		publishDir = [
+			path: {meta.single_end
+				   ? "$params.publishDir/host_counts/Single/$meta.id/"
+				   : "$params.publishDir/host_counts/Paired/$meta.id/" },
+			mode: "copy"  ]
+	}
+	withLabel: featurecounts {
+		cpus = {2*task.attempt}
+		memory = {mem({2*task.attempt}, "GB")}
+		time = {time({120*task.attempt + .00000000005*meta.fastq_size}, "min")}
+
+		clusterOptions = ''
+		container = {container_select(
+			'https://depot.galaxyproject.org/singularity/subread:2.0.6--he4a0461_2',
+			'quay.io/biocontainers/subread:2.0.6--he4a0461_2')}
+		conda = {conda_select("bioconda::subread=2.0.6")}
+		publishDir = [
+			path: {meta.single_end
+				   ? "$params.publishDir/host_counts/Single/$meta.id/"
+				   : "$params.publishDir/host_counts/Paired/$meta.id/" },
+			mode: "copy" ]
+	}
+	withName: host_cram {
+		cpus = {4*task.attempt}
+		memory = {mem({4*task.attempt*task.attempt}, "GB")}
+		time = {time({180*task.attempt + .00000000010*meta.fastq_size}, "min")}
+
+		errorStrategy = { ((task.attempt <= task.ext.maxAttempts) && (task.exitStatus != 1))
+						 ? 'retry' : 'ignore' }
+
+		clusterOptions = ''
+		publishDir = [
+			path: {meta.single_end
+				   ? "$params.publishDir/host_counts/alignments/Single/$meta.id/"
+				   : "$params.publishDir/host_counts/alignments/Paired/$meta.id/" },
+			// [walkthrough] "move" -> "copy"; same reasoning as gsnap above.
+			mode: "copy" ]
+		publishDir.enabled = true
+	}
+
+	withName: cleanup_branched {
+		cpus = 1
+		memory = {mem({2*task.attempt}, "GB")}
+		time = {time({30 * task.attempt}, "min")}
+	}
+	withName: cleanup_bam {
+		cpus = 1
+		memory = {mem({2*task.attempt}, "GB")}
+		time = {time({30 * task.attempt}, "min")}
+	}
+}
