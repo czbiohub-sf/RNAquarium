@@ -11,10 +11,16 @@
 ##SBATCH --mail-user=your.email@example.org
 
 # =============================================================================
+# WHAT TO EDIT BEFORE RUNNING — four things, and nothing else in this file:
+#   1. #SBATCH --partition   (top of file)  your cluster's queue name
+#   2. PROJECT_DIR           (section 1)    your run area
+#   3. conda Case A/B/C      (section 3)    how conda becomes available in a batch job
+#   4. --genome-size         (section 5)    your genome's size in bytes
+# =============================================================================
 # RNAquarium Part I (nonhost) — portable submission template
 # -----------------------------------------------------------------------------
-# This is a TEMPLATE from docs/walkthrough/. Copy it into your own run area, edit
-# section 1 below, then SUBMIT FROM THE REPO ROOT pointing at your copy:
+# This is a TEMPLATE from docs/walkthrough/. Copy it into your own run area, make
+# the four edits above, then SUBMIT FROM THE REPO ROOT pointing at your copy:
 #
 #     cd /path/to/RNAquarium              # the repo root
 #     mkdir -p nonhost_slurm.out          # SLURM needs this to exist BEFORE submit
