@@ -1,65 +1,32 @@
 #!/bin/bash
 # =============================================================================
-#  build-toy-databases.sh
+#  WHAT TO EDIT BEFORE RUNNING — one required, two optional:
+#    1. DB_DIR                                      (required) where to build
+#    2. VIRUS_NUC_ACC / VIRUS_PROT_ACC / VIRUS_TAXID (optional) the virus to seed
+#    3. TAXONOMY_DATE                               (optional) taxonomy vintage
+#  Nothing else in this file needs changing.
 # =============================================================================
-#   ####################################################################
-#   ##  TEST / POSITIVE-CONTROL ONLY  —  NOT FOR REAL ANALYSIS  ########
-#   ####################################################################
+#  build-toy-databases.sh
 #
-#   Builds deliberately TINY databases so the RNAquarium Part II
-#   metatranscriptome pipeline (PUBLIC main) can be exercised end to end for
-#   PLUMBING validation and as a POSITIVE CONTROL with a declared ground truth:
+#  *** TEST / POSITIVE-CONTROL ONLY — NOT FOR REAL ANALYSIS ***
 #
-#     * host-filter DB  = Danio rerio + Homo sapiens rRNA + mitochondrion only
-#     * toy core_nt     = Danio rerio + one target virus (nucleotide)
-#     * toy nr          = Danio rerio + one target virus (protein)
-#     * taxonomizr      = the REAL nameNode.sqlite (names+nodes; do NOT fake)
-#     * taxdb.btd/.bti  = the universal NCBI copy-in, placed IN the db dir
+#  Builds deliberately tiny databases so Part II can be run end to end to validate
+#  plumbing, with a declared ground truth. Full explanation + parameter table:
+#  part2-test-databases.md. Full databases for real work:
+#  https://czbiohub-sf.github.io/RNAquarium/inputs-and-databases.html
 #
-#   GROUND TRUTH: the only organisms these databases can possibly report are
-#   Danio rerio (host, both filter layers) and the one virus you seed. EVERY
-#   other contig is "no hit / dark matter" BY CONSTRUCTION. Do not read biology
-#   into any other number. For real analysis, build the full databases per
-#   https://czbiohub-sf.github.io/RNAquarium/inputs-and-databases.html
+#  GROUND TRUTH: the only organisms these databases can report are Danio rerio and
+#  the one virus you seed. Every other contig is "no hit" BY CONSTRUCTION.
 #
-#   WHY these specific pieces (verified against public main; see the walkthrough
-#   README "Part II" for the full explanation):
-#     * BLAST (host filter + full nt) resolves taxonomy (staxid/ssciname, the
-#       outfmt-6 columns 3-4) from taxdb.btd + taxdb.bti found via `cd /db`,
-#       i.e. they MUST sit in the same directory --nt_dir / --ntfull_dir point
-#       at. That's why we build everything into ONE $DB_DIR.
-#     * If a search DB lacks taxonomy, column 4 comes back "N/A" and the R
-#       post-processing (nr_diamond_processing.r / nt_blast_processing.r) SILENTLY
-#       filters every row out -> empty taxonomy table, no error. So each DB below
-#       is built with taxids attached (-taxid_map for BLAST, --taxonmap/--taxonnodes/
-#       --taxonnames for DIAMOND).
-#     * Danio rerio is deliberately in the toy nt/nr so the SECOND host net in
-#       nr_diamond_processing.r (drops Actinopteri/Primates after taxonomy) can
-#       actually fire — the two-layer host filter is a feature to demonstrate.
-#     * tax_btd/tax_bti/tax4blast are DEAD params on public main (declared only in
-#       the `test` profile; no process reads them). We do NOT pass them. taxdb.*
-#       still needs to be present in the db dir for the `cd /db` mechanism above.
+#  Everything is built into ONE $DB_DIR because BLAST locates taxdb.btd/.bti by
+#  `cd`-ing into the database directory at runtime.
 #
-#   TOOLS THIS SCRIPT NEEDS (build env, NOT the pipeline's tools):
-#     makeblastdb (blast), diamond, esearch/efetch/xtract (entrez-direct),
-#     Rscript + taxonomizr. All from conda:
-#       conda create -n rnaq-dbbuild -c conda-forge -c bioconda blast diamond entrez-direct r-taxonomizr
-#       conda activate rnaq-dbbuild
-#     (If conda's R misbehaves on your cluster, substitute your own R module that has
-#      taxonomizr installed; the script only needs an Rscript that can library(taxonomizr).)
-#     Run on a LOGIN NODE (needs outbound internet for NCBI).
+#  RUN ON A LOGIN NODE (needs internet), in a build env separate from the pipeline:
+#    conda create -n rnaq-dbbuild -c conda-forge -c bioconda blast diamond entrez-direct r-taxonomizr
+#    conda activate rnaq-dbbuild
 #
-#   VERIFY-ON-RUN CAVEATS (these commands were NOT executed when written):
-#     * The esearch queries below are the intended REQUIREMENT, not tested
-#       invocations. Each is guarded to ERROR if it returns 0 hits, so a bad
-#       query fails loudly instead of silently building an empty DB. If a query
-#       errors, adjust it (NCBI query syntax / RefSeq coverage varies) rather
-#       than proceeding.
-#     * The makeblastdb / diamond makedb flags are the documented requirement;
-#       confirm your tool versions accept them.
-#     * DIAMOND db format is version-sensitive: build nr with a diamond version
-#       compatible with the one the PIPELINE queries with (check the
-#       metatranscriptome container/env after cloning). BLAST v5 is more forgiving.
+#  DIAMOND caveat: the .dmnd format is version-sensitive — build nr with a diamond
+#  compatible with the one the pipeline queries with. BLAST v5 is more forgiving.
 # =============================================================================
 set -eo pipefail
 
@@ -67,25 +34,18 @@ set -eo pipefail
 DB_DIR="/path/to/your/scratch/rnaq-toy-dbs"
 
 # ---- NCBI access ------------------------------------------------------------
-# edirect (esearch/efetch) talks to NCBI over HTTPS. On many clusters that
-# connection is flaky and curl reports "(56) unexpected eof while reading" even
-# though the data comes through and the server said 200 OK. Two mitigations:
-#   1) An API key raises rate limits and stabilizes the connection. If you have one:
-#        export NCBI_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   (before running)
-#      edirect picks it up automatically from the environment.
-#   2) The fetch helper below RETRIES and judges success by whether output was
-#      actually produced, so a noisy-but-successful fetch is not treated as failure.
+# edirect over HTTPS is flaky on many clusters: curl reports "(56) unexpected eof"
+# even when the data arrives. `export NCBI_API_KEY=...` before running raises rate
+# limits and helps; fetch_or_die below retries and judges success by output produced.
 if [ -n "${NCBI_API_KEY:-}" ]; then echo "Using NCBI_API_KEY from environment."; fi
 
-# ---- Host taxa (Danio rerio, Homo sapiens) ----------------------------------
-#  Sequences are tagged at SPECIES taxid (7955 / 9606). The pipeline's host
-#  filter uses --taxids 7954,9605 (the GENUS ids Danio / Homo); species ids sit
-#  under those genera, so -taxids resolves by lineage. (If your run errors on
-#  -taxids, that flag is discussed in the README Part II troubleshooting.)
+# ---- Host taxa --------------------------------------------------------------
+# Tagged at SPECIES taxid; the pipeline's --taxids 7954,9605 are the GENUS ids and
+# resolve these by lineage.
 DANIO_TAXID="7955"
 HUMAN_TAXID="9606"
 
-# ---- The virus we actually want to detect (in BOTH core_nt and nr) ----------
+# ---- The virus we actually want to detect, in BOTH core_nt and nr (optional EDIT) ----
 VIRUS_NUC_ACC="OK619588.1"     # nucleotide accession -> toy core_nt
 VIRUS_PROT_ACC="WKU61618.1"    # protein accession    -> toy nr
 VIRUS_TAXID="3063761"
@@ -95,13 +55,9 @@ VIRUS_TAXID="3063761"
 mkdir -p "$DB_DIR"
 cd "$DB_DIR"
 
-# ---- helper: fetch FASTA for a query, tolerant of edirect's transient errors --
-# usage: fetch_or_die <db> <query> <format> <out_appended_to> [cap]
-#   - guards against a query that genuinely returns 0 hits (errors loudly)
-#   - if [cap] is given, fetches only the first <cap> records (keeps toy DBs tiny)
-#   - RETRIES the fetch; treats "records actually written" as success, so the
-#     common curl-(56) 'unexpected eof' (data arrives, curl still returns nonzero)
-#     does NOT abort the build. Only genuinely-empty output after retries fails.
+# ---- fetch_or_die <db> <query> <format> <out> [cap] -------------------------
+# Appends FASTA to <out>. Errors loudly on 0 hits; [cap] limits records to keep the
+# toy DBs tiny. Retries, and treats "records written" as success (see curl-56 above).
 fetch_or_die() {
     local edb="$1" query="$2" fmt="$3" out="$4" cap="${5:-0}"
     local n
@@ -157,14 +113,9 @@ fetch_or_die() {
 
 # =============================================================================
 # 0. NCBI taxonomy dump (LATEST) + BLAST taxonomy files
-#    This is the NORMAL path — a real build downloads the CURRENT NCBI dumps. We use
-#    the latest taxdump here to feed DIAMOND's makedb (step 3) and, by default, it
-#    would also feed nameNode.sqlite. BUT the taxonomy CATEGORIZATION needs an older
-#    vintage — see step 4, which overrides nameNode.sqlite with a pinned Feb-2025 dump.
-#    - taxdump (names.dmp / nodes.dmp): current NCBI taxonomy.
-#    - taxdb.btd / taxdb.bti: the UNIVERSAL NCBI taxonomy lookup for BLAST. Not tied
-#      to any specific DB; copy into $DB_DIR and BLAST finds them via `cd /db`.
-#      (tax4blast / taxonomy4blast.sqlite3 is NOT needed on public main.)
+#    taxdump feeds DIAMOND makedb (step 3). taxdb.btd/.bti are the universal BLAST
+#    lookup — not tied to any DB, just need to sit in $DB_DIR.
+#    NOTE: step 4 deliberately overrides nameNode.sqlite with an OLDER pinned dump.
 # =============================================================================
 wget -N ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
 mkdir -p taxdump && tar -xzf taxdump.tar.gz -C taxdump      # -> taxdump/names.dmp, taxdump/nodes.dmp (LATEST)
@@ -180,12 +131,10 @@ tar -xzf taxdb.tar.gz                                       # -> taxdb.btd, taxd
 # =============================================================================
 # 1. Host-filter DB  (pipeline: --nt_dir $DB_DIR  --nt_db_name host_toy)
 #    Danio rerio + Homo sapiens rRNA + mitochondrion ONLY.
-#    HONEST LIMITATION: this is the MINIMAL host net. It catches host by
-#    ABUNDANCE (rRNA dominates unmapped reads) but MISSES most host by DIVERSITY
-#    (no genomic/intronic/EST host transcripts). It demonstrates that the host-
-#    filter step runs; it is NOT a defensible filter. More host contigs will
-#    survive into the non-host set than in a real run - that's expected here, and
-#    the 2nd net (Danio in the toy nt/nr, below) is what catches the survivors.
+#    LIMITATION: catches host by ABUNDANCE (rRNA dominates) but misses most host by
+#    DIVERSITY. It shows the step runs; it is not a defensible filter. Expect more
+#    host contigs to survive than in a real run — the 2nd net (Danio in the toy
+#    nt/nr below) catches them.
 # =============================================================================
 : > host_toy.fa
 : > host_toy.nucl.taxidmap
@@ -256,22 +205,14 @@ diamond makedb --in nr_toy.faa -d nr \
 
 # =============================================================================
 # 4. Taxonomizr nameNode.sqlite  (pipeline: --taxonomy_db $DB_DIR/nameNode.sqlite)
-#    *** BESPOKE TAXONOMY-CATEGORIZATION FIX — read this. ***
-#
-#    nameNode.sqlite is what the public taxonomy R post-processing uses to BIN each
-#    hit into a category (viruses / other_Eukaryota / bacteria / ...). That script
-#    categorizes by the OLDER taxonomy structure, so if you build nameNode.sqlite from
-#    the CURRENT dump (step 0), contigs with modern viral-realm lineage
-#    (Orthornavirae / Pisuviricota) get mis-binned as "other_Eukaryota" instead of
-#    "viruses" — the virus is still correctly IDENTIFIED (right taxid + name), only the
-#    CATEGORY is wrong, so the viruses table comes out empty.
-#
-#    Fix (this is the ONLY database that needs the older vintage): build nameNode.sqlite
-#    from the pinned FEB-2025 dump — the vintage the public docs state the 75k run used.
-#    Everything else above stays on the latest dump. Change TAXONOMY_DATE for a different
-#    vintage. (Archive files are .zip and extract names.dmp/nodes.dmp directly, no subdir.)
+#    *** DELIBERATE: this is the ONLY database built from an OLDER taxonomy dump. ***
+#    The public R post-processing bins hits by category using the older taxonomy
+#    structure. Built from a CURRENT dump, modern viral-realm lineages
+#    (Orthornavirae / Pisuviricota) get binned as "other_Eukaryota" — the virus is
+#    still identified correctly, but the viruses table comes out EMPTY.
+#    Feb-2025 (the 75k run's vintage) fixes it. Change TAXONOMY_DATE for another.
 # =============================================================================
-TAXONOMY_DATE="2025-02-01"                                  # pinned; matches the 75k run's taxonomy DB
+TAXONOMY_DATE="2025-02-01"                 # optional EDIT; pinned to the 75k run's vintage
 mkdir -p taxdump_pinned
 wget -N "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump_archive/taxdmp_${TAXONOMY_DATE}.zip"
 unzip -o "taxdmp_${TAXONOMY_DATE}.zip" -d taxdump_pinned    # -> taxdump_pinned/names.dmp, nodes.dmp
