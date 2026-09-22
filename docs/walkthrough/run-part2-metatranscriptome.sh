@@ -19,11 +19,17 @@
 ##SBATCH --mail-user=your.email@example.org
 
 # =============================================================================
+# WHAT TO EDIT BEFORE RUNNING — five things, and nothing else in this file:
+#   1. #SBATCH --partition          (top of file)  your cluster's queue name
+#   2. #SBATCH --chdir / -o / -e    (top of file)  three LITERAL paths (no variables)
+#   3. PROJECT_DIR                  (section 1)    your run area
+#   4. DB_DIR                       (section 2)    your databases (toy or full)
+#   5. conda Case A/B/C             (section 3)    how conda becomes available in a job
+# =============================================================================
 # RNAquarium Part II (metatranscriptome) — portable submission template
 # -----------------------------------------------------------------------------
-# This is a TEMPLATE from docs/walkthrough/. Copy it into your run area, edit the
-# --chdir / -o / -e paths above AND the paths below, then create the SLURM log dir
-# once and submit:
+# This is a TEMPLATE from docs/walkthrough/. Copy it into your run area, make the
+# five edits above, then create the SLURM log dir once and submit:
 #     mkdir -p /path/to/RNAquarium/metatranscriptome_slurm.out   # must exist before submit
 #     sbatch /path/to/your/run-area/run-part2-metatranscriptome.sh
 #
