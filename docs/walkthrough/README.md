@@ -23,11 +23,6 @@ order you use them.
 (or into the repo, where the table says so) and edit *the copy* — never the original.
 A later `git pull` then can't clobber your edits, and your outputs never get committed.
 
-Two kinds of file, and the difference matters:
-
-- **EDIT** — will not run until you open it and change values.
-- *copy as-is* — has to be put in the right place, but nothing inside needs changing.
-
 | File | Action | Used at | Where it goes, and what you change |
 | --- | --- | --- | --- |
 | `README.md` | read | start | you are here |
