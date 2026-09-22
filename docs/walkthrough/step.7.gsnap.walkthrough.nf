@@ -1,13 +1,15 @@
 #!/usr/bin/env nextflow
 // ============================================================================
-// WALKTHROUGH SWAP 5 — derived from src/nonhost/modules/local/step.7.gsnap.nf
+// WALKTHROUGH SWAP — test-only variant of src/nonhost/modules/local/step.7.gsnap.nf
 //
-// Copy over the repo file (git-revertible, like the other walkthrough swaps):
 //     cp step.7.gsnap.walkthrough.nf \
-//        <repo>/src/nonhost/modules/local/step.7.gsnap.nf
+//        <repo>/src/nonhost/modules/local/step.7.gsnap.nf     # git-revertible
 //
-// ONE change, in the script block. Everything else is byte-identical to
-// upstream main. See the "[walkthrough swap 5]" comment below.
+// One change, in the script block (marked [walkthrough] below): gsnap's exit
+// status is captured immediately and compared numerically, so the existing
+// gsnapSkipped fallback fires whenever gsnap doesn't leave a usable SAM.
+// Everything else is byte-identical to the repo version.
+// Why: docs/walkthrough/README.md, Part I Step 6.
 // ============================================================================
 
 nextflow.enable.dsl=2
@@ -85,34 +87,20 @@ process gsnap {
 	}
 	set +e  # suppress terminate-on-error
 	${!meta.single_end ? ALIGNER_CMD_PE : ALIGNER_CMD_SE}
-	gsnap_rc=\$?  # [walkthrough swap 5] capture IMMEDIATELY -- see note below
+	gsnap_rc=\$?  # [walkthrough] capture here, before `set -e` replaces \$?
 	set -e  # resume terminate on error, check error and clear outfile.
 
 	# =====================================================================
-	# [walkthrough swap 5] Upstream reads:
-	#
-	#     if [[ \$? > 0 ]]; then
-	#
-	# That test can never be true, for two independent reasons:
-	#   1. \$? is the exit status of the preceding `set -e`, not of gsnap --
-	#      gsnap's status was discarded one line earlier. (The May version of
-	#      this file captured `gsnap_rc=\$?` immediately, as restored above.)
-	#   2. Inside [[ ]], `>` is a STRING comparison, not numeric, so even a
-	#      correct status would compare lexicographically.
-	#
-	# The result is that gsnap can never be detected as having failed, and the
-	# gsnapSkipped fallback below -- whose entire purpose is to pass the dedup
-	# reads through unchanged when gsnap fails -- is unreachable. A failed
-	# gsnap therefore yields empty outputs, a task that still exits 0, and a
-	# pipeline that reports "Execution complete -- Goodbye" having silently
-	# discarded every sample. Part II then fails far downstream with
-	# "No non-host reads found for <BioProject>".
-	#
-	# The `-s` test is the second half of the fix. gsnap has been observed
-	# exiting 0 while producing an empty or absent SAM (and, given empty input,
-	# it exits 0 and writes no -o file at all). Treating "no usable SAM" as
-	# failure catches that case regardless of exit status, so the fallback
-	# fires and the run still produces usable reads.
+	# [walkthrough] Two small changes to the test below, so the gsnapSkipped
+	# branch is reachable:
+	#   * `\$gsnap_rc -gt 0` rather than `\$? > 0` -- \$gsnap_rc is read on the
+	#     line directly after gsnap, and `-gt` compares numerically ([[ ]]
+	#     treats `>` as a string comparison).
+	#   * `! -s ...staging.sam` also counts as failure, since gsnap exits 0
+	#     without writing a usable SAM on empty input.
+	# The effect is that a run that loses gsnap still passes the dedup reads
+	# through to Part II and reports it on stderr, rather than publishing
+	# empty outputs.
 	# =====================================================================
 	if [[ \$gsnap_rc -gt 0 || ! -s ${ALIGNER}.staging.sam ]]; then  # gsnap failed, pass through reads unchanged...
 		echo "gsnap FAILED (rc=\$gsnap_rc, staging sam \$(stat -c%s ${ALIGNER}.staging.sam 2>/dev/null || echo missing) bytes) -- passing reads through unfiltered" >&2
