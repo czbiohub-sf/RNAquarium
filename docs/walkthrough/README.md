@@ -21,7 +21,6 @@ order you use them.
 
 **Everything here is a read-only template.** Copy what you need into your own run area
 (or into the repo, where the table says so) and edit *the copy* — never the original.
-A later `git pull` then can't clobber your edits, and your outputs never get committed.
 
 | File | Action | Used at | Where it goes, and what you change |
 | --- | --- | --- | --- |
@@ -343,7 +342,10 @@ cp docs/walkthrough/step.7.gsnap.walkthrough.nf   src/nonhost/modules/local/step
 #                   src/nonhost/modules/local/step.7.gsnap.nf
 ```
 
-What each one does:
+Why these swaps: the version of the pipeline used in our 75k run had a bug in gsnap that 
+caused small runs like the one's in our test set to fail if all reads were filtered. 
+Note that this does not affect analysis (as the reads would have been filtered anyway), 
+but we suggest the following swaps to avoid errors and improve statistics counting:
 
 - **`nextflow.config`** — strips Biohub-specific `--qos`/`--tmp`, sets conda channels,
   guards gsnap's `cpus` directive against a null `ext.largeThreshold`, and sets
@@ -461,9 +463,6 @@ find "$PUB/unmapped_reads" -name '*.fastq.gz' -size +132c -printf '%10s  %p\n' |
 ```
 
 Expect two non-empty `.fastq.gz` per sample (four total for the two-sample example).
-If that prints nothing, or prints files of only a few bytes, **stop and fix Part I** —
-see Part I Step 8 and Known Issues → "Part I reports success but produces no non-host
-reads".
 
 ---
 
@@ -479,7 +478,6 @@ with your real Part I `publish-dir`:
 mkdir -p "$RUN"/unmapped_links
 cd "$RUN"/unmapped_links
 # one `ln -s` per sample, pointing at the per-sample FOLDER under Part I's Paired output.
-# The trailing "." links it into the current dir (unmapped_links/) keeping the accession name:
 ln -s /path/to/your/RNAquarium_outputs/nonhost_zf-example/unmapped_reads/Paired/ERR2723539 .
 ln -s /path/to/your/RNAquarium_outputs/nonhost_zf-example/unmapped_reads/Paired/ERR2723409 .
 ```
@@ -502,7 +500,7 @@ Part I `params.zf-example.yaml` `publish-dir:` value and redo.
 
 `zf-example-bioproject-mapping.json` maps each assembly group to its runs (samples in a
 group are co-assembled). It's ready as-is for the example. Group IDs must match `PRJ` +
-two uppercase letters + digits (the code validates this).
+two uppercase letters + digits.
 
 ---
 
@@ -527,9 +525,8 @@ files by `cd`-ing into the mounted DB dir. **Only the seeded organisms are repor
 
 > The builder downloads **current** NCBI dumps for everything **except**
 > `nameNode.sqlite`, which it builds from a pinned **Feb-2025** taxonomy dump. A current
-> dump makes the public taxonomy script miscategorize viral-realm lineages as
-> `other_Eukaryota` instead of `viruses`; Feb-2025 (the 75k run's vintage) fixes it and
-> makes the run reproducible.
+> dump makes the public taxonomy script miscategorize viral-realm lineages; Feb-2025
+> (the 75k run's vintage) fixes it and makes the run reproducible.
 
 **Full route (real analysis)** — build the full databases per
 [Inputs & Databases](https://czbiohub-sf.github.io/RNAquarium/inputs-and-databases.html)
@@ -543,9 +540,6 @@ Database parameters (all **snake_case**, matching the public `run_75k.sh`):
 | `--ntfull_dir` + `--ntfull_db_name` | full `core_nt` |
 | `--nr_dir` | DIAMOND NR (basename `nr` → `nr.dmnd`) |
 | `--taxonomy_db` | taxonomizr `nameNode.sqlite` |
-
-> Don't pass `--tax_btd`/`--tax_bti`/`--tax4blast`/`--taxonomy_db_fallback` — no process
-> reads them; `taxdb.*` just needs to sit in the db directory.
 
 **Config setup (both routes) — do once in your repo:**
 
