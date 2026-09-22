@@ -19,7 +19,7 @@
 ##SBATCH --mail-user=your.email@example.org
 
 # =============================================================================
-# WHAT TO EDIT BEFORE RUNNING — five things, and nothing else in this file:
+# WHAT TO EDIT BEFORE RUNNING:
 #   1. #SBATCH --partition          (top of file)  your cluster's queue name
 #   2. #SBATCH --chdir / -o / -e    (top of file)  three LITERAL paths (no variables)
 #   3. PROJECT_DIR                  (section 1)    your run area
