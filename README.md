@@ -38,7 +38,7 @@ Please refer to the [documentation](https://czbiohub-sf.github.io/RNAquarium/) f
 * [Metatranscriptome Technical Notes](https://czbiohub-sf.github.io/RNAquarium/Metatranscriptome-Technical-Notes.html)
 * [Metatranscriptome virus-steps Technical Notes](https://czbiohub-sf.github.io/RNAquarium/Metatranscriptome_virus-steps-Technical-Notes.html)
 
-For test-running RNAquarium on a SLURM cluster with a tiny, fully reproducible two-sample zebrafish example refer to the [walkthrough](https://github.com/czbiohub-sf/RNAquarium/blob/docs/main/docs/walkthrough/README.md).
+For test-running RNAquarium on a SLURM cluster with a tiny, fully reproducible two-sample zebrafish example refer to the [walkthrough](https://github.com/czbiohub-sf/RNAquarium/blob/main/docs/walkthrough/README.md).
 
 ## Authors and maintainers
 
