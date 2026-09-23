@@ -32,7 +32,7 @@ order you use them.
 | `stats.walkthrough.nf` | copy as-is | Part I · Step 6 | **into the repo**, over `src/nonhost/modules/local/stats.nf` |
 | `step.7.gsnap.walkthrough.nf` | copy as-is | Part I · Step 6 | **into the repo**, over `src/nonhost/modules/local/step.7.gsnap.nf` |
 | `zf-example-bioproject-mapping.json` | copy as-is | Part II · Step 3 | your run area — nothing to change |
-| **`build-toy-databases.sh`** | **EDIT** | Part II · Step 4 | your run area — `DB_DIR`, optionally the seeded virus accessions. Toy-DB route only |
+| **`build-toy-databases.sh`** | **EDIT** | Part II · Step 4 | your run area — `DB_DIR`, toy-DB route only |
 | `modules.walkthrough.config` | copy as-is | Part II · Step 4 | **into the repo**, over `src/metatranscriptome/conf/modules.config` |
 | **`run-part2-metatranscriptome.sh`** | **EDIT** | Part II · Step 5 | your run area — `--partition`, the three literal `#SBATCH` paths, `PROJECT_DIR`, `DB_DIR` |
 | `part2-test-databases.md` | read (optional) | Part II · Step 4 | background for the two toy-DB rows above |
@@ -442,9 +442,9 @@ container) and draws an alluvial plot. It uses the **`rnaq-part2`** env with
 
 > **What a toy-DB run proves:** the plumbing (every step runs, containers work, formats
 > are right) and a **positive control** — the toy DBs contain a known virus (plus host
-> sequences), so a correct run recovers the seeded virus and calls everything else "no
+> sequences), so a correct run recovers the virus and calls everything else "no
 > hit." In the example that leaves ~3 virus contigs at the end. It is **not** real
-> biology — any result for anything other than the seeded virus is an artifact of the toy
+> biology — any result for anything other than the single virus is an artifact of the toy
 > databases. Point the database paths at the toy DBs or the full DBs; the steps are the
 > same.
 
@@ -521,7 +521,7 @@ bash "$RUN"/build-toy-databases.sh
 
 It builds, in one `DB_DIR`: `host_toy.*`, `core_nt.*`, `nr.dmnd`, `nameNode.sqlite`, and
 `taxdb.btd`/`taxdb.bti`. All databases go in one folder because BLAST finds its taxonomy
-files by `cd`-ing into the mounted DB dir. **Only the seeded organisms are reportable.**
+files by `cd`-ing into the mounted DB dir.
 
 > The builder downloads **current** NCBI dumps for everything **except**
 > `nameNode.sqlite`, which it builds from a pinned **Feb-2025** taxonomy dump. A current
@@ -651,13 +651,13 @@ find "$RUN/scratch/rnaq-part2-work-zf-example" \
 ```
 taxonomy_hits_nonhost_alluvialplot_all.png / .pdf   <- alluvial plot
 taxonomy_hits_nonhost_treemap.png / .pdf            <- treemap
-taxonomy_hits_viruses*.tsv                          <- the seeded virus
+taxonomy_hits_viruses*.tsv                          <- the single virus
 taxonomy_hits_chordates.tsv                         <- host / Danio hits
 taxonomy_hits_<category>.tsv                        <- one per taxonomic category
 ```
 
 On a toy-database run, **`taxonomy_hits_viruses*.tsv` should be non-empty** — that is
-the positive control passing, meaning the seeded virus was recovered. A quick look:
+the positive control passing, meaning the virus was recovered. A quick look:
 
 ```bash
 head -3 "$DEST"/*ALLUVIAL_PLOT*/taxonomy_hits_viruses*.tsv
