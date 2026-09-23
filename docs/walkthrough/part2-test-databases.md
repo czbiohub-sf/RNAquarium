@@ -1,9 +1,8 @@
 # Part II Test Databases — a smoke-test shortcut
 
 > ⚠️ **TEST ONLY — NOT FOR REAL ANALYSIS.** These databases are deliberately tiny.
-> They let you run Part II end to end once and confirm the *plumbing* works. Results
-> are meaningful **only for the sequences you deliberately seeded** (one virus);
-> everything else comes back "no hit". For real work build the full databases —
+> They let you run Part II end to end once and confirm the *plumbing* works.
+> For real work build the full databases —
 > [Inputs & Database Requirements](https://czbiohub-sf.github.io/RNAquarium/inputs-and-databases.html).
 
 Part II's tools (`blastn`, `diamond blastx`, `taxonomizr`) don't care whether a
@@ -70,7 +69,7 @@ different vintage.
 
 **It validates:** assembly runs, every search step completes, taxonomy parses through
 taxonomizr, the alluvial plot draws, and the output structure is right — without 1.7 TB
-of databases. As a positive control, your seeded virus should come back labelled with
+of databases. As a positive control, a single virus should come back labelled with
 its taxid (~3 virus contigs in the example).
 
 **It does not validate:** anything about organisms you didn't seed. Ignore taxonomy
